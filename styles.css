@@ -640,6 +640,151 @@ input, select, textarea { font-family: inherit; }
   background: var(--white);
 }
 
+/* Countdown & Checklist Area */
+.reg-countdown-area {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  margin-bottom: 56px;
+}
+
+.countdown-box {
+  background: var(--green-dark);
+  border-radius: 16px;
+  padding: 36px 28px;
+  text-align: center;
+  color: #fff;
+}
+
+.countdown-box h3 {
+  font-size: 20px;
+  color: var(--gold-light);
+  margin-bottom: 24px;
+}
+
+.countdown-timer {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.countdown-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.countdown-value {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 48px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+  min-width: 72px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 10px;
+  padding: 12px 8px;
+}
+
+.countdown-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: rgba(255,255,255,0.5);
+  margin-top: 6px;
+  font-weight: 500;
+}
+
+.countdown-sep {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 40px;
+  font-weight: 700;
+  color: var(--gold);
+  padding-top: 12px;
+  line-height: 1;
+}
+
+.countdown-date {
+  font-size: 14px;
+  color: rgba(255,255,255,0.5);
+  margin-top: 20px;
+  letter-spacing: 0.5px;
+}
+
+.countdown-live {
+  display: inline-block;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--gold-light);
+  padding: 24px;
+}
+
+.checklist-box {
+  background: var(--cream);
+  border: 1px solid var(--gray-rule);
+  border-radius: 16px;
+  padding: 36px 28px;
+}
+
+.checklist-box h3 {
+  font-size: 20px;
+  color: var(--green-dark);
+  margin-bottom: 8px;
+}
+
+.checklist-intro {
+  font-size: 14px;
+  color: var(--gray-mid);
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.reg-checklist {
+  list-style: none;
+}
+
+.checklist-item {
+  display: flex;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--gray-rule);
+}
+
+.checklist-item:last-child {
+  border-bottom: none;
+}
+
+.check-icon {
+  font-size: 18px;
+  color: var(--green-light);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.checklist-item strong {
+  font-family: 'Raleway', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--charcoal);
+  display: block;
+  margin-bottom: 2px;
+}
+
+.checklist-item p {
+  font-size: 13px;
+  color: var(--gray-mid);
+  line-height: 1.4;
+}
+
+.checklist-note {
+  font-size: 13px;
+  color: var(--gold);
+  font-weight: 600;
+  margin-top: 16px;
+  font-style: italic;
+}
+
 /* Key Dates */
 .reg-dates {
   display: grid;
@@ -1170,6 +1315,9 @@ input, select, textarea { font-family: inherit; }
   .about-grid { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; }
   .scoring-grid { grid-template-columns: repeat(2, 1fr); }
   .optional-grid { grid-template-columns: 1fr; }
+  .reg-countdown-area { grid-template-columns: 1fr; }
+  .countdown-value { font-size: 36px; min-width: 56px; }
+  .countdown-sep { font-size: 30px; }
   .reg-dates { grid-template-columns: 1fr; max-width: 400px; margin: 0 auto 56px; }
   .pricing-grid { grid-template-columns: 1fr; max-width: 360px; margin: 0 auto 32px; }
   .rules-grid { grid-template-columns: 1fr; }
