@@ -1346,12 +1346,15 @@ input, select, textarea { font-family: inherit; }
     padding: 16px 24px 24px;
     gap: 4px;
     border-bottom: 1px solid rgba(140,100,50,0.3);
-    transform: translateY(-110%);
-    transition: transform 0.35s ease;
+    transform: translateY(calc(-100% - 68px));
+    visibility: hidden;
+    transition: transform 0.35s ease, visibility 0s 0.35s;
   }
 
   .nav-menu.open {
     transform: translateY(0);
+    visibility: visible;
+    transition: transform 0.35s ease, visibility 0s 0s;
   }
 
   .nav-link {
