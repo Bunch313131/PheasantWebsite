@@ -51,15 +51,54 @@
     });
   });
 
+  // ---------- Countdown timer ----------
+  var regOpenDate = new Date('2026-06-12T17:00:00Z'); // 10 AM PDT = 5 PM UTC
+  var countdownBox = document.getElementById('countdownBox');
+  var countDays = document.getElementById('countDays');
+  var countHours = document.getElementById('countHours');
+  var countMinutes = document.getElementById('countMinutes');
+  var countSeconds = document.getElementById('countSeconds');
+
+  function updateCountdown() {
+    var now = new Date();
+    var diff = regOpenDate - now;
+
+    if (diff <= 0) {
+      // Registration is open — replace countdown with message
+      if (countdownBox) {
+        countdownBox.querySelector('h3').textContent = 'Registration Is Open!';
+        var timer = document.getElementById('countdownTimer');
+        if (timer) {
+          timer.innerHTML = '<span class="countdown-live">Submit your team now</span>';
+        }
+        var dateEl = countdownBox.querySelector('.countdown-date');
+        if (dateEl) dateEl.style.display = 'none';
+      }
+      return;
+    }
+
+    var days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    var hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    var minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    var seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+    if (countDays) countDays.textContent = String(days).padStart(2, '0');
+    if (countHours) countHours.textContent = String(hours).padStart(2, '0');
+    if (countMinutes) countMinutes.textContent = String(minutes).padStart(2, '0');
+    if (countSeconds) countSeconds.textContent = String(seconds).padStart(2, '0');
+  }
+
+  if (countdownBox) {
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+  }
+
   // ---------- Registration form ----------
   var regForm = document.getElementById('registrationForm');
   var formStatus = document.getElementById('formStatus');
   var formSuccess = document.getElementById('formSuccess');
 
-  // Check if registration is open (June 12, 2026 10:00 AM PDT)
-  var regOpenDate = new Date('2026-06-12T17:00:00Z'); // 10 AM PDT = 5 PM UTC
   var now = new Date();
-
   if (regForm && formStatus) {
     if (now >= regOpenDate) {
       regForm.style.display = 'block';
