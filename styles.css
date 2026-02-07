@@ -1333,41 +1333,20 @@ input, select, textarea { font-family: inherit; }
   .section-header { margin-bottom: 36px; }
   .section-header h2 { font-size: 28px; }
 
-  /* Mobile Nav — menu slides from behind the woodgrain bar */
+  /* Mobile Nav */
   .nav-toggle { display: flex; }
-
-  .navbar::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: url('mahogany-nav.jpg') center/cover no-repeat;
-    border-bottom: 1px solid rgba(140,100,50,0.3);
-    z-index: 1;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.5);
-    pointer-events: none;
-  }
-
-  .nav-container {
-    position: relative;
-    z-index: 2;
-  }
 
   .nav-menu {
     position: fixed;
     top: 68px;
     left: 0;
     right: 0;
-    z-index: 0;
     background: url('mahogany-bg.jpg') center/cover no-repeat;
     flex-direction: column;
     padding: 16px 24px 24px;
     gap: 4px;
     border-bottom: 1px solid rgba(140,100,50,0.3);
-    box-shadow: 0 6px 18px rgba(0,0,0,0.5);
-    transform: translateY(-100%);
+    transform: translateY(-110%);
     transition: transform 0.35s ease;
   }
 
