@@ -98,9 +98,8 @@
   var formStatus = document.getElementById('formStatus');
   var formSuccess = document.getElementById('formSuccess');
 
-  var now = new Date();
   if (regForm && formStatus) {
-    if (now >= regOpenDate) {
+    if (new Date() >= regOpenDate) {
       regForm.style.display = 'block';
       formStatus.style.display = 'none';
     }
