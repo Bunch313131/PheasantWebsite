@@ -92,52 +92,88 @@
                 <p class="section-subtitle">72 teams &middot; Limited field &middot; Don't miss your spot</p>
             </div>
 
-            <!-- Countdown Timer -->
-            <div class="countdown-box" id="countdownBox">
-                <h3>Registration Opens In</h3>
-                <div class="countdown-timer" id="countdownTimer">
-                    <div class="countdown-unit">
-                        <span class="countdown-value" id="countDays">--</span>
-                        <span class="countdown-label">Days</span>
+            <!-- Dual Countdown Timers -->
+            <div class="countdown-dual" id="countdownDual">
+
+                <!-- Sponsor Registration Countdown -->
+                <div class="countdown-box countdown-sponsor" id="countdownSponsor">
+                    <div class="countdown-badge">Sponsor Registration</div>
+                    <h3 id="sponsorCountdownTitle">Sponsor Registration Opens In</h3>
+                    <div class="countdown-timer" id="sponsorCountdownTimer">
+                        <div class="countdown-unit">
+                            <span class="countdown-value" id="sponsorDays">--</span>
+                            <span class="countdown-label">Days</span>
+                        </div>
+                        <div class="countdown-sep">:</div>
+                        <div class="countdown-unit">
+                            <span class="countdown-value" id="sponsorHours">--</span>
+                            <span class="countdown-label">Hours</span>
+                        </div>
+                        <div class="countdown-sep">:</div>
+                        <div class="countdown-unit">
+                            <span class="countdown-value" id="sponsorMinutes">--</span>
+                            <span class="countdown-label">Minutes</span>
+                        </div>
+                        <div class="countdown-sep">:</div>
+                        <div class="countdown-unit">
+                            <span class="countdown-value" id="sponsorSeconds">--</span>
+                            <span class="countdown-label">Seconds</span>
+                        </div>
                     </div>
-                    <div class="countdown-sep">:</div>
-                    <div class="countdown-unit">
-                        <span class="countdown-value" id="countHours">--</span>
-                        <span class="countdown-label">Hours</span>
-                    </div>
-                    <div class="countdown-sep">:</div>
-                    <div class="countdown-unit">
-                        <span class="countdown-value" id="countMinutes">--</span>
-                        <span class="countdown-label">Minutes</span>
-                    </div>
-                    <div class="countdown-sep">:</div>
-                    <div class="countdown-unit">
-                        <span class="countdown-value" id="countSeconds">--</span>
-                        <span class="countdown-label">Seconds</span>
-                    </div>
+                    <p class="countdown-date">June 5, 2026 &middot; 10:00 AM PDT</p>
+                    <p class="countdown-note">Proprietary &amp; Emeritus members &middot; $750 hole sponsorship</p>
                 </div>
-                <p class="countdown-date">June 12, 2026 &middot; 10:00 AM PDT</p>
+
+                <!-- Open Registration Countdown -->
+                <div class="countdown-box countdown-open" id="countdownOpen">
+                    <div class="countdown-badge">Open Registration</div>
+                    <h3 id="openCountdownTitle">Open Registration Opens In</h3>
+                    <div class="countdown-timer" id="openCountdownTimer">
+                        <div class="countdown-unit">
+                            <span class="countdown-value" id="openDays">--</span>
+                            <span class="countdown-label">Days</span>
+                        </div>
+                        <div class="countdown-sep">:</div>
+                        <div class="countdown-unit">
+                            <span class="countdown-value" id="openHours">--</span>
+                            <span class="countdown-label">Hours</span>
+                        </div>
+                        <div class="countdown-sep">:</div>
+                        <div class="countdown-unit">
+                            <span class="countdown-value" id="openMinutes">--</span>
+                            <span class="countdown-label">Minutes</span>
+                        </div>
+                        <div class="countdown-sep">:</div>
+                        <div class="countdown-unit">
+                            <span class="countdown-value" id="openSeconds">--</span>
+                            <span class="countdown-label">Seconds</span>
+                        </div>
+                    </div>
+                    <p class="countdown-date">June 12, 2026 &middot; 10:00 AM PDT</p>
+                    <p class="countdown-note">All membership categories eligible</p>
+                </div>
+
             </div>
 
             <!-- Key Dates -->
             <div class="reg-dates">
                 <div class="reg-date-card">
                     <div class="reg-date-icon">&#128197;</div>
-                    <h4>Hole Sponsorships Open</h4>
+                    <h4>Sponsor Registration Opens</h4>
                     <p class="reg-date-value">June 5, 2026 @ 10:00 AM PDT</p>
-                    <p>18 available &middot; $750 per hole &middot; Guarantees tournament entry</p>
+                    <p>Proprietary &amp; Emeritus members &middot; $750 hole sponsorship &middot; Guarantees entry</p>
                 </div>
                 <div class="reg-date-card">
                     <div class="reg-date-icon">&#127775;</div>
-                    <h4>Competition Registration Opens</h4>
+                    <h4>Open Registration Opens</h4>
                     <p class="reg-date-value">June 12, 2026 @ 10:00 AM PDT</p>
                     <p>All membership categories eligible</p>
                 </div>
                 <div class="reg-date-card">
                     <div class="reg-date-icon">&#128274;</div>
-                    <h4>Priority Access Closes</h4>
-                    <p class="reg-date-value">June 14, 2026 @ 11:59 PM PDT</p>
-                    <p>Proprietary &amp; Emeritus members receive priority during this window</p>
+                    <h4>Waitlist</h4>
+                    <p class="reg-date-value">Once 72 teams are reached</p>
+                    <p>Cancellations refunded only if the spot can be filled</p>
                 </div>
             </div>
 
@@ -148,26 +184,19 @@
                     <div class="process-step">
                         <div class="step-number">1</div>
                         <div class="step-content">
-                            <h4>Hole Sponsorships (June 5)</h4>
-                            <p>18 hole sponsorships available at $750 each (in addition to entry fees). Sponsors receive guaranteed entry into the tournament. First come, first served. Available for one week only.</p>
+                            <h4>Sponsor Registration (June 5)</h4>
+                            <p>18 hole sponsorships available at $750 each (in addition to entry fees). Sponsors receive guaranteed entry into the tournament. Open to Proprietary and Emeritus members. First come, first served.</p>
                         </div>
                     </div>
                     <div class="process-step">
                         <div class="step-number">2</div>
                         <div class="step-content">
-                            <h4>Priority Access (June 12&ndash;14)</h4>
-                            <p>Proprietary and Emeritus members are accepted immediately upon submission. All other categories are logged and date-stamped.</p>
+                            <h4>Open Registration (June 12)</h4>
+                            <p>Open to all membership categories. All registrations are logged and date-stamped upon submission. Accepted in order of submission.</p>
                         </div>
                     </div>
                     <div class="process-step">
                         <div class="step-number">3</div>
-                        <div class="step-content">
-                            <h4>Open Registration (June 15+)</h4>
-                            <p>Remaining registrations from the priority window are accepted by submission time. All new registrations accepted strictly by submission order.</p>
-                        </div>
-                    </div>
-                    <div class="process-step">
-                        <div class="step-number">4</div>
                         <div class="step-content">
                             <h4>Waitlist</h4>
                             <p>Once we reach 72 teams, a waitlist is maintained. Cancellations are refunded only if the spot can be filled.</p>
@@ -257,9 +286,48 @@
             <!-- Registration Form -->
             <div class="reg-form-container" id="regFormContainer">
                 <h3>Registration Form</h3>
-                <p class="form-status" id="formStatus">Registration opens June 12, 2026 at 10:00 AM PDT</p>
+
+                <!-- Status messages (shown when forms are not yet available) -->
+                <p class="form-status form-status-sponsor" id="formStatusSponsor">Sponsor Registration opens June 5, 2026 at 10:00 AM PDT</p>
+                <p class="form-status form-status-open" id="formStatusOpen">Open Registration opens June 12, 2026 at 10:00 AM PDT</p>
+
+                <!-- Registration Type Tabs (hidden until at least one window is open) -->
+                <div class="reg-type-tabs" id="regTypeTabs" style="display:none;">
+                    <button class="reg-type-tab active" data-type="sponsor" id="tabSponsor">Hole Sponsor Registration</button>
+                    <button class="reg-type-tab" data-type="open" id="tabOpen">Open Registration</button>
+                </div>
 
                 <form id="registrationForm" class="reg-form" style="display:none;">
+                    <!-- Hidden registration type -->
+                    <input type="hidden" id="registrationType" name="registrationType" value="sponsor">
+
+                    <!-- Sponsor-only fields -->
+                    <fieldset id="sponsorFields" class="sponsor-only-fields">
+                        <legend>Hole Sponsorship Details</legend>
+                        <div class="form-group">
+                            <label for="sponsorName">Sponsor Company or Individual Name *</label>
+                            <input type="text" id="sponsorName" name="sponsorName">
+                        </div>
+                        <div class="form-group">
+                            <label for="sponsorLogo">Sponsor Logo (optional)</label>
+                            <div class="file-upload-wrapper">
+                                <input type="file" id="sponsorLogo" name="sponsorLogo" accept="image/png,image/jpeg,image/svg+xml,.pdf">
+                                <div class="file-upload-info">
+                                    <span class="file-upload-text" id="logoFileName">No file chosen</span>
+                                    <button type="button" class="btn-file-choose">Choose File</button>
+                                </div>
+                            </div>
+                            <p class="field-hint">PNG, JPG, SVG, or PDF. Maximum 5 MB.</p>
+                            <div id="logoPreview" class="logo-preview" style="display:none;">
+                                <img id="logoPreviewImg" src="" alt="Logo preview">
+                                <button type="button" id="logoRemoveBtn" class="btn-logo-remove">&times; Remove</button>
+                            </div>
+                        </div>
+                        <div class="sponsor-notice">
+                            <p>Hole sponsorship is $750 per hole (in addition to entry fees) and guarantees tournament entry. You will be contacted regarding hole assignment and logo placement.</p>
+                        </div>
+                    </fieldset>
+
                     <fieldset>
                         <legend>Member Information</legend>
                         <div class="form-group">
@@ -279,6 +347,7 @@
                                 <option value="young_professional">Young Professional</option>
                                 <option value="vertical">Vertical</option>
                             </select>
+                            <p class="field-warning" id="membershipWarning" style="display:none;">Sponsor registration is available to Proprietary and Emeritus members only. Please select the correct membership level or switch to Open Registration.</p>
                         </div>
                         <div class="form-group">
                             <label for="memberGhin">Member GHIN # *</label>
@@ -346,13 +415,23 @@
                         </div>
                     </fieldset>
 
-                    <button type="submit" class="btn btn-primary btn-submit">Submit Registration</button>
+                    <button type="submit" class="btn btn-primary btn-submit" id="submitBtn">
+                        <span id="submitText">Submit Sponsor Registration</span>
+                        <span id="submitSpinner" class="spinner" style="display:none;"></span>
+                    </button>
                 </form>
 
                 <div id="formSuccess" class="form-success" style="display:none;">
                     <div class="success-icon">&#10003;</div>
                     <h4>Registration Submitted!</h4>
-                    <p>Your registration has been logged and date-stamped. You will receive a confirmation email. Registration does not guarantee a spot &mdash; accepted registrations will follow the process outlined above.</p>
+                    <p id="successMessage">Your registration has been logged and date-stamped. You will receive a confirmation email.</p>
+                </div>
+
+                <div id="formError" class="form-error" style="display:none;">
+                    <div class="error-icon">&#10007;</div>
+                    <h4>Submission Failed</h4>
+                    <p id="errorMessage">Something went wrong. Please try again or contact the committee directly.</p>
+                    <button type="button" class="btn btn-primary" id="retryBtn">Try Again</button>
                 </div>
             </div>
         </div>
