@@ -35,7 +35,7 @@
                 <li><a href="#format" class="nav-link">Format</a></li>
                 <li><a href="#rules" class="nav-link">Rules</a></li>
                 <li><a href="#champions" class="nav-link">Champions</a></li>
-                <li><a href="#registration" class="nav-link nav-cta">Register Now</a></li>
+                <li><a href="register.html" class="nav-link nav-cta">Register Now</a></li>
             </ul>
         </div>
     </nav>
@@ -44,13 +44,16 @@
     <section id="hero" class="hero">
         <div class="hero-overlay"></div>
         <div class="hero-content">
-            <p class="hero-subtitle">El Macero Country Club Presents</p>
+            <p class="hero-subtitle">El Macero Mens' Club Presents</p>
+            <div class="hero-anniversary-line">
+                <p class="hero-anniversary">65<span class="ordinal">th</span><span class="annual-text">Annual</span></p>
+            </div>
             <h1 class="hero-title">The Pheasant<br>Invitational</h1>
             <div class="hero-divider"></div>
             <p class="hero-date">September 17 &ndash; 19, 2026</p>
-            <p class="hero-tagline">A Premier Member-Guest Tournament &middot; Est. 1966</p>
+            <p class="hero-tagline">A Premier Member-Guest Tournament &middot; Est. 1962</p>
             <div class="hero-actions">
-                <a href="#registration" class="btn btn-primary">Register Your Team</a>
+                <a href="register.html" class="btn btn-primary">Register Your Team</a>
                 <a href="#format" class="btn btn-outline">Tournament Details</a>
             </div>
         </div>
@@ -66,8 +69,8 @@
             <div class="about-grid">
                 <div class="about-card">
                     <div class="about-icon">&#9971;</div>
-                    <h3>60 Years of Tradition</h3>
-                    <p>Since 1966, The Pheasant Invitational has been El Macero Country Club's premier member-guest event. Three days of championship competition, camaraderie, and celebration.</p>
+                    <h3>65 Years of Tradition</h3>
+                    <p>Since 1962, The Pheasant Invitational has been El Macero Country Club's premier member-guest event. Join us for the 65th Annual as we celebrate three days of championship competition, camaraderie, and celebration.</p>
                 </div>
                 <div class="about-card">
                     <div class="about-icon">&#127942;</div>
@@ -283,156 +286,11 @@
                 <p class="checklist-note">A non-refundable $250 deposit (credited toward entry fee) is billed upon acceptance.</p>
             </div>
 
-            <!-- Registration Form -->
-            <div class="reg-form-container" id="regFormContainer">
-                <h3>Registration Form</h3>
-
-                <!-- Status messages (shown when forms are not yet available) -->
-                <p class="form-status form-status-sponsor" id="formStatusSponsor">Sponsor Registration opens June 5, 2026 at 10:00 AM PDT</p>
-                <p class="form-status form-status-open" id="formStatusOpen">Open Registration opens June 12, 2026 at 10:00 AM PDT</p>
-
-                <!-- Registration Type Tabs (hidden until at least one window is open) -->
-                <div class="reg-type-tabs" id="regTypeTabs" style="display:none;">
-                    <button class="reg-type-tab active" data-type="sponsor" id="tabSponsor">Hole Sponsor Registration</button>
-                    <button class="reg-type-tab" data-type="open" id="tabOpen">Open Registration</button>
-                </div>
-
-                <form id="registrationForm" class="reg-form" style="display:none;">
-                    <!-- Hidden registration type -->
-                    <input type="hidden" id="registrationType" name="registrationType" value="sponsor">
-
-                    <!-- Sponsor-only fields -->
-                    <fieldset id="sponsorFields" class="sponsor-only-fields">
-                        <legend>Hole Sponsorship Details</legend>
-                        <div class="form-group">
-                            <label for="sponsorName">Sponsor Company or Individual Name *</label>
-                            <input type="text" id="sponsorName" name="sponsorName">
-                        </div>
-                        <div class="form-group">
-                            <label for="sponsorLogo">Sponsor Logo (optional)</label>
-                            <div class="file-upload-wrapper">
-                                <input type="file" id="sponsorLogo" name="sponsorLogo" accept="image/png,image/jpeg,image/svg+xml,.pdf">
-                                <div class="file-upload-info">
-                                    <span class="file-upload-text" id="logoFileName">No file chosen</span>
-                                    <button type="button" class="btn-file-choose">Choose File</button>
-                                </div>
-                            </div>
-                            <p class="field-hint">PNG, JPG, SVG, or PDF. Maximum 5 MB.</p>
-                            <div id="logoPreview" class="logo-preview" style="display:none;">
-                                <img id="logoPreviewImg" src="" alt="Logo preview">
-                                <button type="button" id="logoRemoveBtn" class="btn-logo-remove">&times; Remove</button>
-                            </div>
-                        </div>
-                        <div class="sponsor-notice">
-                            <p>Hole sponsorship is $750 per hole (in addition to entry fees) and guarantees tournament entry. You will be contacted regarding hole assignment and logo placement.</p>
-                        </div>
-                    </fieldset>
-
-                    <fieldset>
-                        <legend>Member Information</legend>
-                        <div class="form-group">
-                            <label for="memberEmail">Email *</label>
-                            <input type="email" id="memberEmail" name="memberEmail" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="memberName">Member Name *</label>
-                            <input type="text" id="memberName" name="memberName" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="membershipLevel">Membership Level *</label>
-                            <select id="membershipLevel" name="membershipLevel" required>
-                                <option value="">Select your membership level</option>
-                                <option value="proprietary_emeritus">Proprietary or Emeritus</option>
-                                <option value="single_golfer">Single Golfer</option>
-                                <option value="young_professional">Young Professional</option>
-                                <option value="vertical">Vertical</option>
-                            </select>
-                            <p class="field-warning" id="membershipWarning" style="display:none;">Sponsor registration is available to Proprietary and Emeritus members only. Please select the correct membership level or switch to Open Registration.</p>
-                        </div>
-                        <div class="form-group">
-                            <label for="memberGhin">Member GHIN # *</label>
-                            <input type="text" id="memberGhin" name="memberGhin" required placeholder="All players must have an established handicap">
-                        </div>
-                    </fieldset>
-
-                    <fieldset>
-                        <legend>Guest Information</legend>
-                        <div class="form-group">
-                            <label for="guestName">Guest Name *</label>
-                            <input type="text" id="guestName" name="guestName" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="guestGhin">Guest GHIN # *</label>
-                            <input type="text" id="guestGhin" name="guestGhin" required placeholder="All players must have an established handicap">
-                        </div>
-                        <div class="form-group">
-                            <label for="guestEmail">Guest Email</label>
-                            <input type="email" id="guestEmail" name="guestEmail">
-                        </div>
-                        <div class="form-group">
-                            <label for="guestClub">Guest Club Affiliation</label>
-                            <input type="text" id="guestClub" name="guestClub">
-                        </div>
-                    </fieldset>
-
-                    <fieldset>
-                        <legend>Optional Events</legend>
-                        <div class="form-group checkbox-group">
-                            <label>
-                                <input type="checkbox" name="par3Contest" value="yes">
-                                Thursday Par 3 Contest ($50/team)
-                            </label>
-                        </div>
-                        <div class="form-group checkbox-group">
-                            <label>
-                                <input type="checkbox" name="openHorseRace" value="yes">
-                                Thursday Open Horse Race ($50/team)
-                            </label>
-                        </div>
-                    </fieldset>
-
-                    <fieldset>
-                        <legend>Saturday Awards Dinner</legend>
-                        <div class="form-group">
-                            <label for="partySize">Cocktails &amp; Hors D'oeuvres &mdash; Additional Guests</label>
-                            <select id="partySize" name="partySize" required>
-                                <option value="0">0 additional guests</option>
-                                <option value="1">1 additional guest</option>
-                                <option value="2">2 additional guests</option>
-                                <option value="3">3 additional guests</option>
-                                <option value="4">4 additional guests</option>
-                            </select>
-                        </div>
-                    </fieldset>
-
-                    <fieldset>
-                        <legend>Acknowledgement</legend>
-                        <div class="form-group checkbox-group">
-                            <label>
-                                <input type="checkbox" name="depositAck" required>
-                                I understand that by registering today I will be billed a non-refundable $250 deposit (credited towards entry fee) if my registration is accepted. *
-                            </label>
-                        </div>
-                    </fieldset>
-
-                    <button type="submit" class="btn btn-primary btn-submit" id="submitBtn">
-                        <span id="submitText">Submit Sponsor Registration</span>
-                        <span id="submitSpinner" class="spinner" style="display:none;"></span>
-                    </button>
-                </form>
-
-                <div id="formSuccess" class="form-success" style="display:none;">
-                    <div class="success-icon">&#10003;</div>
-                    <h4>Registration Submitted!</h4>
-                    <p id="successMessage">Your registration has been logged and date-stamped. You will receive a confirmation email.</p>
-                </div>
-
-                <div id="formError" class="form-error" style="display:none;">
-                    <div class="error-icon">&#10007;</div>
-                    <h4>Submission Failed</h4>
-                    <p id="errorMessage">Something went wrong. Please try again or contact the committee directly.</p>
-                    <button type="button" class="btn btn-primary" id="retryBtn">Try Again</button>
-                </div>
+            <!-- Registration CTA -->
+            <div class="reg-cta-box">
+                <h3>Ready to Register?</h3>
+                <p>Have your team info, GHIN numbers, and membership details ready &mdash; the field fills fast.</p>
+                <a href="register.html" class="btn btn-primary btn-register-cta">Register Your Team</a>
             </div>
         </div>
     </section>
@@ -767,7 +625,7 @@
             <div class="section-header">
                 <h2>Past Champions</h2>
                 <div class="section-divider"></div>
-                <p class="section-subtitle">Six decades of Pheasant Invitational history</p>
+                <p class="section-subtitle">65 years of Pheasant Invitational history</p>
             </div>
 
             <div class="champions-list">
@@ -989,7 +847,7 @@
                 <div class="footer-brand">
                     <h3>The Pheasant Invitational</h3>
                     <p>El Macero Country Club</p>
-                    <p>Est. 1966</p>
+                    <p>Est. 1962</p>
                 </div>
                 <div class="footer-links">
                     <a href="#about">About</a>

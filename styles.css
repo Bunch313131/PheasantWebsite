@@ -231,6 +231,71 @@ input, select, textarea { font-family: inherit; }
   flex-wrap: wrap;
 }
 
+/* 65th Anniversary */
+.hero-anniversary {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(42px, 7vw, 56px);
+  font-weight: 900;
+  color: var(--gold-light);
+  letter-spacing: 3px;
+  margin-bottom: 8px;
+  position: relative;
+  display: inline-block;
+}
+
+.hero-anniversary .ordinal {
+  font-size: 0.45em;
+  vertical-align: super;
+  margin-right: 2px;
+  font-weight: 700;
+}
+
+.hero-anniversary .annual-text {
+  font-family: 'Raleway', sans-serif;
+  font-size: 0.3em;
+  font-weight: 600;
+  letter-spacing: 8px;
+  text-transform: uppercase;
+  display: block;
+  color: rgba(212,182,104,0.6);
+  margin-top: 4px;
+}
+
+.hero-anniversary-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 12px;
+}
+
+.hero-anniversary-line::before,
+.hero-anniversary-line::after {
+  content: '';
+  width: 60px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+
+.hero-anniversary-line::before {
+  background: linear-gradient(90deg, transparent, var(--gold));
+}
+
+.hero-anniversary-line::after {
+  background: linear-gradient(90deg, var(--gold), transparent);
+}
+
+
+/* Subtle gold shimmer on anniversary text */
+@keyframes goldShimmer {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.75; text-shadow: 0 0 20px rgba(184,150,62,0.3); }
+}
+
+.hero-anniversary {
+  animation: goldShimmer 4s ease-in-out infinite;
+}
+
 
 /* ---------- Buttons ---------- */
 .btn {
@@ -1529,6 +1594,118 @@ input, select, textarea { font-family: inherit; }
 }
 
 
+/* ---------- Registration CTA (index page) ---------- */
+.reg-cta-box {
+  max-width: 600px;
+  margin: 0 auto;
+  text-align: center;
+  background: var(--green-dark);
+  border-radius: 16px;
+  padding: 48px 36px;
+}
+
+.reg-cta-box h3 {
+  font-size: 28px;
+  color: #fff;
+  margin-bottom: 12px;
+}
+
+.reg-cta-box p {
+  font-size: 15px;
+  color: rgba(255,255,255,0.6);
+  margin-bottom: 28px;
+  line-height: 1.6;
+}
+
+.btn-register-cta {
+  font-size: 16px;
+  padding: 18px 48px;
+  letter-spacing: 1.5px;
+}
+
+
+/* ---------- Registration Page ---------- */
+.reg-hero {
+  background: linear-gradient(155deg, var(--green-dark) 0%, #0f2a1a 40%, #0a1f14 100%);
+  padding: 120px 24px 60px;
+  text-align: center;
+}
+
+.reg-hero-content {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.reg-hero-eyebrow {
+  font-family: 'Raleway', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold-light);
+  margin-bottom: 16px;
+}
+
+.reg-hero-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(36px, 6vw, 52px);
+  font-weight: 900;
+  color: #fff;
+  margin-bottom: 12px;
+  line-height: 1.1;
+}
+
+.reg-hero-subtitle {
+  font-size: 16px;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 0.5px;
+}
+
+.reg-page {
+  background: var(--cream);
+}
+
+/* Registration closed card */
+.reg-closed-card {
+  max-width: 560px;
+  margin: 0 auto;
+  text-align: center;
+  padding: 48px 32px;
+  background: var(--white);
+  border: 1px solid var(--gray-rule);
+  border-radius: 16px;
+}
+
+.reg-closed-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.reg-closed-card h2 {
+  font-size: 28px;
+  color: var(--green-dark);
+  margin-bottom: 24px;
+}
+
+.reg-closed-dates {
+  margin-bottom: 28px;
+}
+
+.reg-closed-dates .form-status {
+  margin-top: 12px;
+}
+
+/* Registration form area on register page */
+.reg-page-form {
+  max-width: 600px;
+  margin: 0 auto;
+  background: var(--white);
+  border: 1px solid var(--gray-rule);
+  border-radius: 16px;
+  padding: 36px;
+}
+
+
 /* ---------- Footer ---------- */
 .footer {
   background: url('mahogany-bg.jpg') center/cover no-repeat;
@@ -1657,4 +1834,6 @@ input, select, textarea { font-family: inherit; }
   .hero-actions { flex-direction: column; align-items: center; }
   .btn { padding: 12px 28px; font-size: 13px; }
   .scoring-grid { grid-template-columns: repeat(2, 1fr); }
+  .hero-anniversary-line::before,
+  .hero-anniversary-line::after { width: 36px; }
 }

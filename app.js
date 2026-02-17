@@ -149,6 +149,10 @@
   var formSuccess = document.getElementById('formSuccess');
   var formError = document.getElementById('formError');
 
+  // Register page wrappers (register.html only)
+  var regPageForm = document.getElementById('regPageForm');
+  var regPageStatus = document.getElementById('regPageStatus');
+
   var currentMode = 'sponsor';
 
   function updateFormVisibility() {
@@ -164,8 +168,15 @@
     if (!sponsorOpen && !openOpen) {
       if (regTypeTabs) regTypeTabs.style.display = 'none';
       if (regForm) regForm.style.display = 'none';
+      // Register page: show closed status, hide form area
+      if (regPageStatus) regPageStatus.style.display = 'block';
+      if (regPageForm) regPageForm.style.display = 'none';
       return;
     }
+
+    // Register page: hide closed status, show form area
+    if (regPageStatus) regPageStatus.style.display = 'none';
+    if (regPageForm) regPageForm.style.display = 'block';
 
     // Show tabs
     if (regTypeTabs) regTypeTabs.style.display = 'flex';
