@@ -229,7 +229,7 @@ input, select, textarea { font-family: inherit; }
   margin-top: 8px;
   font-size: 11px;
   letter-spacing: 3px;
-  color: rgba(255,255,255,0.35);
+  color: var(--gold-light);
 }
 
 .hero-actions {
