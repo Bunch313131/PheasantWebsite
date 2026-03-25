@@ -410,8 +410,8 @@
           var successMsg = document.getElementById('successMessage');
           if (successMsg) {
             successMsg.textContent = currentMode === 'sponsor'
-              ? 'Your sponsor registration has been logged and date-stamped. The committee will contact you regarding hole assignment and logo placement.'
-              : 'Your registration has been logged and date-stamped. You will receive a confirmation email. Registration does not guarantee a spot \u2014 accepted registrations will follow the process outlined above.';
+              ? 'Your sponsor registration has been logged and date-stamped. Please note that submission does not guarantee a spot \u2014 the opportunity is limited to 18 sponsorships. The committee will contact you regarding acceptance, hole assignment, and logo placement. You will receive a confirmation email shortly \u2014 if you don\u2019t see it within a few minutes, please check your spam folder.'
+              : 'Your registration has been logged and date-stamped. Registration does not guarantee a spot \u2014 accepted registrations will follow the process outlined above. You will receive a confirmation email shortly \u2014 if you don\u2019t see it within a few minutes, please check your spam folder.';
           }
           formSuccess.style.display = 'block';
           formSuccess.scrollIntoView({ behavior: 'smooth', block: 'center' });
