@@ -93,7 +93,7 @@
   function onSponsorExpired() {
     sponsorExpired = true;
     var titleEl = document.getElementById('sponsorCountdownTitle');
-    if (titleEl) titleEl.textContent = 'Sponsor Registration Is Open!';
+    if (titleEl) titleEl.textContent = 'Hole Sponsor Registration Is Open!';
     var timerEl = document.getElementById('sponsorCountdownTimer');
     if (timerEl) timerEl.innerHTML = '<span class="countdown-live">Submit your team now</span>';
     var dateEl = document.getElementById('countdownSponsor');
@@ -225,7 +225,7 @@
     var submitText = document.getElementById('submitText');
     if (submitText) {
       submitText.textContent = mode === 'sponsor'
-        ? 'Submit Sponsor Registration'
+        ? 'Submit Hole Sponsor Registration'
         : 'Submit Registration';
     }
   }
@@ -340,7 +340,7 @@
       if (currentMode === 'sponsor') {
         var level = membershipSelect ? membershipSelect.value : '';
         if (level !== 'proprietary_emeritus') {
-          alert('Sponsor registration is available to Proprietary and Emeritus members only. ' +
+          alert('Hole Sponsor registration is available to Proprietary and Emeritus members only. ' +
                 'Please update your membership level or switch to Open Registration.');
           if (membershipSelect) membershipSelect.focus();
           return;
@@ -356,7 +356,7 @@
       // Re-check time gates
       var now = new Date();
       if (currentMode === 'sponsor' && now < SPONSOR_OPEN_DATE) {
-        alert('Sponsor registration is not yet open.');
+        alert('Hole Sponsor registration is not yet open.');
         return;
       }
       if (currentMode === 'open' && now < REG_OPEN_DATE) {
@@ -410,7 +410,7 @@
           var successMsg = document.getElementById('successMessage');
           if (successMsg) {
             successMsg.textContent = currentMode === 'sponsor'
-              ? 'Your sponsor registration has been logged and date-stamped. Please note that submission does not guarantee a spot \u2014 the opportunity is limited to 18 sponsorships. The committee will contact you regarding acceptance, hole assignment, and logo placement. You will receive a confirmation email shortly \u2014 if you don\u2019t see it within a few minutes, please check your spam folder.'
+              ? 'Your hole sponsor registration has been logged and date-stamped. Please note that submission does not guarantee a spot \u2014 the opportunity is limited to 18 sponsorships. The committee will contact you regarding acceptance, hole assignment, and logo placement. You will receive a confirmation email shortly \u2014 if you don\u2019t see it within a few minutes, please check your spam folder.'
               : 'Your registration has been logged and date-stamped. Registration does not guarantee a spot \u2014 accepted registrations will follow the process outlined above. You will receive a confirmation email shortly \u2014 if you don\u2019t see it within a few minutes, please check your spam folder.';
           }
           formSuccess.style.display = 'block';
@@ -428,7 +428,7 @@
       .finally(function () {
         if (submitBtn) submitBtn.disabled = false;
         if (submitTextEl) submitTextEl.textContent = currentMode === 'sponsor'
-          ? 'Submit Sponsor Registration' : 'Submit Registration';
+          ? 'Submit Hole Sponsor Registration' : 'Submit Registration';
         if (submitSpinner) submitSpinner.style.display = 'none';
       });
     });
