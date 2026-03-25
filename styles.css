@@ -224,6 +224,14 @@ input, select, textarea { font-family: inherit; }
   margin-bottom: 36px;
 }
 
+.hero-est {
+  display: block;
+  margin-top: 8px;
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: rgba(255,255,255,0.35);
+}
+
 .hero-actions {
   display: flex;
   gap: 16px;
