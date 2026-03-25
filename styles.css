@@ -221,15 +221,41 @@ input, select, textarea { font-family: inherit; }
   letter-spacing: 1.5px;
   text-transform: uppercase;
   font-weight: 400;
-  margin-bottom: 36px;
+  margin-bottom: 12px;
+}
+
+.hero-est-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 4px;
+  margin-bottom: 32px;
+}
+
+.hero-est-line::before,
+.hero-est-line::after {
+  content: '';
+  width: 40px;
+  height: 1px;
+}
+
+.hero-est-line::before {
+  background: linear-gradient(90deg, transparent, var(--gold));
+}
+
+.hero-est-line::after {
+  background: linear-gradient(90deg, var(--gold), transparent);
 }
 
 .hero-est {
-  display: block;
-  margin-top: 8px;
-  font-size: 11px;
-  letter-spacing: 3px;
+  font-family: 'Raleway', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 5px;
+  text-transform: uppercase;
   color: var(--gold-light);
+  margin: 0;
 }
 
 .hero-actions {
