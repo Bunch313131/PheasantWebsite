@@ -1615,6 +1615,10 @@ input, select, textarea { font-family: inherit; }
   padding: 28px 24px;
 }
 
+.rule-card--wide {
+  grid-column: 1 / -1;
+}
+
 .rule-card h4 {
   font-size: 16px;
   color: var(--green-dark);
