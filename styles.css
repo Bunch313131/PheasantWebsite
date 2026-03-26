@@ -713,6 +713,10 @@ input, select, textarea { font-family: inherit; }
   padding: 24px;
 }
 
+.optional-card--wide {
+  grid-column: 1 / -1;
+}
+
 .optional-card h4 {
   font-size: 18px;
   color: var(--green-dark);
