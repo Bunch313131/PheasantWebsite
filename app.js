@@ -152,6 +152,7 @@
   // Register page wrappers (register.html only)
   var regPageForm = document.getElementById('regPageForm');
   var regPageStatus = document.getElementById('regPageStatus');
+  var prepCard = document.getElementById('prepCard');
 
   var currentMode = 'sponsor';
 
@@ -163,6 +164,9 @@
     // Status messages
     if (formStatusSponsor) formStatusSponsor.style.display = sponsorOpen ? 'none' : 'block';
     if (formStatusOpen) formStatusOpen.style.display = openOpen ? 'none' : 'block';
+
+    // Prep card: show until open registration is live
+    if (prepCard) prepCard.style.display = openOpen ? 'none' : 'block';
 
     // If neither window is open, hide form and tabs
     if (!sponsorOpen && !openOpen) {

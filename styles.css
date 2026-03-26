@@ -1737,6 +1737,80 @@ input, select, textarea { font-family: inherit; }
   margin-top: 12px;
 }
 
+/* Before You Register prep card */
+.prep-card {
+  max-width: 860px;
+  margin: 0 auto 36px;
+  background: #eef3ee;
+  border-radius: 16px;
+  padding: 40px 40px 32px;
+  text-align: center;
+}
+
+.prep-card-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 26px;
+  color: var(--green-dark);
+  margin-bottom: 8px;
+}
+
+.prep-card-sub {
+  font-size: 15px;
+  color: var(--gray-dark);
+  margin-bottom: 28px;
+}
+
+.prep-card-cols {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  text-align: left;
+  margin-bottom: 24px;
+}
+
+.prep-col h5 {
+  font-family: 'Raleway', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--green-dark);
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(26,58,42,0.2);
+}
+
+.prep-col ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.prep-col ul li {
+  font-size: 14px;
+  color: var(--gray-dark);
+  line-height: 1.6;
+  padding: 4px 0 4px 18px;
+  position: relative;
+}
+
+.prep-col ul li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 12px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--green-dark);
+}
+
+.prep-card-note {
+  font-size: 13px;
+  color: var(--gray-dark);
+  margin: 0;
+}
+
 /* Registration form area on register page */
 .reg-page-form {
   max-width: 600px;
