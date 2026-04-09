@@ -186,19 +186,21 @@
     if (regTypeTabs) regTypeTabs.style.display = 'flex';
 
     // Enable/disable individual tabs
+    // Hole Sponsor tab: only available between June 5 and June 12
     if (tabSponsor) {
-      tabSponsor.disabled = !sponsorOpen;
-      tabSponsor.classList.toggle('tab-disabled', !sponsorOpen);
+      var sponsorTabOpen = sponsorOpen && !openOpen;
+      tabSponsor.disabled = !sponsorTabOpen;
+      tabSponsor.classList.toggle('tab-disabled', !sponsorTabOpen);
     }
     if (tabOpen) {
       tabOpen.disabled = !openOpen;
       tabOpen.classList.toggle('tab-disabled', !openOpen);
     }
 
-    // If current mode is not yet available, switch to the available one
+    // If current mode is not yet available (or sponsor closed), switch to the available one
     if (currentMode === 'open' && !openOpen && sponsorOpen) {
       setMode('sponsor');
-    } else if (currentMode === 'sponsor' && !sponsorOpen && openOpen) {
+    } else if (currentMode === 'sponsor' && (!sponsorOpen || openOpen)) {
       setMode('open');
     }
 
@@ -255,10 +257,9 @@
 
   if (membershipSelect) {
     membershipSelect.addEventListener('change', function () {
-      if (currentMode === 'sponsor' && this.value && this.value !== 'proprietary_emeritus') {
-        if (membershipWarning) membershipWarning.style.display = 'block';
-      } else {
-        if (membershipWarning) membershipWarning.style.display = 'none';
+      var isNonPropEmeritus = this.value && this.value !== 'proprietary_emeritus';
+      if (membershipWarning) {
+        membershipWarning.style.display = (currentMode === 'sponsor' && isNonPropEmeritus) ? 'block' : 'none';
       }
     });
   }
@@ -342,13 +343,6 @@
 
       // --- Client-side validation ---
       if (currentMode === 'sponsor') {
-        var level = membershipSelect ? membershipSelect.value : '';
-        if (level !== 'proprietary_emeritus') {
-          alert('Hole Sponsor registration is available to Proprietary and Emeritus members only. ' +
-                'Please update your membership level or switch to Open Registration.');
-          if (membershipSelect) membershipSelect.focus();
-          return;
-        }
         var sponsorNameInput = document.getElementById('sponsorName');
         if (sponsorNameInput && !sponsorNameInput.value.trim()) {
           alert('Please enter a Sponsor Company or Individual Name.');

@@ -127,7 +127,7 @@
                         </div>
                     </div>
                     <p class="countdown-date">June 5, 2026 &middot; 10:00 AM PDT</p>
-                    <p class="countdown-note">Proprietary &amp; Emeritus only &middot; 18 holes &middot; $750 + entry fees</p>
+                    <p class="countdown-note">All golf members eligible &middot; Prop/Emeritus priority &middot; 18 spots &middot; $750 + entry fees &middot; Closes June 12</p>
                     <button class="btn btn-outline" onclick="downloadICS('sponsor')" style="margin-top:18px; font-size:12px; padding:10px 22px;">&#128197; Add to Calendar</button>
                 </div>
 
@@ -168,8 +168,8 @@
                 <div class="reg-date-card">
                     <div class="reg-date-icon">&#128197;</div>
                     <h4>Hole Sponsor Registration</h4>
-                    <p class="reg-date-value">June 5, 2026 @ 10:00 AM PDT</p>
-                    <p>Proprietary &amp; Emeritus only &middot; 18 sponsorships &middot; $750 per hole + entry fees &middot; Guarantees entry</p>
+                    <p class="reg-date-value">June 5 &ndash; June 12, 2026</p>
+                    <p>All golf members eligible &middot; Proprietary &amp; Emeritus priority &middot; 18 spots &middot; $750 + entry fees &middot; Guarantees entry</p>
                 </div>
                 <div class="reg-date-card">
                     <div class="reg-date-icon">&#127775;</div>
@@ -192,8 +192,14 @@
                     <div class="process-step">
                         <div class="step-number">1</div>
                         <div class="step-content">
-                            <h4>Hole Sponsor Registration (June 5)</h4>
-                            <p>18 hole sponsorships available at $750 each (in addition to entry fees). Open to Proprietary and Emeritus members only. Accepted in order of submission. Hole sponsors receive guaranteed entry into the tournament.</p>
+                            <h4>Hole Sponsor Registration (June 5&ndash;12)</h4>
+                            <p>18 hole sponsorships are available at $750 each (in addition to entry fees). Hole sponsors receive <strong>guaranteed entry</strong> into the tournament. All golf membership categories may register, but spots are awarded by priority:</p>
+                            <ul style="margin: 10px 0 0 18px; font-size: 14px; color: var(--gray-dark); line-height: 1.8;">
+                                <li><strong>Proprietary and Emeritus members</strong> fill the first 18 spots in order of submission.</li>
+                                <li>If all 18 spots are claimed by Prop/Emeritus members, remaining hole sponsor registrations will not receive a sponsorship — those teams remain eligible for open registration.</li>
+                                <li>If fewer than 18 spots are claimed by Prop/Emeritus members, remaining spots are awarded to other membership categories in order of submission.</li>
+                            </ul>
+                            <p style="margin-top: 10px;">All hole sponsor registrations close on <strong>June 12</strong> when open registration opens. The committee will contact accepted sponsors regarding hole assignment and logo placement.</p>
                         </div>
                     </div>
                     <div class="process-step">
@@ -868,7 +874,7 @@
             ? 'Pheasant Invitational — Hole Sponsor Registration Opens'
             : 'Pheasant Invitational — Open Registration Opens';
         var description = isSponsor
-            ? 'Hole Sponsor Registration opens for Proprietary & Emeritus members. Register at www.pheasantinvitational.com/register.html'
+            ? 'Hole Sponsor Registration opens. All golf members eligible — Prop/Emeritus priority. Register at www.pheasantinvitational.com/register.html'
             : 'Open Registration opens for all members. Register at www.pheasantinvitational.com/register.html';
         // June 5 10AM PDT = 17:00 UTC | June 12 10AM PDT = 17:00 UTC
         var dtStart = isSponsor ? '20260605T170000Z' : '20260612T170000Z';

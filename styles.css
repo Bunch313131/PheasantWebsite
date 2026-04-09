@@ -1513,6 +1513,17 @@ input, select, textarea { font-family: inherit; }
   line-height: 1.5;
 }
 
+.field-info {
+  font-size: 13px;
+  color: #5a4a1a;
+  background: rgba(212,182,104,0.12);
+  border: 1px solid rgba(212,182,104,0.4);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-top: 8px;
+  line-height: 1.5;
+}
+
 /* Dual status messages */
 .form-status-sponsor,
 .form-status-open {

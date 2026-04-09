@@ -89,9 +89,6 @@ function doPost(e) {
       if (!data.sponsorName) {
         return createResponse('error', 'Sponsor name is required for sponsor registration.');
       }
-      if (data.membershipLevel !== 'proprietary_emeritus') {
-        return createResponse('error', 'Sponsor registration is only available to Proprietary/Emeritus members.');
-      }
     }
 
     // Handle logo upload
