@@ -55,16 +55,41 @@
     });
   });
 
-  // ---------- Register button text (pre-open state) ----------
-  var heroRegBtn = document.getElementById('heroRegBtn');
-  var ctaRegBtn = document.getElementById('ctaRegBtn');
+  // ---------- Dual register button states ----------
+  var sponsorBtns = [document.getElementById('heroSponsorBtn'), document.getElementById('ctaSponsorBtn')];
+  var openBtns    = [document.getElementById('heroOpenBtn'),    document.getElementById('ctaOpenBtn')];
 
-  (function updateRegBtnText() {
+  (function updateRegBtnStates() {
     var now = new Date();
-    var anyOpen = now >= SPONSOR_OPEN_DATE;
-    var label = anyOpen ? 'Register Your Team' : 'Registration Opens June 5';
-    if (heroRegBtn) heroRegBtn.textContent = label;
-    if (ctaRegBtn) ctaRegBtn.textContent = label;
+    var sponsorOpen = now >= SPONSOR_OPEN_DATE;
+    var openOpen    = now >= REG_OPEN_DATE;
+
+    sponsorBtns.forEach(function(btn) {
+      if (!btn) return;
+      if (openOpen) {
+        // Sponsor window closed — hide entirely
+        btn.style.display = 'none';
+      } else if (sponsorOpen) {
+        // Sponsor window active
+        btn.textContent = 'Hole Sponsor Registration';
+        btn.classList.remove('btn-reg-soon');
+      } else {
+        // Not yet open
+        btn.textContent = 'Hole Sponsor Registration \u00b7 Opens June 5';
+        btn.classList.add('btn-reg-soon');
+      }
+    });
+
+    openBtns.forEach(function(btn) {
+      if (!btn) return;
+      if (openOpen) {
+        btn.textContent = 'Open Registration';
+        btn.classList.remove('btn-reg-soon');
+      } else {
+        btn.textContent = 'Open Registration \u00b7 Opens June 12';
+        btn.classList.add('btn-reg-soon');
+      }
+    });
   })();
 
   // ---------- Dual Countdown Timers ----------

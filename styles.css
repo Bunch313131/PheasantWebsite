@@ -1682,10 +1682,76 @@ input, select, textarea { font-family: inherit; }
 }
 
 .btn-register-cta {
-  font-size: 16px;
-  padding: 18px 48px;
-  letter-spacing: 1.5px;
+  font-size: 15px;
+  padding: 16px 32px;
+  letter-spacing: 1px;
 }
+
+/* Registration split buttons */
+.hero-reg-btns,
+.cta-reg-btns {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.cta-reg-btns {
+  margin-top: 0;
+}
+
+/* Active state — sponsor (gold) */
+.btn-reg-sponsor {
+  background: var(--gold);
+  color: var(--green-dark);
+  border: 2px solid var(--gold);
+  font-family: 'Raleway', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 14px 28px;
+  border-radius: 999px;
+  text-decoration: none;
+  display: inline-block;
+  transition: background 0.2s, color 0.2s, opacity 0.2s;
+}
+
+.btn-reg-sponsor:hover {
+  background: var(--gold-light);
+  border-color: var(--gold-light);
+}
+
+/* Active state — open (green) */
+.btn-reg-open {
+  background: transparent;
+  color: #fff;
+  border: 2px solid rgba(255,255,255,0.5);
+  font-family: 'Raleway', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 14px 28px;
+  border-radius: 999px;
+  text-decoration: none;
+  display: inline-block;
+  transition: background 0.2s, border-color 0.2s, opacity 0.2s;
+}
+
+.btn-reg-open:hover {
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.8);
+}
+
+/* Coming-soon muted state (on dark bg) */
+.btn-reg-soon {
+  opacity: 0.45;
+  cursor: default;
+  pointer-events: none;
+}
+
+/* On light backgrounds (reg-cta-box is dark so these are fine, but hero is also dark) */
 
 
 /* ---------- Registration Page ---------- */
