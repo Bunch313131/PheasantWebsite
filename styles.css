@@ -765,8 +765,12 @@ input, select, textarea { font-family: inherit; }
 }
 
 .countdown-box .btn {
-  margin-top: auto;
   align-self: center;
+}
+
+.countdown-flex-gap {
+  flex: 1;
+  min-height: 20px;
 }
 
 .countdown-sponsor { border-top: 3px solid var(--gold); }
