@@ -760,6 +760,13 @@ input, select, textarea { font-family: inherit; }
   color: #fff;
   max-width: 560px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.countdown-box .btn {
+  margin-top: auto;
+  align-self: center;
 }
 
 .countdown-sponsor { border-top: 3px solid var(--gold); }

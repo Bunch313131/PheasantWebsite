@@ -55,6 +55,18 @@
     });
   });
 
+  // ---------- Register button text (pre-open state) ----------
+  var heroRegBtn = document.getElementById('heroRegBtn');
+  var ctaRegBtn = document.getElementById('ctaRegBtn');
+
+  (function updateRegBtnText() {
+    var now = new Date();
+    var anyOpen = now >= SPONSOR_OPEN_DATE;
+    var label = anyOpen ? 'Register Your Team' : 'Registration Opens June 5';
+    if (heroRegBtn) heroRegBtn.textContent = label;
+    if (ctaRegBtn) ctaRegBtn.textContent = label;
+  })();
+
   // ---------- Dual Countdown Timers ----------
   var sponsorElements = {
     days: document.getElementById('sponsorDays'),
