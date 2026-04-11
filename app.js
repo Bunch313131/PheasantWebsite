@@ -562,14 +562,14 @@
   var particles = [];
 
   function spawnParticle(spreadY) {
+    var startY = spreadY ? Math.random() * H : H + 10;
     return {
       x: Math.random() * W,
-      y: spreadY ? Math.random() * H : H + 10,
+      y: startY,
+      startY: startY,
       r: 0.8 + Math.random() * 2.5,
-      vy: -(0.15 + Math.random() * 0.4),
-      vx: (Math.random() - 0.5) * 0.25,
-      life: 0,
-      maxLife: 180 + Math.random() * 220,
+      vy: -(0.6 + Math.random() * 1.2),   // faster — covers full height
+      vx: (Math.random() - 0.5) * 0.3,
       maxOpacity: 0.08 + Math.random() * 0.28,
     };
   }
@@ -580,16 +580,16 @@
     ctx.clearRect(0, 0, W, H);
     for (var i = 0; i < particles.length; i++) {
       var p = particles[i];
-      p.life++;
       p.x += p.vx;
       p.y += p.vy;
 
-      var opacity;
-      if (p.life < 50) opacity = (p.life / 50) * p.maxOpacity;
-      else if (p.life > p.maxLife - 50) opacity = ((p.maxLife - p.life) / 50) * p.maxOpacity;
-      else opacity = p.maxOpacity;
+      if (p.y < -10) { particles[i] = spawnParticle(false); continue; }
 
-      if (p.life >= p.maxLife || p.y < -10) { particles[i] = spawnParticle(false); continue; }
+      // Fade in over first 80px of travel, fade out in top 15% of hero
+      var traveled = p.startY - p.y;
+      var fadeIn  = Math.min(traveled / 80, 1);
+      var fadeOut = p.y < H * 0.15 ? (p.y / (H * 0.15)) : 1;
+      var opacity = p.maxOpacity * fadeIn * fadeOut;
 
       // Core dot
       ctx.beginPath();
