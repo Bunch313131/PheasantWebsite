@@ -649,10 +649,8 @@
           '<td class="round col-r1">' + fmtPts(rd.r1) + '</td>' +
           '<td class="round col-r2">' + fmtPts(rd.r2) + '</td>' +
           '<td class="round col-r3">' + fmtPts(rd.r3) + '</td>' +
-          '<td class="round col-r4">' + fmtPts(rd.r4.pts) +
-            (rd.r4.result ? '<span class="round-result">' + escHtml(rd.r4.result) + '</span>' : '') + '</td>' +
-          '<td class="round col-r5">' + fmtPts(rd.r5.pts) +
-            (rd.r5.result ? '<span class="round-result">' + escHtml(rd.r5.result) + '</span>' : '') + '</td>' +
+          '<td class="round col-r4">' + fmtPts(rd.r4.pts) + '</td>' +
+          '<td class="round col-r5">' + fmtPts(rd.r5.pts) + '</td>' +
           '<td class="round-total">' + fmtPts(rd.total || row.points) + '</td>';
       } else {
         // Fallback: no per-round data
