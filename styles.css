@@ -2103,11 +2103,11 @@ input, select, textarea { font-family: inherit; }
   background: linear-gradient(
     112deg,
     #fff 0%,
-    #fff 47%,
-    rgba(255,220,0,1)   49%,
-    rgba(255,255,160,1) 50%,
-    rgba(255,220,0,1)   51%,
-    #fff 53%,
+    #fff 48%,
+    rgba(255,255,60,1)  49.2%,
+    rgba(255,255,210,1) 50%,
+    rgba(255,255,60,1)  50.8%,
+    #fff 52%,
     #fff 100%
   );
   background-size: 300% auto;
