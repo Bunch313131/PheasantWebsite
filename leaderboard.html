@@ -535,9 +535,11 @@
       if (!headerRow) return map;
 
       var idx = 0;
+      var allHeaders = [];
       headerRow.querySelectorAll('th').forEach(function(th) {
         var span = parseInt(th.getAttribute('colspan') || '1', 10);
         var label = th.textContent.trim().toLowerCase().replace(/\s+/g,'');
+        allHeaders.push({ label: label, span: span, idx: idx });
 
         // Match "r1","r2","r3","r4","r5","total"
         var key = null;
@@ -555,6 +557,8 @@
         idx += span;
       });
 
+      console.log('[GG colMap] headers:', allHeaders);
+      console.log('[GG colMap] map:', map);
       return map;
     }
 
