@@ -2097,7 +2097,7 @@ input, select, textarea { font-family: inherit; }
 }
 @keyframes heroTitleShimmer {
   0%   { background-position: 200% center; }
-  100% { background-position: -100% center; }
+  100% { background-position: -200% center; }
 }
 
 .hero-title {
@@ -2117,7 +2117,7 @@ input, select, textarea { font-family: inherit; }
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation: heroFadeUp 0.7s ease 0.65s forwards, heroTitleShimmer 5s linear 2.5s infinite;
+  animation: heroFadeUp 0.7s ease 0.65s forwards, heroTitleShimmer 5s linear 2.5s 1 forwards;
 }
 .hero-divider {
   opacity: 0;
