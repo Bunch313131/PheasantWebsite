@@ -7,8 +7,8 @@
   'use strict';
 
   // ---------- Configuration ----------
-  var SPONSOR_OPEN_DATE = new Date('2026-06-05T17:00:00Z'); // June 5, 10 AM PDT
-  var REG_OPEN_DATE = new Date('2026-06-12T17:00:00Z');     // June 12, 10 AM PDT
+  var SPONSOR_OPEN_DATE = new Date('2026-04-11T00:00:00Z'); // TEMP TEST - revert to June 5
+  var REG_OPEN_DATE = new Date('2026-04-11T00:00:00Z');     // TEMP TEST - revert to June 12
   var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzv1eGhaOCn-Yb_zdtfeVFfDQMCfO_rFp7UJ_NU6xdVNXOuJoalxAHLGn150jFSFoYVHQ/exec';
   var MAX_LOGO_SIZE = 5 * 1024 * 1024; // 5 MB
   var ALLOWED_LOGO_TYPES = ['image/png', 'image/jpeg', 'image/svg+xml', 'application/pdf'];
