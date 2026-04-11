@@ -702,53 +702,85 @@
       scopes.forEach(function(scope) {
         var aggs = scope.aggregates || [];
 
-        // Flight is complete only if every team has data in all 5 rounds
+        // Only run when all 5 rounds are complete for every team
         var complete = aggs.length > 0 && aggs.every(function(row) {
           var rd = roundData[row.id_str] || {};
-          return rd.r1 && rd.r2 && rd.r3 &&
-                 rd.r4 && rd.r4.pts && rd.r5 && rd.r5.pts;
+          return rd.r1 && rd.r2 && rd.r3 && rd.r4 && rd.r4.pts && rd.r5 && rd.r5.pts;
         });
         if (!complete) return;
 
-        // Gather teams tied at 1st or 2nd
+        // Find ties at 1st or 2nd (only handle 2-way ties)
         var byRank = {};
         aggs.forEach(function(row) {
           var r = parseInt(row.rank, 10);
-          if (r === 1 || r === 2) {
-            byRank[r] = byRank[r] || [];
-            byRank[r].push(row);
-          }
+          byRank[r] = byRank[r] || [];
+          byRank[r].push(row);
         });
-
-        // Ties at 1st affect both 1st and 2nd place slots
-        // Ties at 2nd only affect 2nd place
-        var tiedGroup = null;
-        if (byRank[1] && byRank[1].length > 1) tiedGroup = byRank[1];
-        else if (byRank[2] && byRank[2].length > 1) tiedGroup = byRank[2];
+        var tiedGroup = null, tiedRank = null;
+        if (byRank[1] && byRank[1].length === 2) { tiedGroup = byRank[1]; tiedRank = 1; }
+        else if (byRank[2] && byRank[2].length === 2) { tiedGroup = byRank[2]; tiedRank = 2; }
         if (!tiedGroup) return;
 
-        // Fetch detail page for the first tied team to get match schedule
-        var teamA = tiedGroup[0];
-        fetchDetailSchedule(teamA.id_str).then(function(schedule) {
-          tiedGroup.forEach(function(teamB) {
-            if (teamB.id_str === teamA.id_str) return;
-            var match = findHeadToHead(schedule, teamB.name);
-            if (!match) { console.log('[TB] no H2H match found for', teamB.name); return; }
-            console.log('[TB] H2H result:', teamA.name, 'vs', teamB.name, '→', match.result);
+        var teamA = tiedGroup[0], teamB = tiedGroup[1];
 
-            // "N up" = teamA won, "N dn" = teamB won, "T" = still tied
-            var result = (match.result || '').trim();
-            var teamAWon = / up$/.test(result);
-            var teamBWon = / dn$/.test(result);
-            if (!teamAWon && !teamBWon) return; // truly tied — leave as-is
+        // Build reference team order (everyone except the tied pair, sorted by rank)
+        var tiedIds = {};
+        tiedIds[teamA.id_str] = true;
+        tiedIds[teamB.id_str] = true;
+        var refOrder = aggs.slice()
+          .filter(function(t) { return !tiedIds[t.id_str]; })
+          .sort(function(a, b) { return parseInt(a.rank) - parseInt(b.rank); });
 
-            var winner = teamAWon ? teamA : teamB;
-            var loser  = teamAWon ? teamB : teamA;
-            applyTiebreakerBadges(scope.name, winner.id_str, loser.id_str,
-                                  parseInt(teamA.rank, 10));
-          });
-        }).catch(function() { /* detail fetch failed — leave ties as-is */ });
+        // Fetch both schedules in parallel
+        Promise.all([
+          fetchDetailSchedule(teamA.id_str),
+          fetchDetailSchedule(teamB.id_str)
+        ]).then(function(schedules) {
+          var schA = schedules[0], schB = schedules[1];
+
+          // Tiebreaker 1: head-to-head between the two tied teams
+          var h2h = findHeadToHead(schA, teamB.name);
+          var h2hScore = h2h ? compareResult(h2h.result) : 0;
+          console.log('[TB]', scope.name, 'H2H:', teamA.name, 'vs', teamB.name,
+                      '→', h2h ? h2h.result : 'not found', '(score:', h2hScore, ')');
+          if (h2hScore !== 0) {
+            applyWinner(scope.name, h2hScore > 0 ? teamA : teamB,
+                        h2hScore > 0 ? teamB : teamA, tiedRank);
+            return;
+          }
+
+          // Tiebreaker 2+: cascade through reference teams by rank
+          for (var i = 0; i < refOrder.length; i++) {
+            var ref = refOrder[i];
+            var mA = findHeadToHead(schA, ref.name);
+            var mB = findHeadToHead(schB, ref.name);
+            var sA = mA ? compareResult(mA.result) : 0;
+            var sB = mB ? compareResult(mB.result) : 0;
+            console.log('[TB]', scope.name, 'vs', ref.name,
+                        '| A:', mA ? mA.result : '?', '| B:', mB ? mB.result : '?');
+            if (sA !== sB) {
+              applyWinner(scope.name, sA > sB ? teamA : teamB,
+                          sA > sB ? teamB : teamA, tiedRank);
+              return;
+            }
+          }
+
+          console.log('[TB]', scope.name, '— tie unresolvable by available tiebreakers');
+        }).catch(function() {});
       });
+    }
+
+    function applyWinner(scopeName, winner, loser, tiedRank) {
+      console.log('[TB] Winner:', winner.name, '| Loser:', loser.name);
+      applyTiebreakerBadges(scopeName, winner.id_str, loser.id_str, tiedRank);
+    }
+
+    // Compare match result: 1 = won, -1 = lost, 0 = tied/unknown
+    function compareResult(result) {
+      var r = (result || '').trim();
+      if (/ up$/.test(r))              return  1;
+      if (/ dn$/.test(r) || / down$/.test(r)) return -1;
+      return 0;
     }
 
     // Fetch and parse a team's match schedule from GG detail page
