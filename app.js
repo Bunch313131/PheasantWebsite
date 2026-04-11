@@ -567,8 +567,8 @@
       y: initY !== undefined ? initY : H + 10,
       startY: H + 10,  // always real spawn point so fade-in is consistent
       r: 0.8 + Math.random() * 2.5,
-      vy: -(0.6 + Math.random() * 1.2),
-      vx: (Math.random() - 0.5) * 0.3,
+      vy: -(0.2 + Math.random() * 0.35),
+      vx: (Math.random() - 0.5) * 0.15,
       maxOpacity: 0.08 + Math.random() * 0.28,
     };
   }
