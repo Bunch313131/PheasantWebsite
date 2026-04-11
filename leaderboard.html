@@ -453,10 +453,9 @@
       ])
       .then(function(results) {
         var jsonData  = results[0];
-        console.log('[GG html] first 500 chars:', (results[1]||'').substring(0, 500));
         var roundData = parseRoundHtml(results[1]);
-        console.log('[GG roundData keys]', Object.keys(roundData).length, Object.keys(roundData)[0], roundData[Object.keys(roundData)[0]]);
         render(jsonData, roundData);
+        checkTiebreakers(jsonData, roundData);
         markUpdated();
         schedulePoll();
       })
@@ -659,7 +658,7 @@
           '<td class="round-total">' + fmtPts(row.points) + '</td>';
       }
 
-      return '<tr class="' + cls + '">' +
+      return '<tr class="' + cls + '" data-id="' + escHtml(row.id_str || '') + '">' +
         '<td class="pos">' + escHtml(row.position || '') + '</td>' +
         '<td class="team-cell">' +
           '<div class="team-names">' + teamHtml + badge + '</div>' +
@@ -691,6 +690,209 @@
       if (!isLive) return;
       clearTimeout(pollTimer);
       pollTimer = setTimeout(loadStandings, GG.pollMs);
+    }
+
+    // ============================================================
+    // Tiebreaker — head-to-head for 1st/2nd in completed flights
+    // Only runs when all 5 rounds are complete and a tie exists
+    // at position 1 or 2 (top 2 advance to horse race).
+    // ============================================================
+    function checkTiebreakers(jsonData, roundData) {
+      var scopes = (jsonData.event && jsonData.event.scopes) || [];
+      scopes.forEach(function(scope) {
+        var aggs = scope.aggregates || [];
+
+        // Flight is complete only if every team has data in all 5 rounds
+        var complete = aggs.length > 0 && aggs.every(function(row) {
+          var rd = roundData[row.id_str] || {};
+          return rd.r1 && rd.r2 && rd.r3 &&
+                 rd.r4 && rd.r4.pts && rd.r5 && rd.r5.pts;
+        });
+        if (!complete) return;
+
+        // Gather teams tied at 1st or 2nd
+        var byRank = {};
+        aggs.forEach(function(row) {
+          var r = parseInt(row.rank, 10);
+          if (r === 1 || r === 2) {
+            byRank[r] = byRank[r] || [];
+            byRank[r].push(row);
+          }
+        });
+
+        // Ties at 1st affect both 1st and 2nd place slots
+        // Ties at 2nd only affect 2nd place
+        var tiedGroup = null;
+        if (byRank[1] && byRank[1].length > 1) tiedGroup = byRank[1];
+        else if (byRank[2] && byRank[2].length > 1) tiedGroup = byRank[2];
+        if (!tiedGroup) return;
+
+        // Fetch detail page for the first tied team to get match schedule
+        var teamA = tiedGroup[0];
+        fetchDetailSchedule(teamA.id_str).then(function(schedule) {
+          // schedule: array of { roundKey, opponentName } in R1-R5 order
+          tiedGroup.forEach(function(teamB) {
+            if (teamB.id_str === teamA.id_str) return;
+            // Find which round teamA played teamB
+            var match = findHeadToHead(schedule, teamB.name);
+            if (!match) return;
+
+            var rdA = roundData[teamA.id_str] || {};
+            var rdB = roundData[teamB.id_str] || {};
+            var ptsA = parseFloat(getRoundPts(rdA, match.roundKey)) || 0;
+            var ptsB = parseFloat(getRoundPts(rdB, match.roundKey)) || 0;
+
+            if (ptsA === ptsB) return; // still tied — leave as-is
+
+            var winner = ptsA > ptsB ? teamA : teamB;
+            var loser  = ptsA > ptsB ? teamB : teamA;
+            applyTiebreakerBadges(scope.name, winner.id_str, loser.id_str,
+                                  parseInt(teamA.rank, 10));
+          });
+        }).catch(function() { /* detail fetch failed — leave ties as-is */ });
+      });
+    }
+
+    // Fetch and parse a team's match schedule from GG detail page
+    function fetchDetailSchedule(aggregateId) {
+      var url = GG.gasUrl + '?action=gg-detail&id=' + aggregateId;
+      return fetch(url)
+        .then(function(r) { return r.text(); })
+        .then(function(html) { return parseDetailSchedule(html, aggregateId); });
+    }
+
+    // Parse detail page HTML → array of { roundKey:'r1'|'r2'|..., opponentName }
+    // GG detail page lists matches in round order; we map them to r1-r5 by position.
+    function parseDetailSchedule(html, debugId) {
+      var schedule = [];
+      try {
+        var doc = new DOMParser().parseFromString(html, 'text/html');
+
+        // GG detail page match rows: look for rows that contain opponent team name links
+        // Try several selectors GG has been known to use
+        var matchRows = doc.querySelectorAll(
+          'tr[data-round-id], ' +
+          'tr.match_result_row, ' +
+          'table.match_results tr:not(:first-child), ' +
+          'table.tournament_results tr[data-aggregate-id]'
+        );
+
+        // Fallback: any tr that has 3+ td cells and no th cells (data rows)
+        if (!matchRows.length) {
+          matchRows = Array.from(doc.querySelectorAll('table tr')).filter(function(tr) {
+            return tr.querySelectorAll('td').length >= 3 &&
+                   tr.querySelectorAll('th').length === 0 &&
+                   !tr.closest('thead');
+          });
+        }
+
+        console.log('[GG detail ' + debugId + '] match rows found:', matchRows.length);
+        if (matchRows.length) {
+          console.log('[GG detail] first row html:', matchRows[0].innerHTML.substring(0, 300));
+        }
+
+        var roundKeys = ['r1','r2','r3','r4','r5'];
+        var idx = 0;
+        matchRows.forEach(function(row) {
+          if (idx >= 5) return;
+          var cells = row.querySelectorAll('td');
+          // Look for a cell that contains an opponent name (text with "+" or "&")
+          var opponentName = '';
+          cells.forEach(function(td) {
+            var t = td.textContent.trim();
+            if (!opponentName && (t.indexOf('+') !== -1 || t.indexOf('&') !== -1) && t.length > 4) {
+              opponentName = t;
+            }
+          });
+          // Also try any link text in the row
+          if (!opponentName) {
+            var links = row.querySelectorAll('a');
+            links.forEach(function(a) {
+              var t = a.textContent.trim();
+              if (!opponentName && t.length > 4) opponentName = t;
+            });
+          }
+          if (opponentName) {
+            schedule.push({ roundKey: roundKeys[idx], opponentName: opponentName });
+            idx++;
+          }
+        });
+        console.log('[GG detail] parsed schedule:', JSON.stringify(schedule));
+      } catch(e) { console.error('[GG detail parse error]', e); }
+      return schedule;
+    }
+
+    // Find the schedule entry where the opponent matches a team name
+    function findHeadToHead(schedule, teamName) {
+      // Normalize: lowercase, strip punctuation
+      function norm(s) { return s.toLowerCase().replace(/[^a-z0-9]/g, ' ').replace(/\s+/g, ' ').trim(); }
+      var normTeam = norm(teamName);
+      // Build set of last-name tokens from the team name (handles "First Last + First Last")
+      var tokens = normTeam.split(/\s+/).filter(function(t) { return t.length > 3; });
+
+      return schedule.find(function(entry) {
+        var normOpp = norm(entry.opponentName);
+        // Match if at least 2 significant tokens overlap
+        var hits = tokens.filter(function(t) { return normOpp.indexOf(t) !== -1; });
+        return hits.length >= 2;
+      }) || null;
+    }
+
+    // Get points for a team for a given round key
+    function getRoundPts(rd, roundKey) {
+      if (roundKey === 'r4' || roundKey === 'r5') return (rd[roundKey] || {}).pts || 0;
+      return rd[roundKey] || 0;
+    }
+
+    // Update position badges in the rendered table for a resolved tie
+    function applyTiebreakerBadges(scopeName, winnerId, loserId, tiedRank) {
+      var panels = document.querySelectorAll('.flight-panel');
+      panels.forEach(function(panel) {
+        var h2 = panel.querySelector('.flight-name');
+        if (!h2) return;
+        // Match flight by name (scope name may include " Flight" suffix)
+        var panelName = h2.textContent.trim().toLowerCase();
+        var scopeFirst = scopeName.toLowerCase().split(' ')[0];
+        if (panelName.indexOf(scopeFirst) === -1) return;
+
+        var winnerRow = panel.querySelector('tr[data-id="' + winnerId + '"]');
+        var loserRow  = panel.querySelector('tr[data-id="' + loserId  + '"]');
+        if (!winnerRow || !loserRow) return;
+
+        if (tiedRank === 1) {
+          // Tied for 1st: winner = Flight Winner, loser = Runner-Up
+          setRowRank(winnerRow, 1, 'Flight Winner');
+          setRowRank(loserRow,  2, 'Runner-Up');
+        } else {
+          // Tied for 2nd: winner = Runner-Up (advances), loser = 3rd (does not)
+          setRowRank(winnerRow, 2, 'Runner-Up');
+          setRowRank(loserRow,  3, '');
+        }
+      });
+    }
+
+    function setRowRank(row, rank, badgeText) {
+      row.classList.remove('rank-1', 'rank-2');
+      if (rank === 1) row.classList.add('rank-1');
+      if (rank === 2) row.classList.add('rank-2');
+      var badge = row.querySelector('.advance-badge');
+      if (rank <= 2) {
+        var cls = rank === 1 ? 'advance-badge winner' : 'advance-badge runner';
+        if (badge) {
+          badge.className = cls;
+          badge.textContent = badgeText + ' (T)';
+        } else {
+          var nameDiv = row.querySelector('.team-names');
+          if (nameDiv) {
+            var b = document.createElement('span');
+            b.className = cls;
+            b.textContent = badgeText + ' (T)';
+            nameDiv.appendChild(b);
+          }
+        }
+      } else {
+        if (badge) badge.remove();
+      }
     }
 
     function escHtml(str) {

@@ -172,6 +172,21 @@ function doGet(e) {
     }
   }
 
+  // Detail endpoint — full match schedule per team (for head-to-head tiebreaker)
+  if (e.parameter.action === 'gg-detail' && e.parameter.id) {
+    try {
+      var resp = UrlFetchApp.fetch('https://www.golfgenius.com/tournaments2/details/' + e.parameter.id, {
+        muteHttpExceptions: true,
+        headers: { 'Accept': 'text/html', 'User-Agent': 'Mozilla/5.0' }
+      });
+      return ContentService.createTextOutput(resp.getContentText())
+        .setMimeType(ContentService.MimeType.TEXT);
+    } catch (err) {
+      return ContentService.createTextOutput('')
+        .setMimeType(ContentService.MimeType.TEXT);
+    }
+  }
+
   return ContentService
     .createTextOutput('Pheasant Invitational Registration API is active.')
     .setMimeType(ContentService.MimeType.TEXT);
