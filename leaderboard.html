@@ -422,10 +422,12 @@
   <script>
     // ============================================================
     // GOLF GENIUS CONFIGURATION
-    // Swap tournament_id for the 2026 event when ready
+    // Swap tournamentId for the 2026 event when ready
+    // gasUrl: your Apps Script deployment URL
     // ============================================================
     var GG = {
       tournamentId: '11881230346303323406',
+      gasUrl:       'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec',
       year:         '2025',
       pollMs:       3 * 60 * 1000   // 3 min — matches GG portal cadence
     };
@@ -441,9 +443,8 @@
     // Fetch & render
     // ============================================================
     function buildUrl() {
-      return 'https://www.golfgenius.com/v2tournaments/' + GG.tournamentId
-        + '?called_from=widgets%2Fcustomized_tournament_results'
-        + '&hide_totals=false&player_stats_for_portal=true';
+      // Route through GAS proxy to avoid CORS — GAS fetches GG server-side
+      return GG.gasUrl + '?action=gg&id=' + GG.tournamentId;
     }
 
     function loadStandings() {

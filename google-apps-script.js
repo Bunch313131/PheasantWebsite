@@ -135,9 +135,25 @@ function doPost(e) {
 }
 
 // --------------------------------------------------------
-// GET handler — for testing that deployment is active
+// GET handler — proxy for Golf Genius API (bypasses browser CORS)
+// Usage: ?action=gg&id=TOURNAMENT_ID
 // --------------------------------------------------------
 function doGet(e) {
+  if (e.parameter.action === 'gg' && e.parameter.id) {
+    var url = 'https://www.golfgenius.com/v2tournaments/' + e.parameter.id
+      + '?called_from=widgets%2Fcustomized_tournament_results'
+      + '&hide_totals=false&player_stats_for_portal=true';
+    try {
+      var resp = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+      return ContentService
+        .createTextOutput(resp.getContentText())
+        .setMimeType(ContentService.MimeType.JSON);
+    } catch (err) {
+      return ContentService
+        .createTextOutput(JSON.stringify({ error: err.message }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+  }
   return ContentService
     .createTextOutput('Pheasant Invitational Registration API is active.')
     .setMimeType(ContentService.MimeType.TEXT);
