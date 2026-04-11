@@ -2040,6 +2040,29 @@ input, select, textarea { font-family: inherit; }
   .scoring-grid { grid-template-columns: repeat(2, 1fr); }
   .hero-anniversary-line::before,
   .hero-anniversary-line::after { width: 36px; }
+
+  /* Countdown — prevent overflow on small phones */
+  .countdown-dual { max-width: 100%; padding: 0; }
+  .countdown-box { padding: 20px 14px; }
+  .countdown-box h3 { font-size: 15px; margin-bottom: 14px; }
+  .countdown-timer { gap: 4px; }
+  .countdown-value { font-size: 26px; min-width: 42px; padding: 8px 4px; border-radius: 8px; }
+  .countdown-sep { font-size: 20px; padding-top: 8px; }
+  .countdown-label { font-size: 10px; }
+  .countdown-note { font-size: 11px; }
+  .countdown-date { font-size: 12px; }
+
+  /* Registration buttons — stack on very small screens */
+  .hero-reg-btns, .cta-reg-btns { flex-direction: column; align-items: center; }
+  .btn-reg-sponsor, .btn-reg-open { width: 100%; max-width: 280px; text-align: center; }
+
+  /* Pricing cards — tighten padding */
+  .pricing-card { padding: 24px 20px; }
+  .price { font-size: 36px; }
+
+  /* Champions list */
+  .champion-row { flex-wrap: wrap; gap: 4px; }
+  .champion-badge { font-size: 10px; }
 }
 
 
