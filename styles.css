@@ -2104,9 +2104,9 @@ input, select, textarea { font-family: inherit; }
     112deg,
     #fff 0%,
     #fff 47%,
-    rgba(255,210,80,1)  49%,
-    rgba(255,255,220,1) 50%,
-    rgba(255,210,80,1)  51%,
+    rgba(255,220,0,1)   49%,
+    rgba(255,255,160,1) 50%,
+    rgba(255,220,0,1)   51%,
     #fff 53%,
     #fff 100%
   );
@@ -2117,7 +2117,7 @@ input, select, textarea { font-family: inherit; }
   background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: heroFadeUp 0.7s ease 0.65s forwards;
-  transition: background-position 2.5s ease;
+  transition: background-position 3.8s ease;
 }
 .hero-title.shimmer-once {
   background-position: 0% center;
