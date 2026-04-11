@@ -786,36 +786,12 @@
           });
         }
 
-        console.log('[GG detail ' + debugId + '] match rows found:', matchRows.length);
-        if (matchRows.length) {
-          console.log('[GG detail] first row html:', matchRows[0].innerHTML.substring(0, 300));
-        }
-
-        var roundKeys = ['r1','r2','r3','r4','r5'];
-        var idx = 0;
-        matchRows.forEach(function(row) {
-          if (idx >= 5) return;
-          var cells = row.querySelectorAll('td');
-          // Look for a cell that contains an opponent name (text with "+" or "&")
-          var opponentName = '';
-          cells.forEach(function(td) {
-            var t = td.textContent.trim();
-            if (!opponentName && (t.indexOf('+') !== -1 || t.indexOf('&') !== -1) && t.length > 4) {
-              opponentName = t;
-            }
-          });
-          // Also try any link text in the row
-          if (!opponentName) {
-            var links = row.querySelectorAll('a');
-            links.forEach(function(a) {
-              var t = a.textContent.trim();
-              if (!opponentName && t.length > 4) opponentName = t;
-            });
-          }
-          if (opponentName) {
-            schedule.push({ roundKey: roundKeys[idx], opponentName: opponentName });
-            idx++;
-          }
+        // Log ALL rows' text to find where match opponent names live
+        var allRows = Array.from(doc.querySelectorAll('table tr'));
+        console.log('[GG detail ' + debugId + '] total table rows:', allRows.length);
+        allRows.forEach(function(row, i) {
+          var t = row.textContent.replace(/\s+/g, ' ').trim().substring(0, 120);
+          if (t.length > 5) console.log('[GG detail row ' + i + ']', t);
         });
         console.log('[GG detail] parsed schedule:', JSON.stringify(schedule));
       } catch(e) { console.error('[GG detail parse error]', e); }
