@@ -888,13 +888,17 @@
         if (!winnerRow || !loserRow) return;
 
         if (tiedRank === 1) {
-          // Tied for 1st: winner = Flight Winner, loser = Runner-Up
           setRowRank(winnerRow, 1, 'Flight Winner');
           setRowRank(loserRow,  2, 'Runner-Up');
         } else {
-          // Tied for 2nd: winner = Runner-Up (advances), loser = 3rd (does not)
           setRowRank(winnerRow, 2, 'Runner-Up');
           setRowRank(loserRow,  3, '');
+        }
+
+        // Ensure winner row appears above loser row in the DOM
+        var tbody = winnerRow.parentNode;
+        if (tbody && winnerRow.rowIndex > loserRow.rowIndex) {
+          tbody.insertBefore(winnerRow, loserRow);
         }
       });
     }
