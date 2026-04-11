@@ -453,7 +453,9 @@
       ])
       .then(function(results) {
         var jsonData  = results[0];
+        console.log('[GG html] first 500 chars:', (results[1]||'').substring(0, 500));
         var roundData = parseRoundHtml(results[1]);
+        console.log('[GG roundData keys]', Object.keys(roundData).length, Object.keys(roundData)[0], roundData[Object.keys(roundData)[0]]);
         render(jsonData, roundData);
         markUpdated();
         schedulePoll();
@@ -513,7 +515,7 @@
 
           result[id] = entry;
         });
-      } catch (ex) { /* HTML parse failed — show totals only */ }
+      } catch (ex) { console.error('[GG parseRoundHtml error]', ex); }
       return result;
     }
 
