@@ -331,11 +331,14 @@
     .lb-error { color: var(--danger); }
 
     /* ── Mobile ── */
-    @media (max-width: 600px) {
+    @media (max-width: 680px) {
       .lb-hero-title { font-size: 28px; }
       .lb-table td, .lb-table th { padding: 10px 8px; }
-      .lb-table .col-r1, .lb-table .col-r2, .lb-table .col-r3 { display: none; }
-      .advance-badge { display: none; }
+      .lb-table .col-r1, .lb-table .col-r2, .lb-table .col-r3,
+      .lb-table .col-r4, .lb-table .col-r5 { display: none; }
+      .lb-table { width: 100%; }
+      .team-names { font-size: 15px; }
+      .advance-badge { font-size: 9px; padding: 2px 6px; }
     }
   </style>
 </head>
