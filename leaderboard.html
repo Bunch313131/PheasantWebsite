@@ -762,38 +762,16 @@
     }
 
     // Parse detail page HTML → array of { roundKey:'r1'|'r2'|..., opponentName }
-    // GG detail page lists matches in round order; we map them to r1-r5 by position.
     function parseDetailSchedule(html, debugId) {
       var schedule = [];
       try {
-        var doc = new DOMParser().parseFromString(html, 'text/html');
-
-        // GG detail page match rows: look for rows that contain opponent team name links
-        // Try several selectors GG has been known to use
-        var matchRows = doc.querySelectorAll(
-          'tr[data-round-id], ' +
-          'tr.match_result_row, ' +
-          'table.match_results tr:not(:first-child), ' +
-          'table.tournament_results tr[data-aggregate-id]'
-        );
-
-        // Fallback: any tr that has 3+ td cells and no th cells (data rows)
-        if (!matchRows.length) {
-          matchRows = Array.from(doc.querySelectorAll('table tr')).filter(function(tr) {
-            return tr.querySelectorAll('td').length >= 3 &&
-                   tr.querySelectorAll('th').length === 0 &&
-                   !tr.closest('thead');
-          });
-        }
-
-        // Log ALL rows' text to find where match opponent names live
-        var allRows = Array.from(doc.querySelectorAll('table tr'));
-        console.log('[GG detail ' + debugId + '] total table rows:', allRows.length);
-        allRows.forEach(function(row, i) {
-          var t = row.textContent.replace(/\s+/g, ' ').trim().substring(0, 120);
-          if (t.length > 5) console.log('[GG detail row ' + i + ']', t);
+        // Log raw HTML chunks to find where team matchup data lives
+        console.log('[GG detail ' + debugId + '] html length:', html.length);
+        [0, 1500, 3000, 6000, 12000].forEach(function(pos) {
+          if (pos < html.length) {
+            console.log('[GG chunk @' + pos + ']', html.substring(pos, pos + 500).replace(/\s+/g, ' '));
+          }
         });
-        console.log('[GG detail] parsed schedule:', JSON.stringify(schedule));
       } catch(e) { console.error('[GG detail parse error]', e); }
       return schedule;
     }
