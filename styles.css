@@ -2103,23 +2103,24 @@ input, select, textarea { font-family: inherit; }
   background: linear-gradient(
     105deg,
     #fff 0%,
-    #fff 28%,
-    rgba(218,185,40,1)  43%,
+    #fff 38%,
+    rgba(218,185,40,1)  48%,
     rgba(255,242,120,1) 50%,
-    rgba(218,185,40,1)  57%,
-    #fff 72%,
+    rgba(218,185,40,1)  52%,
+    #fff 62%,
     #fff 100%
   );
   background-size: 300% auto;
-  background-position: 250% center;
+  background-position: 0% center;
+  background-repeat: no-repeat;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: heroFadeUp 0.7s ease 0.65s forwards;
-  transition: background-position 1.8s ease;
+  transition: background-position 2.5s ease;
 }
 .hero-title.shimmer-once {
-  background-position: -150% center;
+  background-position: 100% center;
 }
 .hero-divider {
   opacity: 0;
