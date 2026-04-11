@@ -522,19 +522,15 @@
     // Build a map of round key → column index (or {first, last} for multi-col rounds)
     function buildColMap(doc) {
       var map = {};
-      // Find the last thead tr that has th elements (some tables have multi-row heads)
-      var headerRows = doc.querySelectorAll('thead tr');
-      if (!headerRows.length) return map;
-
-      // Use the row with the most th elements
+      // GG may not wrap headers in <thead> — search all tr elements for th cells
       var headerRow = null;
-      headerRows.forEach(function(tr) {
+      doc.querySelectorAll('tr').forEach(function(tr) {
         var ths = tr.querySelectorAll('th');
-        if (!headerRow || ths.length > headerRow.querySelectorAll('th').length) {
+        if (ths.length > 0 && (!headerRow || ths.length > headerRow.querySelectorAll('th').length)) {
           headerRow = tr;
         }
       });
-      if (!headerRow) return map;
+      if (!headerRow) { console.warn('[GG colMap] no header row found'); return map; }
 
       var idx = 0;
       var allHeaders = [];
