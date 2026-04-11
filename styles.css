@@ -2101,13 +2101,13 @@ input, select, textarea { font-family: inherit; }
 .hero-title {
   opacity: 0;
   background: linear-gradient(
-    105deg,
+    112deg,
     #fff 0%,
-    #fff 38%,
-    rgba(255,200,0,1)   48%,
-    rgba(255,248,140,1) 50%,
-    rgba(255,200,0,1)   52%,
-    #fff 62%,
+    #fff 47%,
+    rgba(255,210,80,1)  49%,
+    rgba(255,255,220,1) 50%,
+    rgba(255,210,80,1)  51%,
+    #fff 53%,
     #fff 100%
   );
   background-size: 300% auto;
