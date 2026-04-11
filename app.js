@@ -613,9 +613,12 @@
   var el = document.getElementById('annivCounter');
   if (!el) return;
 
-  // Hide entire anniversary line (number, "th", "Annual", accent lines) until counting starts
+  // Take full JS control — cancel CSS animation so it can't override our opacity
   var line = el.closest('.hero-anniversary-line');
-  if (line) line.style.opacity = '0';
+  if (line) {
+    line.classList.add('js-controlled');
+    line.style.opacity = '0';
+  }
   el.textContent = '1';
 
   // Fade entire line in when counting starts
@@ -637,4 +640,14 @@
     }
     requestAnimationFrame(step);
   }, 1150);
+})();
+
+// ---------- Hero Title Shimmer (runs once, ~2s after title slides in) ----------
+(function () {
+  var title = document.querySelector('.hero-title');
+  if (!title) return;
+  // title fade-in: 0.65s delay + 0.7s duration = 1.35s. Add ~1.5s buffer = 2.85s total
+  setTimeout(function () {
+    title.classList.add('shimmer-once');
+  }, 2850);
 })();

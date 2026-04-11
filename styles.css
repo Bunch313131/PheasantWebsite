@@ -2095,6 +2095,9 @@ input, select, textarea { font-family: inherit; }
   animation: heroFadeUp 0.7s ease forwards;
   animation-delay: 0.4s;
 }
+.hero-anniversary-line.js-controlled {
+  animation: none;
+}
 @keyframes heroTitleShimmer {
   0%   { background-position: 200% center; }
   100% { background-position: -200% center; }
@@ -2117,7 +2120,10 @@ input, select, textarea { font-family: inherit; }
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation: heroFadeUp 0.7s ease 0.65s forwards, heroTitleShimmer 5s linear 2.5s 1 forwards;
+  animation: heroFadeUp 0.7s ease 0.65s forwards;
+}
+.hero-title.shimmer-once {
+  animation: heroFadeUp 0.7s ease 0.65s forwards, heroTitleShimmer 5s linear 0s 1 forwards;
 }
 .hero-divider {
   opacity: 0;
