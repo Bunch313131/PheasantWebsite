@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leaderboard | The Pheasant Invitational</title>
+  <meta name="description" content="Live leaderboard and flight standings for The Pheasant Invitational at El Macero Country Club.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="favicon.ico" sizes="32x32">
+  <meta name="theme-color" content="#1a3a2a">
+  <style>
+    /* ── Leaderboard page styles ── */
+
+    .lb-hero {
+      background: url('hero-bg.jpg') center/cover no-repeat;
+      min-height: 200px;
+      display: flex;
+      align-items: flex-end;
+      padding-bottom: 36px;
+      position: relative;
+    }
+    .lb-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(10,28,18,0.55) 0%, rgba(10,28,18,0.75) 100%);
+    }
+    .lb-hero-content {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      text-align: center;
+      color: #fff;
+      padding: 0 24px;
+      padding-top: 90px;
+    }
+    .lb-hero-eyebrow {
+      font-family: 'Raleway', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--gold-light);
+      margin-bottom: 10px;
+    }
+    .lb-hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 38px;
+      font-weight: 900;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    .lb-hero-sub {
+      font-size: 13px;
+      color: rgba(255,255,255,0.7);
+      letter-spacing: 1px;
+    }
+
+    /* ── Status bar ── */
+    .lb-status-bar {
+      background: var(--green-dark);
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .lb-status-bar .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      width: 100%;
+    }
+    .lb-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+    .lb-badge.live {
+      background: rgba(220,38,38,0.15);
+      color: #f87171;
+      border: 1px solid rgba(220,38,38,0.3);
+    }
+    .lb-badge.live::before {
+      content: '';
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #f87171;
+      animation: pulse-dot 1.4s ease infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+    .lb-badge.final {
+      background: rgba(184,150,62,0.15);
+      color: var(--gold-light);
+      border: 1px solid rgba(184,150,62,0.3);
+    }
+    .lb-updated {
+      font-size: 12px;
+      color: rgba(255,255,255,0.45);
+      font-family: 'Raleway', sans-serif;
+    }
+
+    /* ── Main layout ── */
+    .lb-page {
+      padding: 36px 0 72px;
+      background: var(--cream);
+      min-height: 60vh;
+    }
+
+    /* ── Flight tabs ── */
+    .flight-tabs-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin-bottom: 28px;
+      scrollbar-width: none;
+    }
+    .flight-tabs-wrap::-webkit-scrollbar { display: none; }
+    .flight-tabs {
+      display: flex;
+      gap: 6px;
+      min-width: max-content;
+      padding-bottom: 2px;
+    }
+    .flight-tab {
+      font-family: 'Raleway', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 8px 16px;
+      border-radius: 4px;
+      border: 1px solid var(--gray-rule);
+      background: #fff;
+      color: var(--gray-dark);
+      cursor: pointer;
+      transition: all 0.18s;
+      white-space: nowrap;
+    }
+    .flight-tab:hover {
+      border-color: var(--gold);
+      color: var(--green-dark);
+    }
+    .flight-tab.active {
+      background: var(--green-dark);
+      border-color: var(--green-dark);
+      color: #fff;
+    }
+    .flight-tab.advances {
+      position: relative;
+    }
+    .flight-tab.advances::after {
+      content: '★';
+      font-size: 8px;
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      color: var(--gold);
+    }
+
+    /* ── Flight panel ── */
+    .flight-panel { display: none; }
+    .flight-panel.active { display: block; }
+
+    .flight-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .flight-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--green-dark);
+    }
+    .flight-note {
+      font-size: 12px;
+      color: var(--gray-mid);
+      font-style: italic;
+    }
+
+    /* ── Standings table ── */
+    .lb-table-wrap {
+      background: #fff;
+      border-radius: 8px;
+      border: 1px solid var(--gray-rule);
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .lb-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: 'Raleway', sans-serif;
+    }
+    .lb-table thead tr {
+      background: var(--green-dark);
+    }
+    .lb-table thead th {
+      padding: 13px 16px;
+      text-align: left;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.7);
+      white-space: nowrap;
+    }
+    .lb-table thead th:first-child {
+      color: var(--gold-light);
+      width: 48px;
+      text-align: center;
+    }
+    .lb-table thead th.right { text-align: right; }
+
+    .lb-table tbody tr {
+      border-bottom: 1px solid var(--gray-rule);
+      transition: background 0.15s;
+    }
+    .lb-table tbody tr:last-child { border-bottom: none; }
+    .lb-table tbody tr:hover { background: var(--green-pale); }
+    .lb-table tbody tr.rank-1 { background: var(--gold-pale); }
+    .lb-table tbody tr.rank-1:hover { background: #f5edcc; }
+    .lb-table tbody tr.rank-2 { background: #f7f7f5; }
+
+    .lb-table td {
+      padding: 14px 16px;
+      font-size: 14px;
+      color: var(--charcoal);
+      vertical-align: middle;
+    }
+    .lb-table td.pos {
+      text-align: center;
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--gray-mid);
+      width: 48px;
+    }
+    .lb-table tbody tr.rank-1 td.pos { color: var(--gold); font-size: 15px; }
+    .lb-table td.team-cell { min-width: 180px; }
+    .team-names {
+      font-weight: 600;
+      color: var(--green-dark);
+      line-height: 1.3;
+    }
+    .team-clubs {
+      font-size: 11px;
+      color: var(--gray-mid);
+      margin-top: 2px;
+      line-height: 1.3;
+    }
+    .lb-table td.right { text-align: right; }
+    .lb-table td.score {
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--green-dark);
+      text-align: right;
+    }
+    .lb-table td.points {
+      text-align: right;
+      color: var(--gray-dark);
+      font-size: 13px;
+    }
+    .lb-table td.holes {
+      text-align: right;
+      color: var(--gray-dark);
+      font-size: 13px;
+    }
+
+    /* advance badges */
+    .advance-badge {
+      display: inline-block;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 3px;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+    .advance-badge.winner {
+      background: var(--gold);
+      color: #fff;
+    }
+    .advance-badge.runner {
+      background: var(--gray-light);
+      color: var(--gray-dark);
+    }
+
+    /* ── Loading / error states ── */
+    .lb-loading, .lb-error {
+      text-align: center;
+      padding: 60px 24px;
+      color: var(--gray-mid);
+      font-family: 'Raleway', sans-serif;
+    }
+    .lb-loading .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--gray-rule);
+      border-top-color: var(--green-mid);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .lb-error { color: var(--danger); }
+
+    /* ── Mobile ── */
+    @media (max-width: 600px) {
+      .lb-hero-title { font-size: 28px; }
+      .lb-table td, .lb-table th { padding: 11px 10px; }
+      .lb-table td.holes { display: none; }
+      .lb-table thead th.col-holes { display: none; }
+      .advance-badge { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav id="navbar" class="navbar">
+    <div class="nav-container">
+      <a href="full.html" class="nav-logo"><img src="copper-logo-nav.png" alt="The Pheasant Invitational" class="nav-logo-img"></a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-menu" id="navMenu">
+        <li><a href="full.html#about" class="nav-link">About</a></li>
+        <li><a href="full.html#registration" class="nav-link">Info &amp; Pricing</a></li>
+        <li><a href="full.html#schedule" class="nav-link">Schedule</a></li>
+        <li><a href="full.html#format" class="nav-link">Format</a></li>
+        <li><a href="full.html#rules" class="nav-link">Rules</a></li>
+        <li><a href="full.html#champions" class="nav-link">Champions</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="lb-hero">
+    <div class="lb-hero-content">
+      <p class="lb-hero-eyebrow">El Macero Country Club</p>
+      <h1 class="lb-hero-title">Flight Standings</h1>
+      <p class="lb-hero-sub" id="lbHeroSub">Loading&hellip;</p>
+    </div>
+  </section>
+
+  <!-- Status bar -->
+  <div class="lb-status-bar">
+    <div class="container">
+      <span class="lb-badge final" id="lbStatusBadge">Final Results</span>
+      <span class="lb-updated" id="lbUpdated"></span>
+    </div>
+  </div>
+
+  <!-- Leaderboard content -->
+  <section class="lb-page">
+    <div class="container">
+
+      <div id="lbLoading" class="lb-loading">
+        <div class="spinner"></div>
+        <p>Loading standings&hellip;</p>
+      </div>
+
+      <div id="lbError" class="lb-error" style="display:none;">
+        <p>Unable to load standings. Please refresh the page.</p>
+      </div>
+
+      <div id="lbContent" style="display:none;">
+        <div class="flight-tabs-wrap">
+          <div class="flight-tabs" id="flightTabs"></div>
+        </div>
+        <div id="flightPanels"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <h3>The Pheasant Invitational</h3>
+          <p>El Macero Country Club</p>
+          <p>Est. 1962</p>
+        </div>
+        <div class="footer-links">
+          <a href="full.html#about">About</a>
+          <a href="full.html#registration">Registration</a>
+          <a href="full.html#schedule">Schedule</a>
+          <a href="full.html#format">Format</a>
+          <a href="full.html#rules">Rules</a>
+          <a href="full.html#champions">Champions</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 The Pheasant Invitational. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+  <script>
+    // ============================================================
+    // GOLF GENIUS CONFIGURATION
+    // Swap tournament_id for the 2026 event when ready
+    // ============================================================
+    var GG = {
+      tournamentId: '11881230346303323406',
+      year:         '2025',
+      pollMs:       3 * 60 * 1000   // 3 min — matches GG portal cadence
+    };
+
+    // ============================================================
+    // State
+    // ============================================================
+    var activeFlightIndex = 0;
+    var pollTimer = null;
+    var isLive = false;
+
+    // ============================================================
+    // Fetch & render
+    // ============================================================
+    function buildUrl() {
+      return 'https://www.golfgenius.com/v2tournaments/' + GG.tournamentId
+        + '?called_from=widgets%2Fcustomized_tournament_results'
+        + '&hide_totals=false&player_stats_for_portal=true';
+    }
+
+    function loadStandings() {
+      fetch(buildUrl())
+        .then(function(r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.json();
+        })
+        .then(function(data) {
+          render(data);
+          markUpdated();
+          schedulePoll();
+        })
+        .catch(function() {
+          document.getElementById('lbLoading').style.display = 'none';
+          document.getElementById('lbError').style.display = 'block';
+        });
+    }
+
+    function render(data) {
+      var ev = data.event;
+      var scopes = ev.scopes || [];
+
+      // Hero sub-line
+      document.getElementById('lbHeroSub').textContent =
+        GG.year + ' Season  \u00b7  El Macero Country Club';
+
+      // Live vs final
+      isLive = data.ongoing_tournament === true;
+      var badge = document.getElementById('lbStatusBadge');
+      if (isLive) {
+        badge.className = 'lb-badge live';
+        badge.textContent = 'Live';
+      } else {
+        badge.className = 'lb-badge final';
+        badge.textContent = 'Final Results';
+      }
+
+      // Build tabs + panels
+      var tabsEl    = document.getElementById('flightTabs');
+      var panelsEl  = document.getElementById('flightPanels');
+      tabsEl.innerHTML   = '';
+      panelsEl.innerHTML = '';
+
+      scopes.forEach(function(scope, i) {
+        // Strip " Flight" suffix from tab label
+        var label = scope.name.replace(/\s*Flight\s*$/i, '');
+
+        // Tab
+        var tab = document.createElement('button');
+        tab.className = 'flight-tab' + (i === activeFlightIndex ? ' active' : '');
+        tab.textContent = label;
+        tab.setAttribute('data-index', i);
+        tab.addEventListener('click', function() {
+          activeFlightIndex = i;
+          document.querySelectorAll('.flight-tab').forEach(function(t) {
+            t.classList.toggle('active', +t.getAttribute('data-index') === i);
+          });
+          document.querySelectorAll('.flight-panel').forEach(function(p) {
+            p.classList.toggle('active', +p.getAttribute('data-index') === i);
+          });
+        });
+        tabsEl.appendChild(tab);
+
+        // Panel
+        var panel = document.createElement('div');
+        panel.className = 'flight-panel' + (i === activeFlightIndex ? ' active' : '');
+        panel.setAttribute('data-index', i);
+
+        var aggs = scope.aggregates || [];
+
+        panel.innerHTML =
+          '<div class="flight-header">' +
+            '<h2 class="flight-name">' + escHtml(scope.name) + '</h2>' +
+            '<span class="flight-note">Top 2 advance to Championship Horse Race</span>' +
+          '</div>' +
+          '<div class="lb-table-wrap">' +
+            '<table class="lb-table">' +
+              '<thead><tr>' +
+                '<th>Pos</th>' +
+                '<th>Team</th>' +
+                '<th class="right">Matches</th>' +
+                '<th class="right col-holes">Holes Won</th>' +
+                '<th class="right">Points</th>' +
+              '</tr></thead>' +
+              '<tbody>' +
+                aggs.map(function(row) { return buildRow(row); }).join('') +
+              '</tbody>' +
+            '</table>' +
+          '</div>';
+
+        panelsEl.appendChild(panel);
+      });
+
+      document.getElementById('lbLoading').style.display = 'none';
+      document.getElementById('lbContent').style.display = 'block';
+    }
+
+    function buildRow(row) {
+      var rank   = parseInt(row.rank, 10) || 99;
+      var pos    = row.position || '';
+      var cls    = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : '';
+
+      // Format team: "Tyler Fullerton  +  Zack Mcclure" → cleaner
+      var teamRaw = row.name || '';
+      var parts   = teamRaw.split(/\s*\+\s*/);
+      var teamHtml = parts.length === 2
+        ? escHtml(parts[0].trim()) + ' <span style="color:var(--gold);font-weight:400">&</span> ' + escHtml(parts[1].trim())
+        : escHtml(teamRaw);
+
+      // Clubs: strip duplicate "El Macero CC" entries, show guest club
+      var clubs = formatClubs(row.affiliation || '');
+
+      // Advance badge
+      var badge = '';
+      if (rank === 1) badge = '<span class="advance-badge winner">Flight Winner</span>';
+      if (rank === 2) badge = '<span class="advance-badge runner">Runner-Up</span>';
+
+      return '<tr class="' + cls + '">' +
+        '<td class="pos">' + escHtml(pos) + '</td>' +
+        '<td class="team-cell">' +
+          '<div class="team-names">' + teamHtml + badge + '</div>' +
+          '<div class="team-clubs">' + clubs + '</div>' +
+        '</td>' +
+        '<td class="score">' + escHtml(row.score || '&mdash;') + '</td>' +
+        '<td class="holes">' + escHtml(row.total || '&mdash;') + '</td>' +
+        '<td class="points">' + formatPoints(row.points) + '</td>' +
+      '</tr>';
+    }
+
+    function formatClubs(affiliation) {
+      // "El Macero CC, Green Valley CC" → "El Macero CC · Green Valley CC"
+      // Strip blanks, deduplicate
+      var clubs = affiliation.split(',')
+        .map(function(c) { return c.trim(); })
+        .filter(function(c) { return c.length > 0; });
+      // Keep only unique
+      var seen = {};
+      clubs = clubs.filter(function(c) {
+        if (seen[c]) return false;
+        seen[c] = true;
+        return true;
+      });
+      return escHtml(clubs.join(' \u00b7 '));
+    }
+
+    function formatPoints(pts) {
+      if (!pts) return '&mdash;';
+      var n = parseFloat(pts);
+      return isNaN(n) ? escHtml(pts) : n.toFixed(0);
+    }
+
+    function markUpdated() {
+      var el = document.getElementById('lbUpdated');
+      if (!el) return;
+      var now = new Date();
+      el.textContent = 'Updated ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function schedulePoll() {
+      if (!isLive) return;
+      clearTimeout(pollTimer);
+      pollTimer = setTimeout(loadStandings, GG.pollMs);
+    }
+
+    function escHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    // ============================================================
+    // Boot
+    // ============================================================
+    loadStandings();
+  </script>
+</body>
+</html>
