@@ -646,8 +646,8 @@
 (function () {
   var title = document.querySelector('.hero-title');
   if (!title) return;
-  // title fade-in: 0.65s delay + 0.7s duration = 1.35s. Add ~1.5s buffer = 2.85s total
+  // title finishes sliding in at ~1.35s; wait 1 full second after = 2350ms
   setTimeout(function () {
     title.classList.add('shimmer-once');
-  }, 2850);
+  }, 2350);
 })();
