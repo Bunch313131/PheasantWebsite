@@ -2054,7 +2054,7 @@ input, select, textarea { font-family: inherit; }
 
   /* Registration buttons — stack on very small screens */
   .hero-reg-btns, .cta-reg-btns { flex-direction: column; align-items: center; }
-  .btn-reg-sponsor, .btn-reg-open { width: 100%; max-width: 280px; text-align: center; }
+  .btn-reg-sponsor, .btn-reg-open { width: 100%; max-width: 300px; text-align: center; font-size: 11px; letter-spacing: 0.4px; padding: 13px 20px; }
 
   /* Pricing cards — tighten padding */
   .pricing-card { padding: 24px 20px; }
