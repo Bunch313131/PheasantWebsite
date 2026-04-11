@@ -144,7 +144,13 @@ function doGet(e) {
       + '?called_from=widgets%2Fcustomized_tournament_results'
       + '&hide_totals=false&player_stats_for_portal=true';
     try {
-      var resp = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+      var resp = UrlFetchApp.fetch(url, {
+        muteHttpExceptions: true,
+        headers: {
+          'Accept': 'application/json',
+          'User-Agent': 'Mozilla/5.0 (compatible; PheasantSite/1.0)'
+        }
+      });
       return ContentService
         .createTextOutput(resp.getContentText())
         .setMimeType(ContentService.MimeType.JSON);
