@@ -2095,10 +2095,29 @@ input, select, textarea { font-family: inherit; }
   animation: heroFadeUp 0.7s ease forwards;
   animation-delay: 0.4s;
 }
+@keyframes heroTitleShimmer {
+  0%   { background-position: 200% center; }
+  100% { background-position: -100% center; }
+}
+
 .hero-title {
   opacity: 0;
-  animation: heroFadeUp 0.7s ease forwards;
-  animation-delay: 0.65s;
+  background: linear-gradient(
+    105deg,
+    #fff 0%,
+    #fff 30%,
+    rgba(212,182,104,0.95) 44%,
+    rgba(255,248,210,1)    50%,
+    rgba(212,182,104,0.95) 56%,
+    #fff 70%,
+    #fff 100%
+  );
+  background-size: 250% auto;
+  background-position: 200% center;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: heroFadeUp 0.7s ease 0.65s forwards, heroTitleShimmer 5s linear 2.5s infinite;
 }
 .hero-divider {
   opacity: 0;
