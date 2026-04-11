@@ -561,20 +561,20 @@
   var NUM = 45;
   var particles = [];
 
-  function spawnParticle(spreadY) {
-    var startY = spreadY ? Math.random() * H : H + 10;
+  function spawnParticle(initY) {
     return {
       x: Math.random() * W,
-      y: startY,
-      startY: startY,
+      y: initY !== undefined ? initY : H + 10,
+      startY: H + 10,  // always real spawn point so fade-in is consistent
       r: 0.8 + Math.random() * 2.5,
-      vy: -(0.6 + Math.random() * 1.2),   // faster — covers full height
+      vy: -(0.6 + Math.random() * 1.2),
       vx: (Math.random() - 0.5) * 0.3,
       maxOpacity: 0.08 + Math.random() * 0.28,
     };
   }
 
-  for (var i = 0; i < NUM; i++) particles.push(spawnParticle(true));
+  // Pre-position across full hero so they're spread from the start
+  for (var i = 0; i < NUM; i++) particles.push(spawnParticle(Math.random() * (H + 10)));
 
   function animateParticles() {
     ctx.clearRect(0, 0, W, H);
@@ -583,7 +583,7 @@
       p.x += p.vx;
       p.y += p.vy;
 
-      if (p.y < -10) { particles[i] = spawnParticle(false); continue; }
+      if (p.y < -10) { particles[i] = spawnParticle(); continue; }
 
       // Fade in over first 80px of travel, fade out in top 15% of hero
       var traveled = p.startY - p.y;
