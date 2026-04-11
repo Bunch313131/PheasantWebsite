@@ -613,13 +613,16 @@
   var el = document.getElementById('annivCounter');
   if (!el) return;
 
-  // Set to 1 immediately so "65" is never visible before counting begins
+  // Hide number until counting starts so nothing looks weird
+  el.style.opacity = '0';
   el.textContent = '1';
 
-  // Start after fade-in completes: 0.4s delay + 0.7s animation + small buffer
+  // Start after fade-in completes, fade number in and count simultaneously
   setTimeout(function () {
+    el.style.transition = 'opacity 0.3s ease';
+    el.style.opacity = '1';
     var target = 65;
-    var duration = 1400;
+    var duration = 1200;
     var start = null;
     function step(ts) {
       if (!start) start = ts;
@@ -630,5 +633,5 @@
       else el.textContent = target;
     }
     requestAnimationFrame(step);
-  }, 1200);
+  }, 1150);
 })();
