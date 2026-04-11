@@ -2104,14 +2104,14 @@ input, select, textarea { font-family: inherit; }
     105deg,
     #fff 0%,
     #fff 38%,
-    rgba(218,185,40,1)  48%,
-    rgba(255,242,120,1) 50%,
-    rgba(218,185,40,1)  52%,
+    rgba(255,200,0,1)   48%,
+    rgba(255,248,140,1) 50%,
+    rgba(255,200,0,1)   52%,
     #fff 62%,
     #fff 100%
   );
   background-size: 300% auto;
-  background-position: 0% center;
+  background-position: 100% center;
   background-repeat: no-repeat;
   -webkit-background-clip: text;
   background-clip: text;
@@ -2120,7 +2120,7 @@ input, select, textarea { font-family: inherit; }
   transition: background-position 2.5s ease;
 }
 .hero-title.shimmer-once {
-  background-position: 100% center;
+  background-position: 0% center;
 }
 .hero-divider {
   opacity: 0;
