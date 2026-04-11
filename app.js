@@ -155,15 +155,26 @@
     updateFormVisibility();
   }
 
+  function pulseEl(el) {
+    if (!el) return;
+    el.classList.remove('cd-pulse');
+    void el.offsetWidth; // reflow to restart animation
+    el.classList.add('cd-pulse');
+  }
+
   function tickCountdowns() {
     if (!sponsorExpired) {
       if (!updateSingleCountdown(SPONSOR_OPEN_DATE, sponsorElements)) {
         onSponsorExpired();
+      } else {
+        pulseEl(sponsorElements.seconds);
       }
     }
     if (!openExpired) {
       if (!updateSingleCountdown(REG_OPEN_DATE, openElements)) {
         onOpenExpired();
+      } else {
+        pulseEl(openElements.seconds);
       }
     }
   }
@@ -490,26 +501,136 @@
     });
   });
 
-  // ---------- Intersection Observer for fade-in ----------
-  var observerOptions = { threshold: 0.1, rootMargin: '0px 0px -40px 0px' };
+  // ---------- Scroll Reveal (enhanced) ----------
+  if ('IntersectionObserver' in window) {
+    var revealObs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.style.opacity = '1';
+          entry.target.style.transform = 'translateY(0)';
+          revealObs.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
 
-  var observer = new IntersectionObserver(function (entries) {
-    entries.forEach(function (entry) {
-      if (entry.isIntersecting) {
-        entry.target.style.opacity = '1';
-        entry.target.style.transform = 'translateY(0)';
-        observer.unobserve(entry.target);
-      }
+    var revealGroups = [
+      { sel: '.section-header', delay: 0 },
+      { sel: '.about-card', delay: 0.1 },
+      { sel: '.countdown-box', delay: 0.1 },
+      { sel: '.reg-date-card', delay: 0.1 },
+      { sel: '.process-step', delay: 0.1 },
+      { sel: '.pricing-card', delay: 0.1 },
+      { sel: '.checklist-box', delay: 0 },
+      { sel: '.reg-cta-box', delay: 0 },
+      { sel: '.format-block', delay: 0 },
+      { sel: '.scoring-item', delay: 0.08 },
+      { sel: '.optional-card', delay: 0.1 },
+      { sel: '.rule-card', delay: 0.08 },
+      { sel: '.champion-row', delay: 0.04 },
+      { sel: '.timeline-item', delay: 0.06 },
+      { sel: '.bracket-round', delay: 0.08 },
+    ];
+
+    revealGroups.forEach(function (group) {
+      document.querySelectorAll(group.sel).forEach(function (el, i) {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(22px)';
+        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        el.style.transitionDelay = Math.min(i * group.delay, 0.45) + 's';
+        revealObs.observe(el);
+      });
     });
-  }, observerOptions);
+  }
 
-  document.querySelectorAll(
-    '.about-card, .optional-card, .pricing-card, .reg-date-card, .rule-card, .format-block, .process-step, .countdown-box'
-  ).forEach(function (el) {
-    el.style.opacity = '0';
-    el.style.transform = 'translateY(20px)';
-    el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-    observer.observe(el);
-  });
+})();
 
+// ---------- Hero Gold Particle Canvas ----------
+(function () {
+  var canvas = document.getElementById('heroParticles');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var W, H;
+
+  function resize() {
+    W = canvas.width = canvas.offsetWidth;
+    H = canvas.height = canvas.offsetHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  var NUM = 45;
+  var particles = [];
+
+  function spawnParticle(spreadY) {
+    return {
+      x: Math.random() * W,
+      y: spreadY ? Math.random() * H : H + 10,
+      r: 0.8 + Math.random() * 2.5,
+      vy: -(0.15 + Math.random() * 0.4),
+      vx: (Math.random() - 0.5) * 0.25,
+      life: 0,
+      maxLife: 180 + Math.random() * 220,
+      maxOpacity: 0.08 + Math.random() * 0.28,
+    };
+  }
+
+  for (var i = 0; i < NUM; i++) particles.push(spawnParticle(true));
+
+  function animateParticles() {
+    ctx.clearRect(0, 0, W, H);
+    for (var i = 0; i < particles.length; i++) {
+      var p = particles[i];
+      p.life++;
+      p.x += p.vx;
+      p.y += p.vy;
+
+      var opacity;
+      if (p.life < 50) opacity = (p.life / 50) * p.maxOpacity;
+      else if (p.life > p.maxLife - 50) opacity = ((p.maxLife - p.life) / 50) * p.maxOpacity;
+      else opacity = p.maxOpacity;
+
+      if (p.life >= p.maxLife || p.y < -10) { particles[i] = spawnParticle(false); continue; }
+
+      // Core dot
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(184,150,62,' + opacity + ')';
+      ctx.fill();
+
+      // Soft halo
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r * 3, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(184,150,62,' + (opacity * 0.15) + ')';
+      ctx.fill();
+    }
+    requestAnimationFrame(animateParticles);
+  }
+  animateParticles();
+})();
+
+// ---------- Anniversary Counter (65th) ----------
+(function () {
+  var el = document.getElementById('annivCounter');
+  if (!el) return;
+  var target = 65;
+  var duration = 1400;
+  var started = false;
+
+  function runCounter() {
+    if (started) return;
+    started = true;
+    var start = null;
+    function step(ts) {
+      if (!start) start = ts;
+      var progress = Math.min((ts - start) / duration, 1);
+      var eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+      el.textContent = Math.round(eased * target);
+      if (progress < 1) requestAnimationFrame(step);
+      else el.textContent = target;
+    }
+    requestAnimationFrame(step);
+  }
+
+  // Fire after hero cascade reveals it (~0.4s delay + animation)
+  setTimeout(runCounter, 900);
 })();
