@@ -730,22 +730,20 @@
         // Fetch detail page for the first tied team to get match schedule
         var teamA = tiedGroup[0];
         fetchDetailSchedule(teamA.id_str).then(function(schedule) {
-          // schedule: array of { roundKey, opponentName } in R1-R5 order
           tiedGroup.forEach(function(teamB) {
             if (teamB.id_str === teamA.id_str) return;
-            // Find which round teamA played teamB
             var match = findHeadToHead(schedule, teamB.name);
-            if (!match) return;
+            if (!match) { console.log('[TB] no H2H match found for', teamB.name); return; }
+            console.log('[TB] H2H result:', teamA.name, 'vs', teamB.name, '→', match.result);
 
-            var rdA = roundData[teamA.id_str] || {};
-            var rdB = roundData[teamB.id_str] || {};
-            var ptsA = parseFloat(getRoundPts(rdA, match.roundKey)) || 0;
-            var ptsB = parseFloat(getRoundPts(rdB, match.roundKey)) || 0;
+            // "N up" = teamA won, "N dn" = teamB won, "T" = still tied
+            var result = (match.result || '').trim();
+            var teamAWon = / up$/.test(result);
+            var teamBWon = / dn$/.test(result);
+            if (!teamAWon && !teamBWon) return; // truly tied — leave as-is
 
-            if (ptsA === ptsB) return; // still tied — leave as-is
-
-            var winner = ptsA > ptsB ? teamA : teamB;
-            var loser  = ptsA > ptsB ? teamB : teamA;
+            var winner = teamAWon ? teamA : teamB;
+            var loser  = teamAWon ? teamB : teamA;
             applyTiebreakerBadges(scope.name, winner.id_str, loser.id_str,
                                   parseInt(teamA.rank, 10));
           });
@@ -761,19 +759,69 @@
         .then(function(html) { return parseDetailSchedule(html, aggregateId); });
     }
 
-    // Parse detail page HTML → array of { roundKey:'r1'|'r2'|..., opponentName }
+    // Parse detail page HTML → array of { opponentName, result }
+    // result: "N up" = our team won, "N dn" = opponent won, "T" = tied
     function parseDetailSchedule(html, debugId) {
       var schedule = [];
       try {
-        // Log raw HTML chunks to find where team matchup data lives
-        console.log('[GG detail ' + debugId + '] html length:', html.length);
-        [0, 1500, 3000, 6000, 12000].forEach(function(pos) {
-          if (pos < html.length) {
-            console.log('[GG chunk @' + pos + ']', html.substring(pos, pos + 500).replace(/\s+/g, ' '));
+        var doc = new DOMParser().parseFromString(html, 'text/html');
+        var allRows = Array.from(doc.querySelectorAll('table tr'));
+
+        var currentOpponent = null;
+        var lastMatchTokens = [];
+
+        allRows.forEach(function(row) {
+          var text = row.textContent.replace(/\s+/g, ' ').trim();
+
+          // Match header rows contain "::" and " vs. "
+          // Two variants exist: row 0 has hole numbers appended, row 2 is clean.
+          // Skip the dirty variant by checking td count (row 0 has 20+ cells).
+          if (text.indexOf('::') !== -1 && text.indexOf(' vs. ') !== -1) {
+            if (row.querySelectorAll('td').length > 8) return; // hole-number row, skip
+
+            // Save previous match
+            if (currentOpponent !== null) {
+              schedule.push({
+                opponentName: currentOpponent,
+                result: parseMatchResult(lastMatchTokens)
+              });
+            }
+            // Extract opponent name (text after " vs. ")
+            var vsIdx = text.indexOf(' vs. ');
+            currentOpponent = text.substring(vsIdx + 5).trim();
+            lastMatchTokens = [];
+          }
+
+          // "Match ..." rows carry running match score; last row = final result
+          else if (/^Match\b/.test(text) && currentOpponent !== null) {
+            var tokens = text.replace(/^Match\s*/, '').trim().split(/\s+/).filter(Boolean);
+            if (tokens.length > 0) lastMatchTokens = tokens;
           }
         });
+
+        // Save last match
+        if (currentOpponent !== null) {
+          schedule.push({
+            opponentName: currentOpponent,
+            result: parseMatchResult(lastMatchTokens)
+          });
+        }
+
+        console.log('[GG detail ' + debugId + '] schedule:', JSON.stringify(schedule));
       } catch(e) { console.error('[GG detail parse error]', e); }
       return schedule;
+    }
+
+    // Determine final match result from the last Match row's tokens
+    // Returns "N up", "N dn", or "T"
+    function parseMatchResult(tokens) {
+      if (!tokens.length) return 'T';
+      var last  = tokens[tokens.length - 1];
+      var prev  = tokens.length >= 2 ? tokens[tokens.length - 2] : '';
+      if ((last === 'up' || last === 'dn') && /^\d+$/.test(prev)) {
+        return prev + ' ' + last;
+      }
+      return last; // "T" or unknown
     }
 
     // Find the schedule entry where the opponent matches a team name
@@ -790,12 +838,6 @@
         var hits = tokens.filter(function(t) { return normOpp.indexOf(t) !== -1; });
         return hits.length >= 2;
       }) || null;
-    }
-
-    // Get points for a team for a given round key
-    function getRoundPts(rd, roundKey) {
-      if (roundKey === 'r4' || roundKey === 'r5') return (rd[roundKey] || {}).pts || 0;
-      return rd[roundKey] || 0;
     }
 
     // Update position badges in the rendered table for a resolved tie
