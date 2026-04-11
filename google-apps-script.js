@@ -139,27 +139,39 @@ function doPost(e) {
 // Usage: ?action=gg&id=TOURNAMENT_ID
 // --------------------------------------------------------
 function doGet(e) {
+  var base = 'https://www.golfgenius.com/v2tournaments/';
+  var qs   = '?called_from=widgets%2Fcustomized_tournament_results&hide_totals=false&player_stats_for_portal=true';
+
+  // JSON endpoint — aggregate totals
   if (e.parameter.action === 'gg' && e.parameter.id) {
-    var url = 'https://www.golfgenius.com/v2tournaments/' + e.parameter.id
-      + '?called_from=widgets%2Fcustomized_tournament_results'
-      + '&hide_totals=false&player_stats_for_portal=true';
     try {
-      var resp = UrlFetchApp.fetch(url, {
+      var resp = UrlFetchApp.fetch(base + e.parameter.id + qs, {
         muteHttpExceptions: true,
-        headers: {
-          'Accept': 'application/json',
-          'User-Agent': 'Mozilla/5.0 (compatible; PheasantSite/1.0)'
-        }
+        headers: { 'Accept': 'application/json', 'User-Agent': 'Mozilla/5.0' }
       });
-      return ContentService
-        .createTextOutput(resp.getContentText())
+      return ContentService.createTextOutput(resp.getContentText())
         .setMimeType(ContentService.MimeType.JSON);
     } catch (err) {
-      return ContentService
-        .createTextOutput(JSON.stringify({ error: err.message }))
+      return ContentService.createTextOutput(JSON.stringify({ error: err.message }))
         .setMimeType(ContentService.MimeType.JSON);
     }
   }
+
+  // HTML endpoint — per-round data (parsed client-side)
+  if (e.parameter.action === 'gg-html' && e.parameter.id) {
+    try {
+      var resp = UrlFetchApp.fetch(base + e.parameter.id + qs, {
+        muteHttpExceptions: true,
+        headers: { 'Accept': 'text/html', 'User-Agent': 'Mozilla/5.0' }
+      });
+      return ContentService.createTextOutput(resp.getContentText())
+        .setMimeType(ContentService.MimeType.TEXT);
+    } catch (err) {
+      return ContentService.createTextOutput('')
+        .setMimeType(ContentService.MimeType.TEXT);
+    }
+  }
+
   return ContentService
     .createTextOutput('Pheasant Invitational Registration API is active.')
     .setMimeType(ContentService.MimeType.TEXT);
