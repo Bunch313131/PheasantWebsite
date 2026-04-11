@@ -466,53 +466,96 @@
 
     // ============================================================
     // Parse per-round data from GG HTML
-    // Columns (0-indexed TDs per aggregate-row):
-    //   0: icon  1: pos  2: team  3: R4status  4: R4thru  5: R4pts
-    //   6: R5status  7: R5thru  8: R5pts  9: R1pts  10: R2pts  11: R3pts  12: total
+    // Reads thead to build a dynamic column map so the parser
+    // handles any round count / sub-column count GG sends.
     // ============================================================
     function parseRoundHtml(html) {
       var result = {};
       try {
-        var doc  = new DOMParser().parseFromString(html, 'text/html');
+        var doc = new DOMParser().parseFromString(html, 'text/html');
+
+        // --- Build column map from thead ----------------------------
+        // GG thead th elements may have colspan > 1 for rounds with
+        // sub-columns (Status / Thru / Points).  We expand them into
+        // a flat array so each physical td index has a label.
+        // For multi-col rounds we care about the LAST sub-column (pts).
+        var colMap = buildColMap(doc);
+
+        // --- Parse data rows ----------------------------------------
         var rows = doc.querySelectorAll('tr[data-aggregate-id]');
         rows.forEach(function(row) {
           var id    = row.getAttribute('data-aggregate-id');
           var cells = row.querySelectorAll('td');
-          if (!id || cells.length < 10) return;
+          if (!id || cells.length < 4) return;
 
           function txt(i) {
-            return cells[i] ? cells[i].textContent.trim() : '';
+            return (i !== -1 && cells[i]) ? cells[i].textContent.trim() : '';
           }
 
-          // Try to detect column offset in case layout shifts
-          // Heuristic: R4/R5 status cells contain words like "up", "down", "Tied", "&"
-          // R1-R3 cells contain plain numbers
-          // We look for the first numeric-looking cell after pos+team (index >= 3)
-          var offset = detectOffset(cells);
+          var entry = { r1: '', r2: '', r3: '', r4: { pts: '', result: '' }, r5: { pts: '', result: '' }, total: '' };
 
-          result[id] = {
-            r4: { pts: txt(offset + 2), result: txt(offset) },
-            r5: { pts: txt(offset + 5), result: txt(offset + 3) },
-            r1: txt(offset + 8),
-            r2: txt(offset + 9),
-            r3: txt(offset + 10),
-            total: txt(offset + 11)
-          };
+          // Multi-column rounds (R4, R5): last sub-col = pts, first = result
+          ['r4','r5'].forEach(function(r) {
+            if (colMap[r]) {
+              entry[r] = {
+                pts:    txt(colMap[r].last),
+                result: txt(colMap[r].first)
+              };
+            }
+          });
+
+          // Single-column rounds (R1, R2, R3) and total
+          ['r1','r2','r3','total'].forEach(function(r) {
+            if (colMap[r] !== undefined) {
+              entry[r] = txt(colMap[r]);
+            }
+          });
+
+          result[id] = entry;
         });
       } catch (ex) { /* HTML parse failed — show totals only */ }
       return result;
     }
 
-    // Detect where the data columns start (handles table structure variation)
-    function detectOffset(cells) {
-      // Default: td[0]=icon td[1]=pos td[2]=team → data starts at 3
-      // But if team is merged with pos, data starts at 2
-      // Check: if cells[3] looks like a match result or number, offset=3; else try 2
-      if (cells.length > 3) {
-        var c3 = cells[3] ? cells[3].textContent.trim() : '';
-        if (/^\d/.test(c3) || /up|down|tied|&/i.test(c3)) return 3;
-      }
-      return 2;
+    // Build a map of round key → column index (or {first, last} for multi-col rounds)
+    function buildColMap(doc) {
+      var map = {};
+      // Find the last thead tr that has th elements (some tables have multi-row heads)
+      var headerRows = doc.querySelectorAll('thead tr');
+      if (!headerRows.length) return map;
+
+      // Use the row with the most th elements
+      var headerRow = null;
+      headerRows.forEach(function(tr) {
+        var ths = tr.querySelectorAll('th');
+        if (!headerRow || ths.length > headerRow.querySelectorAll('th').length) {
+          headerRow = tr;
+        }
+      });
+      if (!headerRow) return map;
+
+      var idx = 0;
+      headerRow.querySelectorAll('th').forEach(function(th) {
+        var span = parseInt(th.getAttribute('colspan') || '1', 10);
+        var label = th.textContent.trim().toLowerCase().replace(/\s+/g,'');
+
+        // Match "r1","r2","r3","r4","r5","total"
+        var key = null;
+        if (/^r[1-5]$/.test(label))  key = label;
+        if (/total/.test(label))      key = 'total';
+
+        if (key) {
+          if (span > 1) {
+            // Multi-col round: record first and last physical index
+            map[key] = { first: idx, last: idx + span - 1 };
+          } else {
+            map[key] = idx;
+          }
+        }
+        idx += span;
+      });
+
+      return map;
     }
 
     // ============================================================
