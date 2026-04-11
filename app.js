@@ -612,25 +612,23 @@
 (function () {
   var el = document.getElementById('annivCounter');
   if (!el) return;
-  var target = 65;
-  var duration = 1400;
-  var started = false;
 
-  function runCounter() {
-    if (started) return;
-    started = true;
+  // Set to 1 immediately so "65" is never visible before counting begins
+  el.textContent = '1';
+
+  // Start after fade-in completes: 0.4s delay + 0.7s animation + small buffer
+  setTimeout(function () {
+    var target = 65;
+    var duration = 1400;
     var start = null;
     function step(ts) {
       if (!start) start = ts;
       var progress = Math.min((ts - start) / duration, 1);
-      var eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
-      el.textContent = Math.round(eased * target);
+      var eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = Math.round(1 + eased * (target - 1));
       if (progress < 1) requestAnimationFrame(step);
       else el.textContent = target;
     }
     requestAnimationFrame(step);
-  }
-
-  // Fire after hero cascade reveals it (~0.4s delay + animation)
-  setTimeout(runCounter, 900);
+  }, 1200);
 })();
