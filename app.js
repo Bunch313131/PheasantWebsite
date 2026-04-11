@@ -613,14 +613,20 @@
   var el = document.getElementById('annivCounter');
   if (!el) return;
 
-  // Hide number until counting starts so nothing looks weird
+  // Hide number and ordinal "th" until counting starts
+  var ordinal = el.nextElementSibling; // .ordinal span
   el.style.opacity = '0';
+  if (ordinal) ordinal.style.opacity = '0';
   el.textContent = '1';
 
-  // Start after fade-in completes, fade number in and count simultaneously
+  // Start after fade-in completes, fade number + "th" in simultaneously
   setTimeout(function () {
     el.style.transition = 'opacity 0.3s ease';
     el.style.opacity = '1';
+    if (ordinal) {
+      ordinal.style.transition = 'opacity 0.3s ease';
+      ordinal.style.opacity = '1';
+    }
     var target = 65;
     var duration = 1200;
     var start = null;
