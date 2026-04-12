@@ -330,6 +330,10 @@
     @keyframes spin { to { transform: rotate(360deg); } }
     .lb-error { color: var(--danger); }
 
+    /* ── Round detail (hidden by default; shown on mobile when expanded) ── */
+    .round-detail { display: none; }
+    .row-chevron  { display: none; }
+
     /* ── Mobile ── */
     @media (max-width: 680px) {
       .lb-hero-title { font-size: 28px; }
@@ -339,6 +343,52 @@
       .lb-table { width: 100%; }
       .team-names { font-size: 15px; }
       .advance-badge { font-size: 9px; padding: 2px 6px; }
+
+      /* Tap-to-expand */
+      .lb-table tbody tr { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+
+      .row-chevron {
+        display: block;
+        font-size: 10px;
+        color: var(--gray-mid);
+        margin-top: 3px;
+        line-height: 1;
+        user-select: none;
+      }
+      .row-chevron::before { content: '▾'; }
+      .lb-table tbody tr.expanded .row-chevron::before { content: '▴'; }
+
+      .lb-table tbody tr.expanded .round-detail {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid var(--gray-rule);
+        flex-wrap: wrap;
+      }
+      .round-detail-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-width: 36px;
+      }
+      .round-detail-label {
+        font-size: 8px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: var(--gray-mid);
+        margin-bottom: 2px;
+      }
+      .round-detail-value {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--green-dark);
+      }
+      .round-detail-item.detail-total .round-detail-value {
+        color: var(--gold);
+        font-size: 15px;
+      }
     }
   </style>
 </head>
@@ -629,6 +679,16 @@
 
       document.getElementById('lbLoading').style.display = 'none';
       document.getElementById('lbContent').style.display = 'block';
+      initMobileExpand();
+    }
+
+    function initMobileExpand() {
+      document.querySelectorAll('.lb-table tbody tr').forEach(function(tr) {
+        tr.addEventListener('click', function() {
+          if (window.innerWidth > 680) return;
+          tr.classList.toggle('expanded');
+        });
+      });
     }
 
     function buildRow(row, roundData, hasRounds) {
@@ -646,14 +706,27 @@
       var rd = roundData[row.id_str] || {};
 
       var roundCells = '';
+      var roundDetailHtml = '';
       if (hasRounds && rd.r1 !== undefined) {
+        var r1v = fmtPts(rd.r1), r2v = fmtPts(rd.r2), r3v = fmtPts(rd.r3);
+        var r4v = fmtPts(rd.r4.pts), r5v = fmtPts(rd.r5.pts);
+        var totv = fmtPts(rd.total || row.points);
         roundCells =
-          '<td class="round col-r1">' + fmtPts(rd.r1) + '</td>' +
-          '<td class="round col-r2">' + fmtPts(rd.r2) + '</td>' +
-          '<td class="round col-r3">' + fmtPts(rd.r3) + '</td>' +
-          '<td class="round col-r4">' + fmtPts(rd.r4.pts) + '</td>' +
-          '<td class="round col-r5">' + fmtPts(rd.r5.pts) + '</td>' +
-          '<td class="round-total">' + fmtPts(rd.total || row.points) + '</td>';
+          '<td class="round col-r1">' + r1v + '</td>' +
+          '<td class="round col-r2">' + r2v + '</td>' +
+          '<td class="round col-r3">' + r3v + '</td>' +
+          '<td class="round col-r4">' + r4v + '</td>' +
+          '<td class="round col-r5">' + r5v + '</td>' +
+          '<td class="round-total">' + totv + '</td>';
+        roundDetailHtml =
+          '<div class="round-detail">' +
+            '<div class="round-detail-item"><span class="round-detail-label">R1</span><span class="round-detail-value">' + r1v + '</span></div>' +
+            '<div class="round-detail-item"><span class="round-detail-label">R2</span><span class="round-detail-value">' + r2v + '</span></div>' +
+            '<div class="round-detail-item"><span class="round-detail-label">R3</span><span class="round-detail-value">' + r3v + '</span></div>' +
+            '<div class="round-detail-item"><span class="round-detail-label">R4</span><span class="round-detail-value">' + r4v + '</span></div>' +
+            '<div class="round-detail-item"><span class="round-detail-label">R5</span><span class="round-detail-value">' + r5v + '</span></div>' +
+            '<div class="round-detail-item detail-total"><span class="round-detail-label">Total</span><span class="round-detail-value">' + totv + '</span></div>' +
+          '</div>';
       } else {
         // Fallback: no per-round data
         roundCells =
@@ -662,10 +735,11 @@
       }
 
       return '<tr class="' + cls + '" data-id="' + escHtml(row.id_str || '') + '">' +
-        '<td class="pos">' + escHtml(row.position || '') + '</td>' +
+        '<td class="pos">' + escHtml(row.position || '') + '<span class="row-chevron"></span></td>' +
         '<td class="team-cell">' +
           '<div class="team-names">' + teamHtml + badge + '</div>' +
           '<div class="team-clubs">' + clubs + '</div>' +
+          roundDetailHtml +
         '</td>' +
         roundCells +
       '</tr>';
