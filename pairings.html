@@ -257,24 +257,17 @@
       color: var(--gray-mid);
       display: block;
     }
-    .match-result {
-      display: inline-block;
-      margin-top: 4px;
+    .match-pts-home, .match-pts-away {
+      display: block;
       font-family: 'Raleway', sans-serif;
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 700;
-      letter-spacing: 0.5px;
-      padding: 2px 6px;
-      border-radius: 3px;
-      background: var(--gold-pale);
-      color: var(--gold);
-      border: 1px solid rgba(184,150,62,0.3);
-    }
-    .match-result.win {
-      background: rgba(26,58,42,0.07);
       color: var(--green-dark);
-      border-color: rgba(26,58,42,0.18);
+      letter-spacing: 0.3px;
+      line-height: 1.3;
     }
+    .match-pts-home { margin-bottom: 1px; }
+    .match-pts-away { margin-top: 1px; }
 
     /* ── Loading / error ── */
     .pr-loading, .pr-error {
@@ -426,6 +419,8 @@
 
     // All matches, kept for search filtering
     var allRounds = [];
+    // Per-team per-round points: normKey(teamName) → { R1: pts, R2: pts, ... }
+    var pointsLookup = {};
 
     // Normalize a name for dedup/comparison keys
     function normKey(s) {
@@ -467,23 +462,31 @@
     }
 
     // ============================================================
-    // Load
+    // Load — fetch schedule and GG JSON for points in parallel
     // ============================================================
     function loadSchedule() {
-      var url = GG.gasUrl + '?action=gg-schedule&id=' + GG.tournamentId;
+      var schedUrl  = GG.gasUrl + '?action=gg-schedule&id=' + GG.tournamentId;
+      var pointsUrl = GG.gasUrl + '?action=gg&id=' + GG.tournamentId;
 
-      fetch(url)
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-          if (data.error) throw new Error(data.error);
-          var matches = data.matches || [];
-          console.log('[Schedule] raw matches from GAS:', matches.length);
-          if (data.debug) {
-            console.log('[Schedule] per-team debug:');
-            data.debug.forEach(function(d) {
-              console.log('  ' + d.name + ' — htmlLen=' + d.htmlLen + ' matches=' + d.matchCount + ' dates=' + JSON.stringify(d.dates));
-            });
+      Promise.all([
+        fetch(schedUrl).then(function(r) { return r.json(); }),
+        fetch(pointsUrl).then(function(r) { return r.json(); }).catch(function() { return {}; })
+      ])
+        .then(function(results) {
+          var schedData = results[0], ggJson = results[1];
+          if (schedData.error) throw new Error(schedData.error);
+
+          // Extract per-round points from GG JSON aggregates (if present)
+          pointsLookup = extractPointsFromGGJson(ggJson);
+          if (Object.keys(pointsLookup).length === 0) {
+            var scopes = (ggJson.event && ggJson.event.scopes) || [];
+            var firstAgg = scopes[0] && scopes[0].aggregates && scopes[0].aggregates[0];
+            console.log('[Points] no round data found. First aggregate keys:', firstAgg ? Object.keys(firstAgg) : 'none');
+          } else {
+            console.log('[Points] loaded for', Object.keys(pointsLookup).length, 'teams');
           }
+
+          var matches = schedData.matches || [];
 
           // Deduplicate client-side — GAS team names can differ between
           // the aggregate JSON (used as home) and the detail HTML (used as
@@ -497,11 +500,6 @@
             return true;
           });
 
-          var uniqueDates = [];
-          matches.forEach(function(m) {
-            if (uniqueDates.indexOf(m.date) === -1) uniqueDates.push(m.date);
-          });
-          console.log('[Schedule] after dedup:', matches.length, 'matches,', uniqueDates.length, 'dates:', uniqueDates);
           allRounds = buildRounds(matches);
           render(allRounds);
           document.getElementById('prUpdated').textContent =
@@ -512,6 +510,28 @@
           document.getElementById('prLoading').style.display = 'none';
           document.getElementById('prError').style.display = 'block';
         });
+    }
+
+    // Try to pull per-team per-round points from the GG results JSON.
+    // GG stores aggregates per team; if each aggregate has a `rounds` array
+    // we build: normKey(name) → { R1: pts, R2: pts, ... }
+    function extractPointsFromGGJson(data) {
+      var map = {};
+      var scopes = (data.event && data.event.scopes) || [];
+      scopes.forEach(function(scope) {
+        (scope.aggregates || []).forEach(function(agg) {
+          var rounds = agg.rounds || agg.scores || [];
+          if (!rounds.length) return;
+          var teamPts = {};
+          rounds.forEach(function(r) {
+            var num = r.num || r.round_num || r.number;
+            var pts = r.points || r.pts || r.total_points;
+            if (num != null && pts != null) teamPts['R' + num] = parseFloat(pts);
+          });
+          if (Object.keys(teamPts).length) map[normKey(agg.name)] = teamPts;
+        });
+      });
+      return map;
     }
 
     // Build flat list of rounds (1 per sub-round per day), sorted chronologically AM-first.
@@ -702,7 +722,7 @@
               if (multiFlights) body += '<div class="sched-flight-label">' + escHtml(flightName) + '</div>';
               body += '<div class="match-list">';
               visible.filter(function(m) { return (m.flight || 'Matches') === flightName; })
-                     .forEach(function(m) { body += buildMatchCard(m, filter); });
+                     .forEach(function(m) { body += buildMatchCard(m, filter, round.roundNum); });
               body += '</div>';
             });
           }
@@ -716,7 +736,7 @@
       document.getElementById('schedNoResults').style.display = 'none';
     }
 
-    function buildMatchCard(m, filter) {
+    function buildMatchCard(m, filter, roundNum) {
       var homeWinner = m.homeWon === m.home;
       var awayWinner = m.homeWon === m.away;
       var filterLc = (filter || '').toLowerCase();
@@ -725,16 +745,22 @@
       var awayHighlight = filterLc && (m.away || '').toLowerCase().indexOf(filterLc) !== -1;
       var cardHighlight = homeHighlight || awayHighlight;
 
-      // Result badge
-      var resultHtml = '';
-      if (m.result === 'T') {
-        resultHtml = '<span class="match-result">AS</span>';
-      } else if (m.result) {
-        var num = m.result.replace(/\s*(up|dn)$/, '').trim();
-        resultHtml = '<span class="match-result win">' + num + ' up</span>';
-      }
+      // Look up points for this round
+      var rKey = roundNum ? 'R' + roundNum : null;
+      var homePtsData = rKey && pointsLookup[normKey(m.home)];
+      var awayPtsData = rKey && pointsLookup[normKey(m.away)];
+      var homePts = homePtsData ? homePtsData[rKey] : null;
+      var awayPts = awayPtsData ? awayPtsData[rKey] : null;
+      var hasPoints = homePts != null && awayPts != null;
 
-      var metaHtml = '<span class="match-vs">vs.</span>' + (resultHtml ? '<br>' + resultHtml : '');
+      var metaHtml;
+      if (hasPoints) {
+        metaHtml = '<span class="match-pts-home">' + fmtPts(homePts) + '</span>' +
+                   '<span class="match-vs">vs.</span>' +
+                   '<span class="match-pts-away">' + fmtPts(awayPts) + '</span>';
+      } else {
+        metaHtml = '<span class="match-vs">vs.</span>';
+      }
 
       var homeClass = 'match-team home' + (homeWinner ? ' winner' : '');
       var awayClass = 'match-team away' + (awayWinner ? ' winner' : '');
@@ -744,6 +770,12 @@
         '<div class="match-meta">' + metaHtml + '</div>' +
         '<div class="' + awayClass + '">' + fmtTeamName(m.away) + '</div>' +
         '</div>';
+    }
+
+    function fmtPts(pts) {
+      var n = parseFloat(pts);
+      if (isNaN(n)) return '—';
+      return (n % 1 === 0 ? n.toFixed(0) : n.toFixed(1)) + ' pts';
     }
 
     function fmtTeamName(name) {
