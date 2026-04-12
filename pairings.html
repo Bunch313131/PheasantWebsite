@@ -537,6 +537,28 @@
       document.getElementById('prContent').style.display = 'block';
     }
 
+    // Shorten "Thu, September 11" → "Thu 9/11"
+    function fmtTabLabel(dateStr) {
+      var dayNames = { sunday:'Sun',monday:'Mon',tuesday:'Tue',wednesday:'Wed',
+                       thursday:'Thu',friday:'Fri',saturday:'Sat' };
+      var monthNums = { january:1,february:2,march:3,april:4,may:5,june:6,
+                        july:7,august:8,september:9,october:10,november:11,december:12 };
+      // Try to extract "Day, Month DD"
+      var m = (dateStr || '').match(/^([a-z]+),\s*([a-z]+)\s+(\d+)/i);
+      if (m) {
+        var day = dayNames[(m[1] || '').toLowerCase()] || m[1];
+        var mo  = monthNums[(m[2] || '').toLowerCase()] || '';
+        return day + ' ' + mo + '/' + parseInt(m[3], 10);
+      }
+      // Fallback: "Month DD" → "M/DD"
+      var m2 = (dateStr || '').match(/([a-z]+)\s+(\d+)/i);
+      if (m2) {
+        var mo2 = monthNums[(m2[1] || '').toLowerCase()] || m2[1];
+        return mo2 + '/' + parseInt(m2[2], 10);
+      }
+      return dateStr;
+    }
+
     function buildTabs(rounds, tabsEl) {
       var now = new Date();
       var tm = now.getMonth() + 1, td = now.getDate();
@@ -546,7 +568,7 @@
         var isToday = p && p.month === tm && p.day === td;
         var tab = document.createElement('button');
         tab.className = 'round-tab' + (i === activeRoundIndex ? ' active' : '') + (isToday ? ' today-tab' : '');
-        tab.textContent = 'Round ' + round.roundNum;
+        tab.textContent = fmtTabLabel(round.date);
         tab.setAttribute('data-index', i);
         tab.addEventListener('click', function() {
           activeRoundIndex = i;
@@ -556,7 +578,6 @@
           document.querySelectorAll('.round-panel').forEach(function(p) {
             p.classList.toggle('active', +p.getAttribute('data-index') === i);
           });
-          // Re-filter panels with current search value
           var q = document.getElementById('schedSearch').value;
           renderPanels(allRounds, document.getElementById('roundPanels'), q.trim().toLowerCase());
         });
@@ -584,8 +605,15 @@
         panel.setAttribute('data-index', i);
 
         // Date sub-header inside panel
+        // Count unique opponents per team to detect multi-round days
+        var matchesPerTeam = {};
+        round.matches.forEach(function(m) {
+          matchesPerTeam[m.home] = (matchesPerTeam[m.home] || 0) + 1;
+        });
+        var maxMatchesOnDay = Math.max.apply(null, Object.keys(matchesPerTeam).map(function(k) { return matchesPerTeam[k]; }));
+        var roundNote = maxMatchesOnDay >= 2 ? ' <span style="font-family:\'Raleway\',sans-serif;font-size:12px;font-weight:400;color:var(--gray-mid);letter-spacing:0">&mdash; 2 rounds</span>' : '';
         var hdr = '<div class="sched-date-header" style="margin-bottom:16px">' +
-          '<span class="sched-date-label">' + escHtml(fmtDateDisplay(round.date)) + '</span>' +
+          '<span class="sched-date-label">' + escHtml(fmtDateDisplay(round.date)) + roundNote + '</span>' +
           '</div>';
 
         if (visibleMatches.length === 0) {
