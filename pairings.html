@@ -533,23 +533,24 @@
       }
       console.log('[Points] round column order:', roundOrder);
 
-      // Parse each data row: team name in first td, point floats in remaining tds
+      // Parse each data row. GG wraps team names in an <a> tag ("Player A + Player B").
+      // Use that anchor text as the key — td.textContent includes club info after the
+      // name which would break normKey matching against the schedule team names.
       doc.querySelectorAll('tr').forEach(function(row) {
-        var cells = Array.from(row.querySelectorAll('td')).map(function(td) {
-          return td.textContent.replace(/\s+/g, ' ').trim();
-        });
-        // Find team name cell — GG formats teams as "Player A + Player B"
-        var teamIdx = -1;
-        for (var ci = 0; ci < Math.min(cells.length, 5); ci++) {
-          if (cells[ci].indexOf(' + ') !== -1) { teamIdx = ci; break; }
+        // Team name lives in the first <a> containing " + "
+        var teamName = null;
+        var anchors = row.querySelectorAll('a');
+        for (var ai = 0; ai < anchors.length; ai++) {
+          var at = anchors[ai].textContent.trim();
+          if (at.indexOf(' + ') !== -1) { teamName = at; break; }
         }
-        if (teamIdx === -1) return;
-        var teamName = cells[teamIdx];
+        if (!teamName) return;
 
-        // Extract float point values from cells after the team name.
+        // Extract float point values from all <td> cells in the row.
         // Points are like "12.00"; "Thru" is "F" or integer; results are text.
         var ptValues = [];
-        cells.slice(teamIdx + 1).forEach(function(c) {
+        row.querySelectorAll('td').forEach(function(td) {
+          var c = td.textContent.replace(/\s+/g, ' ').trim();
           if (/^\d+\.\d+$/.test(c)) ptValues.push(parseFloat(c));
         });
 
