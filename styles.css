@@ -120,6 +120,13 @@ input, select, textarea { font-family: inherit; }
   margin-left: 8px;
 }
 
+/* Tournament-week nav items — hidden until event week */
+.tournament-nav-item { display: none; }
+.nav-link-active {
+  color: #fff !important;
+  background: rgba(255,255,255,0.12);
+}
+
 .nav-cta:hover {
   background: var(--gold-light);
 }
