@@ -649,6 +649,10 @@
 
         // Split into sub-rounds (handles 1 or 2 rounds per day)
         var subRounds = splitIntoSubRounds(round.matches);
+        // GG detail pages list matches most-recent-first (PM before AM within a day),
+        // so greedy bucket 0 = PM round, bucket 1 = AM round.
+        // Reverse so AM appears first ("Round 1") and PM second ("Round 2").
+        if (subRounds.length > 1) subRounds = subRounds.slice().reverse();
 
         if (round.matches.length === 0) {
           panel.innerHTML = hdr + '<p class="pr-no-data">No matches for this day.</p>';
