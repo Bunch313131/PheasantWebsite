@@ -456,7 +456,7 @@
 
       return dateOrder.map(function(date, i) {
         var dayMatches = matches.filter(function(m) { return m.date === date; });
-        dayMatches.sort(function(a, b) { return a.flight.localeCompare(b.flight); });
+        // Preserve original GG scope order (Nicklaus, Woods, etc.) — do not sort alphabetically
         return { roundNum: i + 1, date: date, matches: dayMatches };
       });
     }
