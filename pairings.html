@@ -150,11 +150,11 @@
     }
     .round-tab {
       font-family: 'Raleway', sans-serif;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      padding: 8px 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 8px 16px;
       border-radius: 4px;
       border: 1px solid var(--gray-rule);
       background: #fff;
@@ -167,20 +167,41 @@
     .round-tab.active { background: var(--green-dark); border-color: var(--green-dark); color: #fff; }
     .round-tab.today-tab { border-color: var(--gold); }
     .round-tab.today-tab.active { background: var(--green-dark); border-color: var(--green-dark); }
+    .tab-match {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+    .tab-date {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      opacity: 0.65;
+    }
+    .round-tab.active .tab-date { opacity: 0.8; }
     .round-panel { display: none; }
     .round-panel.active { display: block; }
 
-    /* ── Sub-round label (Round 1 / Round 2 within a day) ── */
-    .sched-subround-label {
+    /* ── Match panel header ── */
+    .sched-match-header {
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--gold);
+    }
+    .sched-match-title {
       font-family: 'Playfair Display', serif;
-      font-size: 15px;
+      font-size: 22px;
       font-weight: 700;
       color: var(--green-dark);
-      margin: 24px 0 10px;
-      padding-bottom: 6px;
-      border-bottom: 1px solid var(--gray-rule);
+      margin-bottom: 2px;
     }
-    .sched-subround-label:first-child { margin-top: 0; }
+    .sched-match-subtitle {
+      font-family: 'Raleway', sans-serif;
+      font-size: 12px;
+      color: var(--gray-mid);
+      letter-spacing: 0.5px;
+    }
 
     /* ── Flight label within a date ── */
     .sched-flight-label {
@@ -481,7 +502,7 @@
             if (uniqueDates.indexOf(m.date) === -1) uniqueDates.push(m.date);
           });
           console.log('[Schedule] after dedup:', matches.length, 'matches,', uniqueDates.length, 'dates:', uniqueDates);
-          allRounds = groupByDate(matches);
+          allRounds = buildRounds(matches);
           render(allRounds);
           document.getElementById('prUpdated').textContent =
             'Updated ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -493,19 +514,27 @@
         });
     }
 
-    // Group flat match list by date, chronologically sorted, sub-sorted by flight
-    function groupByDate(matches) {
+    // Build flat list of rounds (1 per sub-round per day), sorted chronologically AM-first.
+    // Days with 2 rounds (Fri/Sat) are split via the greedy algorithm; GG lists matches
+    // PM-before-AM in detail pages, so we reverse each day's buckets to get AM first.
+    function buildRounds(matches) {
       var dateOrder = [];
       matches.forEach(function(m) {
         if (dateOrder.indexOf(m.date) === -1) dateOrder.push(m.date);
       });
       dateOrder.sort(function(a, b) { return parseDateSort(a) - parseDateSort(b); });
 
-      return dateOrder.map(function(date, i) {
+      var rounds = [];
+      dateOrder.forEach(function(date) {
         var dayMatches = matches.filter(function(m) { return m.date === date; });
-        // Preserve original GG scope order (Nicklaus, Woods, etc.) — do not sort alphabetically
-        return { roundNum: i + 1, date: date, matches: dayMatches };
+        var subRounds = splitIntoSubRounds(dayMatches);
+        // GG detail pages list matches PM-first; reverse so AM round = index 0
+        if (subRounds.length > 1) subRounds = subRounds.slice().reverse();
+        subRounds.forEach(function(srMatches) {
+          rounds.push({ roundNum: rounds.length + 1, date: date, matches: srMatches });
+        });
       });
+      return rounds;
     }
 
     function parseDateSort(dateStr) {
@@ -615,15 +644,13 @@
         var isToday = p && p.month === tm && p.day === td;
         var tab = document.createElement('button');
         tab.className = 'round-tab' + (i === activeRoundIndex ? ' active' : '') + (isToday ? ' today-tab' : '');
-        tab.textContent = fmtTabLabel(round.date);
+        tab.innerHTML = '<span class="tab-match">Match ' + round.roundNum + '</span>' +
+                        '<span class="tab-date">' + escHtml(fmtTabLabel(round.date)) + '</span>';
         tab.setAttribute('data-index', i);
         tab.addEventListener('click', function() {
           activeRoundIndex = i;
           document.querySelectorAll('.round-tab').forEach(function(t) {
             t.classList.toggle('active', +t.getAttribute('data-index') === i);
-          });
-          document.querySelectorAll('.round-panel').forEach(function(p) {
-            p.classList.toggle('active', +p.getAttribute('data-index') === i);
           });
           var q = document.getElementById('schedSearch').value;
           renderPanels(allRounds, document.getElementById('roundPanels'), q.trim().toLowerCase());
@@ -642,39 +669,27 @@
         panel.className = 'round-panel' + (isActive ? ' active' : '');
         panel.setAttribute('data-index', i);
 
-        // Date header
-        var hdr = '<div class="sched-date-header" style="margin-bottom:20px">' +
-          '<span class="sched-date-label">' + escHtml(fmtDateDisplay(round.date)) + '</span>' +
+        var hdr = '<div class="sched-match-header">' +
+          '<div class="sched-match-title">Match ' + round.roundNum + '</div>' +
+          '<div class="sched-match-subtitle">' + escHtml(fmtDateDisplay(round.date)) + '</div>' +
           '</div>';
 
-        // Split into sub-rounds (handles 1 or 2 rounds per day)
-        var subRounds = splitIntoSubRounds(round.matches);
-        // GG detail pages list matches most-recent-first (PM before AM within a day),
-        // so greedy bucket 0 = PM round, bucket 1 = AM round.
-        // Reverse so AM appears first ("Round 1") and PM second ("Round 2").
-        if (subRounds.length > 1) subRounds = subRounds.slice().reverse();
-
         if (round.matches.length === 0) {
-          panel.innerHTML = hdr + '<p class="pr-no-data">No matches for this day.</p>';
+          panel.innerHTML = hdr + '<p class="pr-no-data">No matches for this round.</p>';
         } else {
+          // Filter if search active
+          var visible = filter
+            ? round.matches.filter(function(m) {
+                return (m.home || '').toLowerCase().indexOf(filter) !== -1 ||
+                       (m.away || '').toLowerCase().indexOf(filter) !== -1;
+              })
+            : round.matches;
+
           var body = '';
-          subRounds.forEach(function(srMatches, srIdx) {
-            // Filter if search active
-            var visible = filter
-              ? srMatches.filter(function(m) {
-                  return (m.home || '').toLowerCase().indexOf(filter) !== -1 ||
-                         (m.away || '').toLowerCase().indexOf(filter) !== -1;
-                })
-              : srMatches;
-
-            if (visible.length === 0) return;
-
-            // Sub-round header (only shown when day has multiple rounds)
-            if (subRounds.length > 1) {
-              body += '<div class="sched-subround-label">Round ' + (srIdx + 1) + '</div>';
-            }
-
-            // Group by flight within this sub-round
+          if (visible.length === 0) {
+            body = '<p class="pr-no-data">No matches matching &ldquo;' + escHtml(filter) + '&rdquo;.</p>';
+          } else {
+            // Group by flight, preserving GG insertion order
             var byFlight = {}, flightOrder = [];
             visible.forEach(function(m) {
               var f = m.flight || 'Matches';
@@ -690,11 +705,8 @@
                      .forEach(function(m) { body += buildMatchCard(m, filter); });
               body += '</div>';
             });
-          });
-
-          if (!body) {
-            body = '<p class="pr-no-data">No matches matching &ldquo;' + escHtml(filter) + '&rdquo; today.</p>';
           }
+
           panel.innerHTML = hdr + body;
         }
 
