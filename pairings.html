@@ -359,33 +359,16 @@
     // detail page in parallel and reconstruct the full schedule.
     // ============================================================
     function loadPairings() {
-      var jsonUrl = GG.gasUrl + '?action=gg&id=' + GG.tournamentId;
+      var url = GG.gasUrl + '?action=gg-schedule&id=' + GG.tournamentId;
 
-      fetch(jsonUrl)
+      fetch(url)
         .then(function(r) { return r.json(); })
-        .then(function(jsonData) {
-          // Collect every team across all flights
-          var scopes = (jsonData.event && jsonData.event.scopes) || [];
-          var teams = [];
-          scopes.forEach(function(scope) {
-            (scope.aggregates || []).forEach(function(agg) {
-              teams.push({ id: agg.id_str, name: agg.name, flight: scope.name });
-            });
-          });
-
-          // Fetch all team detail pages in parallel
-          return Promise.all(
-            teams.map(function(team) {
-              return fetch(GG.gasUrl + '?action=gg-detail&id=' + team.id)
-                .then(function(r) { return r.text(); })
-                .then(function(html) { return { team: team, html: html }; });
-            })
-          ).then(function(detailResults) {
-            var rounds = buildSchedule(detailResults);
-            render(rounds, jsonData);
-            document.getElementById('prUpdated').textContent =
-              'Updated ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-          });
+        .then(function(data) {
+          if (data.error) throw new Error(data.error);
+          var rounds = groupIntoRounds(data.matches || []);
+          render(rounds);
+          document.getElementById('prUpdated').textContent =
+            'Updated ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         })
         .catch(function(err) {
           console.error('[Pairings] load error:', err);
@@ -394,143 +377,34 @@
         });
     }
 
-    // ============================================================
-    // Build schedule from all team detail pages.
-    // Each detail page has rows like:
-    //   "Fri, September 12 :: Team A vs. Team B"
-    // We deduplicate by canonical team pair + date key.
-    // Result from the fetched team's perspective:
-    //   "N up" = fetched team won, "N dn" = fetched team lost, "T" = tied
-    // ============================================================
-    function buildSchedule(detailResults) {
-      // matchKey → { date, flight, home, homeWon, away, result }
-      var matchMap = {};
-      // Track date → canonical sort index
+    // Group flat match list into rounds sorted by date, sub-sorted by flight
+    function groupIntoRounds(matches) {
       var dateOrder = [];
-
-      detailResults.forEach(function(item) {
-        var team = item.team;
-        var entries = parseDetailPage(item.html);
-
-        entries.forEach(function(entry) {
-          // Canonical key: sort team names alphabetically + date
-          var pair = [team.name, entry.opponentName].sort();
-          var key = entry.date + '|' + pair[0] + '|' + pair[1];
-
-          if (!matchMap[key]) {
-            // Determine home/away: team whose page we fetched is "home"
-            var homeWon = null;
-            var resultScore = compareResult(entry.result);
-            if (resultScore === 1)       homeWon = team.name;
-            else if (resultScore === -1) homeWon = entry.opponentName;
-
-            matchMap[key] = {
-              date:      entry.date,
-              flight:    team.flight,
-              home:      team.name,
-              away:      entry.opponentName,
-              homeWon:   homeWon,
-              result:    entry.result
-            };
-
-            if (dateOrder.indexOf(entry.date) === -1) dateOrder.push(entry.date);
-          }
-        });
+      matches.forEach(function(m) {
+        if (dateOrder.indexOf(m.date) === -1) dateOrder.push(m.date);
       });
 
-      // Sort dates chronologically by month/day
-      var monthOrder = { jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12 };
-      dateOrder.sort(function(a, b) {
-        return parseDateSort(a) - parseDateSort(b);
-      });
+      dateOrder.sort(function(a, b) { return parseDateSort(a) - parseDateSort(b); });
 
-      // Group into rounds by date, sub-group by flight
       return dateOrder.map(function(date, i) {
-        var matches = Object.keys(matchMap)
-          .filter(function(k) { return matchMap[k].date === date; })
-          .map(function(k) { return matchMap[k]; });
-
-        // Sort within date by flight name
-        matches.sort(function(a, b) { return a.flight.localeCompare(b.flight); });
-
-        return { label: 'Round ' + (i + 1) + ' \u2014 ' + date, date: date, matches: matches };
+        var dayMatches = matches.filter(function(m) { return m.date === date; });
+        dayMatches.sort(function(a, b) { return a.flight.localeCompare(b.flight); });
+        return { label: 'Round ' + (i + 1) + ' \u2014 ' + date, date: date, matches: dayMatches };
       });
-    }
-
-    // Parse a team's detail page → [{date, opponentName, result}]
-    function parseDetailPage(html) {
-      var entries = [];
-      if (!html || html.length < 500) return entries;
-      try {
-        var doc = new DOMParser().parseFromString(html, 'text/html');
-        var allRows = Array.from(doc.querySelectorAll('table tr'));
-        var currentDate = null;
-        var currentOpponent = null;
-        var lastMatchTokens = [];
-
-        allRows.forEach(function(row) {
-          var text = row.textContent.replace(/\s+/g, ' ').trim();
-
-          if (text.indexOf('::') !== -1 && text.indexOf(' vs. ') !== -1) {
-            if (row.querySelectorAll('td').length > 8) return; // hole-number row
-
-            if (currentOpponent !== null) {
-              entries.push({ date: currentDate, opponentName: currentOpponent,
-                             result: parseMatchResult(lastMatchTokens) });
-            }
-
-            var colonIdx = text.indexOf('::');
-            currentDate    = text.substring(0, colonIdx).trim();
-            var vsIdx = text.indexOf(' vs. ');
-            currentOpponent = text.substring(vsIdx + 5).trim();
-            lastMatchTokens = [];
-          }
-          else if (/^Match\b/.test(text) && currentOpponent !== null) {
-            var tokens = text.replace(/^Match\s*/, '').trim().split(/\s+/).filter(Boolean);
-            if (tokens.length > 0) lastMatchTokens = tokens;
-          }
-        });
-
-        if (currentOpponent !== null) {
-          entries.push({ date: currentDate, opponentName: currentOpponent,
-                         result: parseMatchResult(lastMatchTokens) });
-        }
-      } catch(e) {}
-      return entries;
-    }
-
-    function parseMatchResult(tokens) {
-      if (!tokens.length) return '';
-      var last = tokens[tokens.length - 1];
-      var prev = tokens.length >= 2 ? tokens[tokens.length - 2] : '';
-      if ((last === 'up' || last === 'dn') && /^\d+$/.test(prev)) return prev + ' ' + last;
-      if (last === 'T') return 'T';
-      return '';
-    }
-
-    // 1 = home won, -1 = home lost, 0 = tied/unknown
-    function compareResult(result) {
-      var r = (result || '').trim();
-      if (/ up$/.test(r)) return  1;
-      if (/ dn$/.test(r)) return -1;
-      return 0;
     }
 
     function parseDateSort(dateStr) {
-      // "Fri, September 12" → numeric for sorting
-      var m = dateStr.match(/([a-z]+)\s+(\d+)/i);
+      var m = (dateStr || '').match(/([a-z]+)\s+(\d+)/i);
       if (!m) return 0;
-      var monthOrder = {january:1,february:2,march:3,april:4,may:5,june:6,
-                        july:7,august:8,september:9,october:10,november:11,december:12};
-      var mon = monthOrder[(m[1] || '').toLowerCase()] || 0;
-      return mon * 100 + parseInt(m[2], 10);
+      var monthOrder = { january:1,february:2,march:3,april:4,may:5,june:6,
+                         july:7,august:8,september:9,october:10,november:11,december:12 };
+      return (monthOrder[(m[1] || '').toLowerCase()] || 0) * 100 + parseInt(m[2], 10);
     }
 
     // ============================================================
     // Render
     // ============================================================
-    function render(rounds, jsonData) {
-      var scopes = (jsonData.event && jsonData.event.scopes) || [];
+    function render(rounds) {
 
       document.getElementById('prHeroSub').textContent =
         GG.year + ' Season  \u00b7  El Macero Country Club';

@@ -187,24 +187,143 @@ function doGet(e) {
     }
   }
 
-  // Pairings endpoint — match schedule / tee times for a tournament
-  if (e.parameter.action === 'gg-pairings' && e.parameter.id) {
+  // Schedule endpoint — fetches all team detail pages server-side (avoids browser CORS burst),
+  // parses match rows, deduplicates, and returns consolidated JSON.
+  // Usage: ?action=gg-schedule&id=TOURNAMENT_ID
+  if (e.parameter.action === 'gg-schedule' && e.parameter.id) {
     try {
-      var resp = UrlFetchApp.fetch('https://www.golfgenius.com/tournaments2/pairings/' + e.parameter.id, {
+      // Step 1: Get team list from results JSON
+      var jsonQs = '?called_from=widgets%2Fcustomized_tournament_results&hide_totals=false&player_stats_for_portal=true';
+      var jsonResp = UrlFetchApp.fetch(base + e.parameter.id + jsonQs, {
         muteHttpExceptions: true,
-        headers: { 'Accept': 'text/html', 'User-Agent': 'Mozilla/5.0' }
+        headers: { 'Accept': 'application/json', 'User-Agent': 'Mozilla/5.0' }
       });
-      return ContentService.createTextOutput(resp.getContentText())
-        .setMimeType(ContentService.MimeType.TEXT);
+      var jsonData = JSON.parse(jsonResp.getContentText());
+      var scopes = (jsonData.event && jsonData.event.scopes) || [];
+
+      var teams = [];
+      scopes.forEach(function(scope) {
+        (scope.aggregates || []).forEach(function(agg) {
+          teams.push({ id: agg.id_str, name: agg.name, flight: scope.name });
+        });
+      });
+
+      // Step 2: Fetch all team detail pages in parallel (server-side, no CORS)
+      var requests = teams.map(function(team) {
+        return {
+          url: 'https://www.golfgenius.com/tournaments2/details/' + team.id,
+          muteHttpExceptions: true,
+          headers: { 'Accept': 'text/html', 'User-Agent': 'Mozilla/5.0' }
+        };
+      });
+      var responses = UrlFetchApp.fetchAll(requests);
+
+      // Step 3: Parse and deduplicate matches
+      var matchMap = {};
+      responses.forEach(function(resp, i) {
+        var team = teams[i];
+        var entries = parseDetailHtmlGas(resp.getContentText());
+        entries.forEach(function(entry) {
+          var pair = [team.name, entry.opponentName].sort();
+          var key = entry.date + '|' + pair[0] + '|' + pair[1];
+          if (!matchMap[key]) {
+            var score = gasCompareResult(entry.result);
+            matchMap[key] = {
+              date:    entry.date,
+              flight:  team.flight,
+              home:    team.name,
+              away:    entry.opponentName,
+              homeWon: score === 1 ? team.name : score === -1 ? entry.opponentName : null,
+              result:  entry.result
+            };
+          }
+        });
+      });
+
+      // Collect to array
+      var matchList = [];
+      for (var k in matchMap) { matchList.push(matchMap[k]); }
+
+      return ContentService.createTextOutput(JSON.stringify({ matches: matchList }))
+        .setMimeType(ContentService.MimeType.JSON);
+
     } catch (err) {
-      return ContentService.createTextOutput('')
-        .setMimeType(ContentService.MimeType.TEXT);
+      return ContentService.createTextOutput(JSON.stringify({ error: err.message }))
+        .setMimeType(ContentService.MimeType.JSON);
     }
   }
 
   return ContentService
     .createTextOutput('Pheasant Invitational Registration API is active.')
     .setMimeType(ContentService.MimeType.TEXT);
+}
+
+// --------------------------------------------------------
+// Schedule helper — parse a team's detail HTML server-side
+// Returns [{date, opponentName, result}]
+// --------------------------------------------------------
+function parseDetailHtmlGas(html) {
+  var entries = [];
+  if (!html || html.length < 500) return entries;
+
+  // Regex-based parse (no DOM available in GAS)
+  // Match header lines: "Weekday, Month D :: Team A vs. Team B"
+  // We scan line by line through the raw HTML looking for these patterns.
+  var lines = html.replace(/<[^>]+>/g, ' ').replace(/&amp;/g,  '&')
+                  .replace(/&#39;/g, "'").replace(/&nbsp;/g, ' ')
+                  .split(/[\r\n]+/);
+
+  var currentDate     = null;
+  var currentOpponent = null;
+  var lastMatchTokens = [];
+
+  lines.forEach(function(rawLine) {
+    var line = rawLine.replace(/\s+/g, ' ').trim();
+
+    // Match header: contains "::" and " vs. "
+    if (line.indexOf('::') !== -1 && line.indexOf(' vs. ') !== -1) {
+      // Skip lines that look like hole-number rows (many digits)
+      var digitCount = (line.match(/\b\d+\b/g) || []).length;
+      if (digitCount > 8) return;
+
+      if (currentOpponent !== null) {
+        entries.push({ date: currentDate, opponentName: currentOpponent,
+                       result: gasParseMatchResult(lastMatchTokens) });
+      }
+      var colonIdx = line.indexOf('::');
+      currentDate = line.substring(0, colonIdx).trim();
+      var vsIdx   = line.indexOf(' vs. ');
+      currentOpponent = line.substring(vsIdx + 5).trim();
+      lastMatchTokens = [];
+    }
+    // Match score rows: start with "Match"
+    else if (/^Match\b/.test(line) && currentOpponent !== null) {
+      var tokens = line.replace(/^Match\s*/, '').trim().split(/\s+/).filter(Boolean);
+      if (tokens.length > 0) lastMatchTokens = tokens;
+    }
+  });
+
+  if (currentOpponent !== null) {
+    entries.push({ date: currentDate, opponentName: currentOpponent,
+                   result: gasParseMatchResult(lastMatchTokens) });
+  }
+  return entries;
+}
+
+function gasParseMatchResult(tokens) {
+  if (!tokens || !tokens.length) return '';
+  var last = tokens[tokens.length - 1];
+  var prev = tokens.length >= 2 ? tokens[tokens.length - 2] : '';
+  if ((last === 'up' || last === 'dn') && /^\d+$/.test(prev)) return prev + ' ' + last;
+  if (last === 'T') return 'T';
+  return '';
+}
+
+function gasCompareResult(result) {
+  var r = (result || '').trim();
+  if (/ up$/.test(r)) return  1;
+  if (/ dn$/.test(r)) return -1;
+  return 0;
 }
 
 // --------------------------------------------------------
