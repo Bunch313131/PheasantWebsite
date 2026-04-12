@@ -462,29 +462,23 @@
     }
 
     // ============================================================
-    // Load — fetch schedule and GG JSON for points in parallel
+    // Load — fetch schedule and results HTML for points in parallel
     // ============================================================
     function loadSchedule() {
-      var schedUrl  = GG.gasUrl + '?action=gg-schedule&id=' + GG.tournamentId;
-      var pointsUrl = GG.gasUrl + '?action=gg&id=' + GG.tournamentId;
+      var schedUrl = GG.gasUrl + '?action=gg-schedule&id=' + GG.tournamentId;
+      var htmlUrl  = GG.gasUrl + '?action=gg-html&id='     + GG.tournamentId;
 
       Promise.all([
         fetch(schedUrl).then(function(r) { return r.json(); }),
-        fetch(pointsUrl).then(function(r) { return r.json(); }).catch(function() { return {}; })
+        fetch(htmlUrl).then(function(r) { return r.text(); }).catch(function() { return ''; })
       ])
         .then(function(results) {
-          var schedData = results[0], ggJson = results[1];
+          var schedData = results[0], resultsHtml = results[1];
           if (schedData.error) throw new Error(schedData.error);
 
-          // Extract per-round points from GG JSON aggregates (if present)
-          pointsLookup = extractPointsFromGGJson(ggJson);
-          if (Object.keys(pointsLookup).length === 0) {
-            var scopes = (ggJson.event && ggJson.event.scopes) || [];
-            var firstAgg = scopes[0] && scopes[0].aggregates && scopes[0].aggregates[0];
-            console.log('[Points] no round data found. First aggregate keys:', firstAgg ? Object.keys(firstAgg) : 'none');
-          } else {
-            console.log('[Points] loaded for', Object.keys(pointsLookup).length, 'teams');
-          }
+          // Parse per-round points from GG results HTML table
+          pointsLookup = extractPointsFromResultsHtml(resultsHtml);
+          console.log('[Points] loaded for', Object.keys(pointsLookup).length, 'teams');
 
           var matches = schedData.matches || [];
 
@@ -512,25 +506,59 @@
         });
     }
 
-    // Try to pull per-team per-round points from the GG results JSON.
-    // GG stores aggregates per team; if each aggregate has a `rounds` array
-    // we build: normKey(name) → { R1: pts, R2: pts, ... }
-    function extractPointsFromGGJson(data) {
+    // Parse per-team per-round points from GG results HTML table using DOMParser.
+    // The table has round column headers "R1"–"R5" (possibly out of order), each
+    // with sub-columns for result, thru, and points. Points cells are floats "12.00".
+    // Returns: normKey(teamName) → { R1: pts, R2: pts, ... }
+    function extractPointsFromResultsHtml(html) {
       var map = {};
-      var scopes = (data.event && data.event.scopes) || [];
-      scopes.forEach(function(scope) {
-        (scope.aggregates || []).forEach(function(agg) {
-          var rounds = agg.rounds || agg.scores || [];
-          if (!rounds.length) return;
-          var teamPts = {};
-          rounds.forEach(function(r) {
-            var num = r.num || r.round_num || r.number;
-            var pts = r.points || r.pts || r.total_points;
-            if (num != null && pts != null) teamPts['R' + num] = parseFloat(pts);
-          });
-          if (Object.keys(teamPts).length) map[normKey(agg.name)] = teamPts;
-        });
+      if (!html || html.length < 200) return map;
+
+      var doc;
+      try { doc = new DOMParser().parseFromString(html, 'text/html'); }
+      catch(e) { return map; }
+
+      // Find round column order from <th> elements matching "R1"–"R9"
+      var roundOrder = [];
+      doc.querySelectorAll('th').forEach(function(th) {
+        var t = th.textContent.trim();
+        if (/^R\d+$/i.test(t)) {
+          var rk = t.toUpperCase();
+          if (roundOrder.indexOf(rk) === -1) roundOrder.push(rk);
+        }
       });
+      if (roundOrder.length === 0) {
+        console.warn('[Points] no round headers found in results HTML');
+        return map;
+      }
+      console.log('[Points] round column order:', roundOrder);
+
+      // Parse each data row: team name in first td, point floats in remaining tds
+      doc.querySelectorAll('tr').forEach(function(row) {
+        var cells = Array.from(row.querySelectorAll('td')).map(function(td) {
+          return td.textContent.replace(/\s+/g, ' ').trim();
+        });
+        if (cells.length < roundOrder.length + 1) return;
+
+        var teamName = cells[0];
+        if (!teamName || teamName.length < 4 || !/[a-zA-Z]/.test(teamName)) return;
+        if (/^(team|name|player|flight|pos)/i.test(teamName)) return;
+
+        // Points cells are floats like "12.00" — "Thru" is "F" or integer, result is text
+        var ptValues = [];
+        cells.slice(1).forEach(function(c) {
+          if (/^\d+\.\d+$/.test(c)) ptValues.push(parseFloat(c));
+        });
+
+        // Expect one pt per round + one total; drop the total
+        if (ptValues.length === roundOrder.length + 1) ptValues.pop();
+        if (ptValues.length !== roundOrder.length) return;
+
+        var teamPts = {};
+        roundOrder.forEach(function(rk, i) { teamPts[rk] = ptValues[i]; });
+        map[normKey(teamName)] = teamPts;
+      });
+
       return map;
     }
 
