@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pairings | The Pheasant Invitational</title>
-  <meta name="description" content="Match pairings and tee assignments for The Pheasant Invitational at El Macero Country Club.">
+  <title>Schedule | The Pheasant Invitational</title>
+  <meta name="description" content="Match schedule for The Pheasant Invitational at El Macero Country Club.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -83,139 +83,129 @@
       min-height: 60vh;
     }
 
-    /* ── Round tabs ── */
-    .round-tabs-wrap {
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      margin-bottom: 28px;
-      scrollbar-width: none;
+    /* ── Search bar ── */
+    .sched-search-wrap {
+      margin-bottom: 32px;
     }
-    .round-tabs-wrap::-webkit-scrollbar { display: none; }
-    .round-tabs {
-      display: flex;
-      gap: 6px;
-      min-width: max-content;
-      padding-bottom: 2px;
-    }
-    .round-tab {
+    .sched-search-input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 11px 16px 11px 40px;
+      border: 1px solid var(--gray-rule);
+      border-radius: 6px;
       font-family: 'Raleway', sans-serif;
-      font-size: 11px;
+      font-size: 14px;
+      color: var(--green-dark);
+      background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238a9a8e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%3E%3C/line%3E%3C/svg%3E") no-repeat 14px center;
+      background-size: 15px;
+      outline: none;
+      transition: border-color 0.18s;
+    }
+    .sched-search-input:focus { border-color: var(--green-mid); }
+    .sched-search-input::placeholder { color: var(--gray-mid); }
+
+    /* ── Date section ── */
+    .sched-date-section {
+      margin-bottom: 40px;
+    }
+    .sched-date-header {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--gold);
+    }
+    .sched-date-label {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--green-dark);
+    }
+    .sched-round-badge {
+      font-family: 'Raleway', sans-serif;
+      font-size: 10px;
       font-weight: 700;
       letter-spacing: 1.5px;
       text-transform: uppercase;
-      padding: 8px 16px;
-      border-radius: 4px;
-      border: 1px solid var(--gray-rule);
-      background: #fff;
-      color: var(--gray-dark);
-      cursor: pointer;
-      transition: all 0.18s;
-      white-space: nowrap;
+      background: var(--green-dark);
+      color: #fff;
+      padding: 3px 9px;
+      border-radius: 3px;
     }
-    .round-tab:hover { border-color: var(--gold); color: var(--green-dark); }
-    .round-tab.active { background: var(--green-dark); border-color: var(--green-dark); color: #fff; }
 
-    .round-panel { display: none; }
-    .round-panel.active { display: block; }
-
-    /* ── Flight group within a round ── */
-    .flight-group {
-      margin-bottom: 28px;
-    }
-    .flight-group-header {
-      font-family: 'Playfair Display', serif;
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--green-dark);
-      margin-bottom: 12px;
-      padding-bottom: 8px;
-      border-bottom: 2px solid var(--gold);
-      display: flex;
-      align-items: baseline;
-      gap: 12px;
-    }
-    .flight-group-date {
+    /* ── Flight label within a date ── */
+    .sched-flight-label {
       font-family: 'Raleway', sans-serif;
       font-size: 11px;
-      font-weight: 600;
-      color: var(--gray-mid);
-      letter-spacing: 1px;
+      font-weight: 700;
+      letter-spacing: 2px;
       text-transform: uppercase;
+      color: var(--gray-mid);
+      margin: 16px 0 8px;
     }
 
-    /* ── Match card ── */
+    /* ── Match row ── */
     .match-list {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
     }
     .match-card {
       background: #fff;
       border: 1px solid var(--gray-rule);
       border-radius: 8px;
-      padding: 14px 18px;
+      padding: 12px 18px;
       display: grid;
-      grid-template-columns: 1fr auto 1fr;
+      grid-template-columns: 1fr 56px 1fr;
       align-items: center;
-      gap: 12px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+      gap: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      transition: border-color 0.15s;
+    }
+    .match-card.highlight {
+      border-color: var(--gold);
+      background: var(--gold-pale);
+      box-shadow: 0 2px 8px rgba(184,150,62,0.15);
     }
     .match-team {
       font-family: 'Raleway', sans-serif;
       font-size: 14px;
       font-weight: 600;
       color: var(--green-dark);
-      line-height: 1.3;
+      line-height: 1.35;
     }
-    .match-team .member-names {
-      font-weight: 600;
-    }
-    .match-team .club-name {
-      font-size: 11px;
-      font-weight: 400;
-      color: var(--gray-mid);
-      margin-top: 2px;
-    }
+    .match-team.winner { font-weight: 800; }
     .match-team.away { text-align: right; }
-
     .match-meta {
       text-align: center;
       flex-shrink: 0;
     }
     .match-vs {
       font-family: 'Playfair Display', serif;
-      font-size: 13px;
+      font-size: 12px;
       font-style: italic;
       color: var(--gray-mid);
       display: block;
     }
-    .match-hole {
+    .match-result {
       display: inline-block;
-      margin-top: 5px;
-      background: var(--green-dark);
-      color: #fff;
+      margin-top: 4px;
       font-family: 'Raleway', sans-serif;
       font-size: 10px;
       font-weight: 700;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      padding: 3px 8px;
+      letter-spacing: 0.5px;
+      padding: 2px 6px;
       border-radius: 3px;
-    }
-    .match-result {
-      display: inline-block;
-      margin-top: 5px;
       background: var(--gold-pale);
       color: var(--gold);
       border: 1px solid rgba(184,150,62,0.3);
-      font-family: 'Raleway', sans-serif;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      padding: 3px 8px;
-      border-radius: 3px;
     }
-    .match-result.win { background: rgba(26,58,42,0.08); color: var(--green-dark); border-color: rgba(26,58,42,0.2); }
+    .match-result.win {
+      background: rgba(26,58,42,0.07);
+      color: var(--green-dark);
+      border-color: rgba(26,58,42,0.18);
+    }
 
     /* ── Loading / error ── */
     .pr-loading, .pr-error {
@@ -235,7 +225,6 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
     .pr-error { color: var(--danger); }
-
     .pr-no-data {
       text-align: center;
       padding: 40px 24px;
@@ -244,19 +233,28 @@
       font-size: 14px;
       font-style: italic;
     }
+    .sched-no-results {
+      text-align: center;
+      padding: 32px 24px;
+      color: var(--gray-mid);
+      font-family: 'Raleway', sans-serif;
+      font-size: 14px;
+      font-style: italic;
+      display: none;
+    }
 
     /* ── Mobile ── */
-    @media (max-width: 680px) {
+    @media (max-width: 600px) {
       .pr-hero-title { font-size: 28px; }
       .match-card {
         grid-template-columns: 1fr;
-        grid-template-rows: auto auto auto;
-        gap: 4px;
+        gap: 2px;
         text-align: center;
       }
       .match-team.away { text-align: center; }
-      .match-meta { order: -1; }
+      .match-meta { order: -1; margin-bottom: 4px; }
       .match-vs { display: none; }
+      .sched-date-label { font-size: 18px; }
     }
   </style>
 </head>
@@ -284,7 +282,7 @@
   <section class="pr-hero">
     <div class="pr-hero-content">
       <p class="pr-hero-eyebrow">El Macero Country Club</p>
-      <h1 class="pr-hero-title">Match Pairings</h1>
+      <h1 class="pr-hero-title">Match Schedule</h1>
       <p class="pr-hero-sub" id="prHeroSub">Loading&hellip;</p>
     </div>
   </section>
@@ -303,18 +301,20 @@
 
       <div id="prLoading" class="pr-loading">
         <div class="spinner"></div>
-        <p>Loading pairings&hellip;</p>
+        <p>Loading schedule&hellip;</p>
       </div>
 
       <div id="prError" class="pr-error" style="display:none;">
-        <p>Unable to load pairings. Please refresh the page.</p>
+        <p>Unable to load schedule. Please refresh the page.</p>
       </div>
 
       <div id="prContent" style="display:none;">
-        <div class="round-tabs-wrap">
-          <div class="round-tabs" id="roundTabs"></div>
+        <div class="sched-search-wrap">
+          <input type="search" id="schedSearch" class="sched-search-input"
+                 placeholder="Find your team&hellip;" autocomplete="off">
         </div>
-        <div id="roundPanels"></div>
+        <div id="schedSections"></div>
+        <p class="sched-no-results" id="schedNoResults">No matches found for that team name.</p>
       </div>
 
     </div>
@@ -352,48 +352,55 @@
       year:         '2025'
     };
 
-    var activeRoundIndex = 0;
+    // All matches, kept for search filtering
+    var allRounds = [];
 
     // ============================================================
-    // Load: fetch JSON for team list, then fetch every team's
-    // detail page in parallel and reconstruct the full schedule.
+    // Load
     // ============================================================
-    function loadPairings() {
+    function loadSchedule() {
       var url = GG.gasUrl + '?action=gg-schedule&id=' + GG.tournamentId;
 
       fetch(url)
         .then(function(r) { return r.json(); })
         .then(function(data) {
           if (data.error) throw new Error(data.error);
-          var rounds = groupIntoRounds(data.matches || []);
-          render(rounds);
+          var matches = data.matches || [];
+          console.log('[Schedule] total matches returned:', matches.length);
+          var uniqueDates = [];
+          matches.forEach(function(m) {
+            if (uniqueDates.indexOf(m.date) === -1) uniqueDates.push(m.date);
+          });
+          console.log('[Schedule] unique dates:', uniqueDates);
+          allRounds = groupByDate(matches);
+          render(allRounds);
           document.getElementById('prUpdated').textContent =
             'Updated ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         })
         .catch(function(err) {
-          console.error('[Pairings] load error:', err);
+          console.error('[Schedule] load error:', err);
           document.getElementById('prLoading').style.display = 'none';
           document.getElementById('prError').style.display = 'block';
         });
     }
 
-    // Group flat match list into rounds sorted by date, sub-sorted by flight
-    function groupIntoRounds(matches) {
+    // Group flat match list by date, chronologically sorted, sub-sorted by flight
+    function groupByDate(matches) {
       var dateOrder = [];
       matches.forEach(function(m) {
         if (dateOrder.indexOf(m.date) === -1) dateOrder.push(m.date);
       });
-
       dateOrder.sort(function(a, b) { return parseDateSort(a) - parseDateSort(b); });
 
       return dateOrder.map(function(date, i) {
         var dayMatches = matches.filter(function(m) { return m.date === date; });
         dayMatches.sort(function(a, b) { return a.flight.localeCompare(b.flight); });
-        return { label: 'Round ' + (i + 1) + ' \u2014 ' + date, date: date, matches: dayMatches };
+        return { roundNum: i + 1, date: date, matches: dayMatches };
       });
     }
 
     function parseDateSort(dateStr) {
+      // Handles "Fri, September 12" or "September 12"
       var m = (dateStr || '').match(/([a-z]+)\s+(\d+)/i);
       if (!m) return 0;
       var monthOrder = { january:1,february:2,march:3,april:4,may:5,june:6,
@@ -401,127 +408,145 @@
       return (monthOrder[(m[1] || '').toLowerCase()] || 0) * 100 + parseInt(m[2], 10);
     }
 
+    // Format date string for display — strip day-of-week prefix if present
+    function fmtDateDisplay(dateStr) {
+      // "Fri, September 12" → "September 12"
+      // "September 12" → "September 12"
+      var m = dateStr.match(/,\s*(.+)/);
+      return m ? m[1].trim() : dateStr;
+    }
+
     // ============================================================
     // Render
     // ============================================================
-    function render(rounds) {
+    function render(rounds, filterStr) {
+      var filter = (filterStr || '').trim().toLowerCase();
 
       document.getElementById('prHeroSub').textContent =
         GG.year + ' Season  \u00b7  El Macero Country Club';
 
-      var tabsEl   = document.getElementById('roundTabs');
-      var panelsEl = document.getElementById('roundPanels');
-      tabsEl.innerHTML   = '';
-      panelsEl.innerHTML = '';
+      var sectionsEl = document.getElementById('schedSections');
+      sectionsEl.innerHTML = '';
 
       if (rounds.length === 0) {
-        panelsEl.innerHTML = '<p class="pr-no-data">No pairings data available yet.</p>';
+        sectionsEl.innerHTML = '<p class="pr-no-data">No schedule data available yet.</p>';
         document.getElementById('prLoading').style.display = 'none';
         document.getElementById('prContent').style.display = 'block';
         return;
       }
 
-      rounds.forEach(function(round, i) {
-        var tab = document.createElement('button');
-        tab.className = 'round-tab' + (i === activeRoundIndex ? ' active' : '');
-        tab.textContent = round.label;
-        tab.setAttribute('data-index', i);
-        tab.addEventListener('click', function() {
-          activeRoundIndex = i;
-          document.querySelectorAll('.round-tab').forEach(function(t) {
-            t.classList.toggle('active', +t.getAttribute('data-index') === i);
-          });
-          document.querySelectorAll('.round-panel').forEach(function(p) {
-            p.classList.toggle('active', +p.getAttribute('data-index') === i);
-          });
-        });
-        tabsEl.appendChild(tab);
+      var totalVisible = 0;
 
-        var panel = document.createElement('div');
-        panel.className = 'round-panel' + (i === activeRoundIndex ? ' active' : '');
-        panel.setAttribute('data-index', i);
+      rounds.forEach(function(round) {
+        // Filter matches if search active
+        var visibleMatches = round.matches;
+        if (filter) {
+          visibleMatches = round.matches.filter(function(m) {
+            return (m.home || '').toLowerCase().indexOf(filter) !== -1 ||
+                   (m.away || '').toLowerCase().indexOf(filter) !== -1;
+          });
+        }
+        if (visibleMatches.length === 0) return;
+        totalVisible += visibleMatches.length;
 
-        // Group matches by flight for this round
+        var section = document.createElement('div');
+        section.className = 'sched-date-section';
+
+        // Date header
+        var hdr = '<div class="sched-date-header">' +
+          '<span class="sched-date-label">' + escHtml(fmtDateDisplay(round.date)) + '</span>' +
+          '<span class="sched-round-badge">Round ' + round.roundNum + '</span>' +
+          '</div>';
+
+        // Group by flight within this date
         var byFlight = {};
         var flightOrder = [];
-        round.matches.forEach(function(m) {
+        visibleMatches.forEach(function(m) {
           var f = m.flight || 'Matches';
           if (!byFlight[f]) { byFlight[f] = []; flightOrder.push(f); }
           byFlight[f].push(m);
         });
 
-        if (round.matches.length === 0) {
-          panel.innerHTML = '<p class="pr-no-data">No matches found for this round.</p>';
-        } else {
-          var html = '';
-          flightOrder.forEach(function(flightName) {
-            var matches = byFlight[flightName];
-            html += '<div class="flight-group">';
-            html += '<div class="flight-group-header">' + escHtml(flightName) + '</div>';
-            html += '<div class="match-list">';
-            matches.forEach(function(m) {
-              html += buildMatchCard(m);
-            });
-            html += '</div></div>';
+        var body = '';
+        var multiFlights = flightOrder.length > 1;
+        flightOrder.forEach(function(flightName) {
+          if (multiFlights) {
+            body += '<div class="sched-flight-label">' + escHtml(flightName) + '</div>';
+          }
+          body += '<div class="match-list">';
+          byFlight[flightName].forEach(function(m) {
+            body += buildMatchCard(m, filter);
           });
-          panel.innerHTML = html;
-        }
+          body += '</div>';
+        });
 
-        panelsEl.appendChild(panel);
+        section.innerHTML = hdr + body;
+        sectionsEl.appendChild(section);
       });
+
+      var noResults = document.getElementById('schedNoResults');
+      noResults.style.display = (filter && totalVisible === 0) ? 'block' : 'none';
 
       document.getElementById('prLoading').style.display = 'none';
       document.getElementById('prContent').style.display = 'block';
     }
 
-    function buildMatchCard(m) {
-      function fmtTeam(name) {
-        var parts = name.split(/\s*\+\s*/);
-        if (parts.length === 2) {
-          return escHtml(parts[0].trim()) +
-            ' <span style="color:var(--gold);font-weight:400">&amp;</span> ' +
-            escHtml(parts[1].trim());
-        }
-        return escHtml(name);
-      }
-
-      // Winner indicator: bold the winner name, show result label
+    function buildMatchCard(m, filter) {
       var homeWinner = m.homeWon === m.home;
       var awayWinner = m.homeWon === m.away;
-      var resultLabel = '';
+      var filterLc = (filter || '').toLowerCase();
+
+      var homeHighlight = filterLc && (m.home || '').toLowerCase().indexOf(filterLc) !== -1;
+      var awayHighlight = filterLc && (m.away || '').toLowerCase().indexOf(filterLc) !== -1;
+      var cardHighlight = homeHighlight || awayHighlight;
+
+      // Result badge
+      var resultHtml = '';
       if (m.result === 'T') {
-        resultLabel = '<span class="match-result">All Square</span>';
+        resultHtml = '<span class="match-result">AS</span>';
       } else if (m.result) {
-        // Normalize: "N up" from home perspective → show who won
-        var upDown = / up$/.test(m.result) ? 'up' : 'dn';
         var num = m.result.replace(/\s*(up|dn)$/, '').trim();
-        var winnerName = homeWinner ? m.home : awayWinner ? m.away : null;
-        if (winnerName) {
-          var winParts = winnerName.split(/\s*\+\s*/);
-          var winLabel = winParts.length === 2
-            ? winParts[0].trim() + ' &amp; ' + winParts[1].trim()
-            : escHtml(winnerName);
-          resultLabel = '<span class="match-result win">' + num + ' up</span>';
-        }
+        resultHtml = '<span class="match-result win">' + num + ' up</span>';
       }
 
-      var metaHtml = '<span class="match-vs">vs.</span>' + (resultLabel ? '<br>' + resultLabel : '');
+      var metaHtml = '<span class="match-vs">vs.</span>' + (resultHtml ? '<br>' + resultHtml : '');
 
-      var homeStyle = homeWinner ? ' style="font-weight:700"' : '';
-      var awayStyle = awayWinner ? ' style="font-weight:700"' : '';
+      var homeClass = 'match-team home' + (homeWinner ? ' winner' : '');
+      var awayClass = 'match-team away' + (awayWinner ? ' winner' : '');
 
-      return '<div class="match-card">' +
-        '<div class="match-team home"><div class="member-names"' + homeStyle + '>' + fmtTeam(m.home) + '</div></div>' +
+      return '<div class="match-card' + (cardHighlight ? ' highlight' : '') + '">' +
+        '<div class="' + homeClass + '">' + fmtTeamName(m.home) + '</div>' +
         '<div class="match-meta">' + metaHtml + '</div>' +
-        '<div class="match-team away"><div class="member-names"' + awayStyle + '>' + fmtTeam(m.away) + '</div></div>' +
+        '<div class="' + awayClass + '">' + fmtTeamName(m.away) + '</div>' +
         '</div>';
+    }
+
+    function fmtTeamName(name) {
+      // "Player A + Player B" → "Player A & Player B" with styled ampersand
+      var parts = (name || '').split(/\s*\+\s*/);
+      if (parts.length === 2) {
+        return escHtml(parts[0].trim()) +
+          ' <span style="color:var(--gold);font-weight:400">&amp;</span> ' +
+          escHtml(parts[1].trim());
+      }
+      return escHtml(name || '');
     }
 
     function escHtml(str) {
       return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
-    loadPairings();
+    // ── Search ──
+    var searchTimer;
+    document.getElementById('schedSearch').addEventListener('input', function() {
+      clearTimeout(searchTimer);
+      var val = this.value;
+      searchTimer = setTimeout(function() {
+        render(allRounds, val);
+      }, 180);
+    });
+
+    loadSchedule();
   </script>
 </body>
 </html>
