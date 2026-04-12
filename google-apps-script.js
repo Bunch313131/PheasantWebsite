@@ -261,47 +261,51 @@ function doGet(e) {
 // --------------------------------------------------------
 // Schedule helper — parse a team's detail HTML server-side
 // Returns [{date, opponentName, result}]
+// Extracts full <tr> blocks before stripping tags so that
+// text from multiple <td>s within a row is concatenated
+// correctly (mirrors what DOMParser.textContent does).
 // --------------------------------------------------------
 function parseDetailHtmlGas(html) {
   var entries = [];
   if (!html || html.length < 500) return entries;
 
-  // Regex-based parse (no DOM available in GAS)
-  // Match header lines: "Weekday, Month D :: Team A vs. Team B"
-  // We scan line by line through the raw HTML looking for these patterns.
-  var lines = html.replace(/<[^>]+>/g, ' ').replace(/&amp;/g,  '&')
-                  .replace(/&#39;/g, "'").replace(/&nbsp;/g, ' ')
-                  .split(/[\r\n]+/);
-
   var currentDate     = null;
   var currentOpponent = null;
   var lastMatchTokens = [];
 
-  lines.forEach(function(rawLine) {
-    var line = rawLine.replace(/\s+/g, ' ').trim();
+  // Extract each <tr>...</tr> block and process as a unit
+  var trRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
+  var trMatch;
+  while ((trMatch = trRegex.exec(html)) !== null) {
+    var rowHtml = trMatch[1];
 
-    // Match header: contains "::" and " vs. "
-    if (line.indexOf('::') !== -1 && line.indexOf(' vs. ') !== -1) {
-      // Skip lines that look like hole-number rows (many digits)
-      var digitCount = (line.match(/\b\d+\b/g) || []).length;
-      if (digitCount > 8) return;
+    // Count <td> elements to detect hole-number rows
+    var tdCount = (rowHtml.match(/<td/gi) || []).length;
+
+    // Strip tags and decode common entities; collapse whitespace
+    var text = rowHtml
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/&amp;/g, '&').replace(/&#39;/g, "'")
+      .replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
+
+    if (text.indexOf('::') !== -1 && text.indexOf(' vs. ') !== -1) {
+      if (tdCount > 8) continue; // hole-number row — skip
 
       if (currentOpponent !== null) {
         entries.push({ date: currentDate, opponentName: currentOpponent,
                        result: gasParseMatchResult(lastMatchTokens) });
       }
-      var colonIdx = line.indexOf('::');
-      currentDate = line.substring(0, colonIdx).trim();
-      var vsIdx   = line.indexOf(' vs. ');
-      currentOpponent = line.substring(vsIdx + 5).trim();
+      var colonIdx = text.indexOf('::');
+      currentDate = text.substring(0, colonIdx).trim();
+      var vsIdx   = text.indexOf(' vs. ');
+      currentOpponent = text.substring(vsIdx + 5).trim();
       lastMatchTokens = [];
     }
-    // Match score rows: start with "Match"
-    else if (/^Match\b/.test(line) && currentOpponent !== null) {
-      var tokens = line.replace(/^Match\s*/, '').trim().split(/\s+/).filter(Boolean);
+    else if (/^Match\b/.test(text) && currentOpponent !== null) {
+      var tokens = text.replace(/^Match\s*/, '').trim().split(/\s+/).filter(Boolean);
       if (tokens.length > 0) lastMatchTokens = tokens;
     }
-  });
+  }
 
   if (currentOpponent !== null) {
     entries.push({ date: currentDate, opponentName: currentOpponent,
