@@ -220,9 +220,13 @@ function doGet(e) {
 
       // Step 3: Parse and deduplicate matches
       var matchMap = {};
+      var debugTeams = [];
       responses.forEach(function(resp, i) {
         var team = teams[i];
-        var entries = parseDetailHtmlGas(resp.getContentText());
+        var html = resp.getContentText();
+        var entries = parseDetailHtmlGas(html);
+        debugTeams.push({ name: team.name, htmlLen: html.length, matchCount: entries.length,
+                          dates: entries.map(function(e) { return e.date; }) });
         entries.forEach(function(entry) {
           var pair = [team.name, entry.opponentName].sort();
           var key = entry.date + '|' + pair[0] + '|' + pair[1];
@@ -244,7 +248,7 @@ function doGet(e) {
       var matchList = [];
       for (var k in matchMap) { matchList.push(matchMap[k]); }
 
-      return ContentService.createTextOutput(JSON.stringify({ matches: matchList }))
+      return ContentService.createTextOutput(JSON.stringify({ matches: matchList, debug: debugTeams }))
         .setMimeType(ContentService.MimeType.JSON);
 
     } catch (err) {

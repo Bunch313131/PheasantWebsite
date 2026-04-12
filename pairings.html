@@ -406,6 +406,12 @@
           if (data.error) throw new Error(data.error);
           var matches = data.matches || [];
           console.log('[Schedule] raw matches from GAS:', matches.length);
+          if (data.debug) {
+            console.log('[Schedule] per-team debug:');
+            data.debug.forEach(function(d) {
+              console.log('  ' + d.name + ' — htmlLen=' + d.htmlLen + ' matches=' + d.matchCount + ' dates=' + JSON.stringify(d.dates));
+            });
+          }
 
           // Deduplicate client-side — GAS team names can differ between
           // the aggregate JSON (used as home) and the detail HTML (used as
