@@ -157,7 +157,7 @@
       border-radius: 8px;
       padding: 12px 18px;
       display: grid;
-      grid-template-columns: 1fr 56px 1fr;
+      grid-template-columns: 1fr 80px 1fr;
       align-items: center;
       gap: 10px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.04);
@@ -366,12 +366,29 @@
         .then(function(data) {
           if (data.error) throw new Error(data.error);
           var matches = data.matches || [];
-          console.log('[Schedule] total matches returned:', matches.length);
+          console.log('[Schedule] raw matches from GAS:', matches.length);
+
+          // Deduplicate client-side — GAS team names can differ between
+          // the aggregate JSON (used as home) and the detail HTML (used as
+          // opponentName / away), so the server-side sort key may not match.
+          // Normalize: lowercase + strip non-alphanumeric before comparing.
+          function normKey(s) {
+            return (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+          }
+          var seenKeys = {};
+          matches = matches.filter(function(m) {
+            var pair = [normKey(m.home), normKey(m.away)].sort();
+            var key = normKey(m.date) + '|' + pair[0] + '|' + pair[1];
+            if (seenKeys[key]) return false;
+            seenKeys[key] = true;
+            return true;
+          });
+
           var uniqueDates = [];
           matches.forEach(function(m) {
             if (uniqueDates.indexOf(m.date) === -1) uniqueDates.push(m.date);
           });
-          console.log('[Schedule] unique dates:', uniqueDates);
+          console.log('[Schedule] after dedup:', matches.length, 'matches,', uniqueDates.length, 'dates:', uniqueDates);
           allRounds = groupByDate(matches);
           render(allRounds);
           document.getElementById('prUpdated').textContent =
