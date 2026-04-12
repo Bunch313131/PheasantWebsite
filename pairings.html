@@ -538,15 +538,18 @@
         var cells = Array.from(row.querySelectorAll('td')).map(function(td) {
           return td.textContent.replace(/\s+/g, ' ').trim();
         });
-        if (cells.length < roundOrder.length + 1) return;
+        // Find team name cell — GG formats teams as "Player A + Player B"
+        var teamIdx = -1;
+        for (var ci = 0; ci < Math.min(cells.length, 5); ci++) {
+          if (cells[ci].indexOf(' + ') !== -1) { teamIdx = ci; break; }
+        }
+        if (teamIdx === -1) return;
+        var teamName = cells[teamIdx];
 
-        var teamName = cells[0];
-        if (!teamName || teamName.length < 4 || !/[a-zA-Z]/.test(teamName)) return;
-        if (/^(team|name|player|flight|pos)/i.test(teamName)) return;
-
-        // Points cells are floats like "12.00" — "Thru" is "F" or integer, result is text
+        // Extract float point values from cells after the team name.
+        // Points are like "12.00"; "Thru" is "F" or integer; results are text.
         var ptValues = [];
-        cells.slice(1).forEach(function(c) {
+        cells.slice(teamIdx + 1).forEach(function(c) {
           if (/^\d+\.\d+$/.test(c)) ptValues.push(parseFloat(c));
         });
 
