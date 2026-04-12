@@ -170,6 +170,18 @@
     .round-panel { display: none; }
     .round-panel.active { display: block; }
 
+    /* ── Sub-round label (Round 1 / Round 2 within a day) ── */
+    .sched-subround-label {
+      font-family: 'Playfair Display', serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--green-dark);
+      margin: 24px 0 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--gray-rule);
+    }
+    .sched-subround-label:first-child { margin-top: 0; }
+
     /* ── Flight label within a date ── */
     .sched-flight-label {
       font-family: 'Raleway', sans-serif;
@@ -394,6 +406,45 @@
     // All matches, kept for search filtering
     var allRounds = [];
 
+    // Normalize a name for dedup/comparison keys
+    function normKey(s) {
+      return (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    }
+
+    // Split a flat match list into sub-rounds.
+    // On a day with N rounds every team plays exactly once per round,
+    // so we greedily assign: match goes to sub-round 0 if neither team
+    // is claimed there yet, else sub-round 1, etc.
+    function splitIntoSubRounds(matches) {
+      var buckets = [];      // array of match arrays
+      var bucketTeams = [];  // array of {normKey: true} sets
+
+      matches.forEach(function(m) {
+        var hk = normKey(m.home);
+        var ak = normKey(m.away);
+        var placed = false;
+        for (var b = 0; b < buckets.length; b++) {
+          if (!bucketTeams[b][hk] && !bucketTeams[b][ak]) {
+            buckets[b].push(m);
+            bucketTeams[b][hk] = true;
+            bucketTeams[b][ak] = true;
+            placed = true;
+            break;
+          }
+        }
+        if (!placed) {
+          var newBucket = [m];
+          var newTeams = {};
+          newTeams[hk] = true;
+          newTeams[ak] = true;
+          buckets.push(newBucket);
+          bucketTeams.push(newTeams);
+        }
+      });
+
+      return buckets;
+    }
+
     // ============================================================
     // Load
     // ============================================================
@@ -416,10 +467,6 @@
           // Deduplicate client-side — GAS team names can differ between
           // the aggregate JSON (used as home) and the detail HTML (used as
           // opponentName / away), so the server-side sort key may not match.
-          // Normalize: lowercase + strip non-alphanumeric before comparing.
-          function normKey(s) {
-            return (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-          }
           var seenKeys = {};
           matches = matches.filter(function(m) {
             var pair = [normKey(m.home), normKey(m.away)].sort();
@@ -587,53 +634,63 @@
 
     function renderPanels(rounds, panelsEl, filter) {
       panelsEl.innerHTML = '';
-      var totalVisible = 0;
 
       rounds.forEach(function(round, i) {
         var isActive = i === activeRoundIndex;
-        var visibleMatches = filter
-          ? round.matches.filter(function(m) {
-              return (m.home || '').toLowerCase().indexOf(filter) !== -1 ||
-                     (m.away || '').toLowerCase().indexOf(filter) !== -1;
-            })
-          : round.matches;
-
-        totalVisible += visibleMatches.length;
 
         var panel = document.createElement('div');
         panel.className = 'round-panel' + (isActive ? ' active' : '');
         panel.setAttribute('data-index', i);
 
-        // Date sub-header inside panel
-        // Count unique opponents per team to detect multi-round days
-        var matchesPerTeam = {};
-        round.matches.forEach(function(m) {
-          matchesPerTeam[m.home] = (matchesPerTeam[m.home] || 0) + 1;
-        });
-        var maxMatchesOnDay = Math.max.apply(null, Object.keys(matchesPerTeam).map(function(k) { return matchesPerTeam[k]; }));
-        var roundNote = maxMatchesOnDay >= 2 ? ' <span style="font-family:\'Raleway\',sans-serif;font-size:12px;font-weight:400;color:var(--gray-mid);letter-spacing:0">&mdash; 2 rounds</span>' : '';
-        var hdr = '<div class="sched-date-header" style="margin-bottom:16px">' +
-          '<span class="sched-date-label">' + escHtml(fmtDateDisplay(round.date)) + roundNote + '</span>' +
+        // Date header
+        var hdr = '<div class="sched-date-header" style="margin-bottom:20px">' +
+          '<span class="sched-date-label">' + escHtml(fmtDateDisplay(round.date)) + '</span>' +
           '</div>';
 
-        if (visibleMatches.length === 0) {
-          panel.innerHTML = hdr + '<p class="pr-no-data">No matches' + (filter ? ' matching "' + escHtml(filter) + '"' : '') + ' for this round.</p>';
+        // Split into sub-rounds (handles 1 or 2 rounds per day)
+        var subRounds = splitIntoSubRounds(round.matches);
+
+        if (round.matches.length === 0) {
+          panel.innerHTML = hdr + '<p class="pr-no-data">No matches for this day.</p>';
         } else {
-          var byFlight = {}, flightOrder = [];
-          visibleMatches.forEach(function(m) {
-            var f = m.flight || 'Matches';
-            if (!byFlight[f]) { byFlight[f] = []; flightOrder.push(f); }
-            byFlight[f].push(m);
+          var body = '';
+          subRounds.forEach(function(srMatches, srIdx) {
+            // Filter if search active
+            var visible = filter
+              ? srMatches.filter(function(m) {
+                  return (m.home || '').toLowerCase().indexOf(filter) !== -1 ||
+                         (m.away || '').toLowerCase().indexOf(filter) !== -1;
+                })
+              : srMatches;
+
+            if (visible.length === 0) return;
+
+            // Sub-round header (only shown when day has multiple rounds)
+            if (subRounds.length > 1) {
+              body += '<div class="sched-subround-label">Round ' + (srIdx + 1) + '</div>';
+            }
+
+            // Group by flight within this sub-round
+            var byFlight = {}, flightOrder = [];
+            visible.forEach(function(m) {
+              var f = m.flight || 'Matches';
+              if (!byFlight[f]) { byFlight[f] = []; flightOrder.push(f); }
+              byFlight[f].push(m);
+            });
+
+            var multiFlights = flightOrder.length > 1;
+            flightOrder.forEach(function(flightName) {
+              if (multiFlights) body += '<div class="sched-flight-label">' + escHtml(flightName) + '</div>';
+              body += '<div class="match-list">';
+              visible.filter(function(m) { return (m.flight || 'Matches') === flightName; })
+                     .forEach(function(m) { body += buildMatchCard(m, filter); });
+              body += '</div>';
+            });
           });
 
-          var body = '';
-          var multiFlights = flightOrder.length > 1;
-          flightOrder.forEach(function(flightName) {
-            if (multiFlights) body += '<div class="sched-flight-label">' + escHtml(flightName) + '</div>';
-            body += '<div class="match-list">';
-            byFlight[flightName].forEach(function(m) { body += buildMatchCard(m, filter); });
-            body += '</div>';
-          });
+          if (!body) {
+            body = '<p class="pr-no-data">No matches matching &ldquo;' + escHtml(filter) + '&rdquo; today.</p>';
+          }
           panel.innerHTML = hdr + body;
         }
 
