@@ -354,228 +354,176 @@
 
     var activeRoundIndex = 0;
 
+    // ============================================================
+    // Load: fetch JSON for team list, then fetch every team's
+    // detail page in parallel and reconstruct the full schedule.
+    // ============================================================
     function loadPairings() {
-      var jsonUrl     = GG.gasUrl + '?action=gg&id='         + GG.tournamentId;
-      var pairingsUrl = GG.gasUrl + '?action=gg-pairings&id=' + GG.tournamentId;
+      var jsonUrl = GG.gasUrl + '?action=gg&id=' + GG.tournamentId;
 
-      Promise.all([
-        fetch(jsonUrl).then(function(r) { return r.json(); }),
-        fetch(pairingsUrl).then(function(r) { return r.text(); })
-      ])
-      .then(function(results) {
-        var jsonData     = results[0];
-        var pairingsHtml = results[1];
+      fetch(jsonUrl)
+        .then(function(r) { return r.json(); })
+        .then(function(jsonData) {
+          // Collect every team across all flights
+          var scopes = (jsonData.event && jsonData.event.scopes) || [];
+          var teams = [];
+          scopes.forEach(function(scope) {
+            (scope.aggregates || []).forEach(function(agg) {
+              teams.push({ id: agg.id_str, name: agg.name, flight: scope.name });
+            });
+          });
 
-        console.log('[Pairings] HTML length:', pairingsHtml.length);
-        console.log('[Pairings] HTML snippet (0-500):', pairingsHtml.substring(0, 500));
-        console.log('[Pairings] HTML snippet (5000-5500):', pairingsHtml.substring(5000, 5500));
-
-        var rounds = parsePairings(pairingsHtml, jsonData);
-        console.log('[Pairings] parsed rounds:', JSON.stringify(rounds, null, 2));
-
-        render(rounds, jsonData);
-        document.getElementById('prUpdated').textContent =
-          'Updated ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      })
-      .catch(function(err) {
-        console.error('[Pairings] load error:', err);
-        document.getElementById('prLoading').style.display = 'none';
-        document.getElementById('prError').style.display = 'block';
-      });
+          // Fetch all team detail pages in parallel
+          return Promise.all(
+            teams.map(function(team) {
+              return fetch(GG.gasUrl + '?action=gg-detail&id=' + team.id)
+                .then(function(r) { return r.text(); })
+                .then(function(html) { return { team: team, html: html }; });
+            })
+          ).then(function(detailResults) {
+            var rounds = buildSchedule(detailResults);
+            render(rounds, jsonData);
+            document.getElementById('prUpdated').textContent =
+              'Updated ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          });
+        })
+        .catch(function(err) {
+          console.error('[Pairings] load error:', err);
+          document.getElementById('prLoading').style.display = 'none';
+          document.getElementById('prError').style.display = 'block';
+        });
     }
 
     // ============================================================
-    // Parse pairings HTML from GG
-    // GG pairings pages group matches by round/date with tables
-    // containing home team, away team, and optionally starting hole/time.
+    // Build schedule from all team detail pages.
+    // Each detail page has rows like:
+    //   "Fri, September 12 :: Team A vs. Team B"
+    // We deduplicate by canonical team pair + date key.
+    // Result from the fetched team's perspective:
+    //   "N up" = fetched team won, "N dn" = fetched team lost, "T" = tied
     // ============================================================
-    function parsePairings(html, jsonData) {
-      var rounds = [];
-      if (!html || html.length < 200) return rounds;
+    function buildSchedule(detailResults) {
+      // matchKey → { date, flight, home, homeWon, away, result }
+      var matchMap = {};
+      // Track date → canonical sort index
+      var dateOrder = [];
 
+      detailResults.forEach(function(item) {
+        var team = item.team;
+        var entries = parseDetailPage(item.html);
+
+        entries.forEach(function(entry) {
+          // Canonical key: sort team names alphabetically + date
+          var pair = [team.name, entry.opponentName].sort();
+          var key = entry.date + '|' + pair[0] + '|' + pair[1];
+
+          if (!matchMap[key]) {
+            // Determine home/away: team whose page we fetched is "home"
+            var homeWon = null;
+            var resultScore = compareResult(entry.result);
+            if (resultScore === 1)       homeWon = team.name;
+            else if (resultScore === -1) homeWon = entry.opponentName;
+
+            matchMap[key] = {
+              date:      entry.date,
+              flight:    team.flight,
+              home:      team.name,
+              away:      entry.opponentName,
+              homeWon:   homeWon,
+              result:    entry.result
+            };
+
+            if (dateOrder.indexOf(entry.date) === -1) dateOrder.push(entry.date);
+          }
+        });
+      });
+
+      // Sort dates chronologically by month/day
+      var monthOrder = { jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12 };
+      dateOrder.sort(function(a, b) {
+        return parseDateSort(a) - parseDateSort(b);
+      });
+
+      // Group into rounds by date, sub-group by flight
+      return dateOrder.map(function(date, i) {
+        var matches = Object.keys(matchMap)
+          .filter(function(k) { return matchMap[k].date === date; })
+          .map(function(k) { return matchMap[k]; });
+
+        // Sort within date by flight name
+        matches.sort(function(a, b) { return a.flight.localeCompare(b.flight); });
+
+        return { label: 'Round ' + (i + 1) + ' \u2014 ' + date, date: date, matches: matches };
+      });
+    }
+
+    // Parse a team's detail page → [{date, opponentName, result}]
+    function parseDetailPage(html) {
+      var entries = [];
+      if (!html || html.length < 500) return entries;
       try {
         var doc = new DOMParser().parseFromString(html, 'text/html');
+        var allRows = Array.from(doc.querySelectorAll('table tr'));
+        var currentDate = null;
+        var currentOpponent = null;
+        var lastMatchTokens = [];
 
-        // Build a team-name → flight map from JSON for labeling
-        var teamFlight = {};
-        var scopes = (jsonData.event && jsonData.event.scopes) || [];
-        scopes.forEach(function(scope) {
-          (scope.aggregates || []).forEach(function(agg) {
-            teamFlight[normName(agg.name)] = scope.name;
-          });
-        });
+        allRows.forEach(function(row) {
+          var text = row.textContent.replace(/\s+/g, ' ').trim();
 
-        // GG pairings pages typically have section headers (h2/h3/th) with round names
-        // and tables with match rows.  We'll scan all tables and group by nearest heading.
-        var currentRound = null;
-        var roundMap = {};  // roundLabel → { label, date, flights: { flightName: [matches] } }
+          if (text.indexOf('::') !== -1 && text.indexOf(' vs. ') !== -1) {
+            if (row.querySelectorAll('td').length > 8) return; // hole-number row
 
-        // Walk all elements looking for headings and table rows
-        var allEls = Array.from(doc.body.querySelectorAll('h1,h2,h3,h4,h5,table'));
-        allEls.forEach(function(el) {
-          if (/^H[1-5]$/.test(el.tagName)) {
-            var text = el.textContent.trim();
-            // Round headings often look like "Round 1", "R1", "Friday - Round 1", etc.
-            if (/round\s*\d/i.test(text) || /\br[1-5]\b/i.test(text) || /day\s*\d/i.test(text)) {
-              currentRound = text;
-              if (!roundMap[currentRound]) {
-                roundMap[currentRound] = { label: currentRound, matches: [] };
-              }
+            if (currentOpponent !== null) {
+              entries.push({ date: currentDate, opponentName: currentOpponent,
+                             result: parseMatchResult(lastMatchTokens) });
             }
-            return;
+
+            var colonIdx = text.indexOf('::');
+            currentDate    = text.substring(0, colonIdx).trim();
+            var vsIdx = text.indexOf(' vs. ');
+            currentOpponent = text.substring(vsIdx + 5).trim();
+            lastMatchTokens = [];
           }
-
-          if (el.tagName === 'TABLE') {
-            var rows = Array.from(el.querySelectorAll('tr'));
-            rows.forEach(function(row) {
-              var cells = Array.from(row.querySelectorAll('td'));
-              if (cells.length < 2) return;
-
-              var texts = cells.map(function(c) { return c.textContent.trim(); });
-
-              // Skip header rows
-              if (row.querySelectorAll('th').length > 0) return;
-
-              // A match row typically has at least 2 team-like cells
-              // Try to detect: [home team] [away team] [hole/time]
-              // or: [flight] [home] [away] [hole] [result]
-              var match = extractMatchFromRow(texts, cells);
-              if (match) {
-                var rnd = currentRound || 'Schedule';
-                if (!roundMap[rnd]) roundMap[rnd] = { label: rnd, matches: [] };
-                // Tag with flight if detectable
-                match.flight = guessFlightFromTeams(match.home, match.away, teamFlight);
-                roundMap[rnd].matches.push(match);
-              }
-            });
+          else if (/^Match\b/.test(text) && currentOpponent !== null) {
+            var tokens = text.replace(/^Match\s*/, '').trim().split(/\s+/).filter(Boolean);
+            if (tokens.length > 0) lastMatchTokens = tokens;
           }
         });
 
-        // If we found nothing via headings+tables, try a flat scan of all table rows
-        if (Object.keys(roundMap).length === 0) {
-          rounds = flatScan(doc, teamFlight);
-        } else {
-          var roundOrder = ['Round 1','Round 2','Round 3','Round 4','Round 5'];
-          var keys = Object.keys(roundMap);
-          // Sort by round number if detectable, else original order
-          keys.sort(function(a, b) {
-            var na = extractRoundNum(a), nb = extractRoundNum(b);
-            if (na && nb) return na - nb;
-            return 0;
-          });
-          rounds = keys.map(function(k) { return roundMap[k]; });
+        if (currentOpponent !== null) {
+          entries.push({ date: currentDate, opponentName: currentOpponent,
+                         result: parseMatchResult(lastMatchTokens) });
         }
-
-      } catch(e) { console.error('[Pairings parse error]', e); }
-
-      return rounds;
+      } catch(e) {}
+      return entries;
     }
 
-    function flatScan(doc, teamFlight) {
-      var rounds = [];
-      var matchesByRound = {};
-
-      var allRows = Array.from(doc.querySelectorAll('table tr'));
-      var currentDate = null;
-
-      allRows.forEach(function(row) {
-        var text = row.textContent.replace(/\s+/g, ' ').trim();
-
-        // Date/round header rows (e.g. "Friday, September 12" or "Round 1")
-        if (row.querySelectorAll('th').length > 0 && row.querySelectorAll('td').length === 0) {
-          if (/round\s*\d/i.test(text) || /\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/i.test(text)) {
-            currentDate = text;
-          }
-          return;
-        }
-
-        var cells = Array.from(row.querySelectorAll('td'));
-        if (cells.length < 2) return;
-        var texts = cells.map(function(c) { return c.textContent.trim(); });
-        var match = extractMatchFromRow(texts, cells);
-        if (match) {
-          var key = currentDate || 'Schedule';
-          if (!matchesByRound[key]) matchesByRound[key] = [];
-          match.flight = guessFlightFromTeams(match.home, match.away, teamFlight);
-          matchesByRound[key].push(match);
-        }
-      });
-
-      Object.keys(matchesByRound).forEach(function(key) {
-        rounds.push({ label: key, matches: matchesByRound[key] });
-      });
-      return rounds;
-    }
-
-    // Try to pull a match out of a row's cell texts
-    function extractMatchFromRow(texts, cells) {
-      // Filter out mostly-empty rows
-      var nonEmpty = texts.filter(function(t) { return t.length > 1; });
-      if (nonEmpty.length < 2) return null;
-
-      // Heuristic: if we have two cells that look like team names (contain spaces, letters)
-      // and optionally a hole/tee cell (like "Hole 1", "#1", "1")
-      var teamCells = nonEmpty.filter(function(t) {
-        return /[a-zA-Z]/.test(t) && t.length > 3 && !/^(hole|tee|time|result|score|r\d|round|flight|match)/i.test(t);
-      });
-
-      if (teamCells.length < 2) return null;
-
-      // Attempt to strip "vs" separators
-      var home = teamCells[0].replace(/\s*\bvs\.?\b\s*/i, '').trim();
-      var away = teamCells[1].replace(/\s*\bvs\.?\b\s*/i, '').trim();
-
-      // Look for hole/tee assignment
-      var hole = null;
-      texts.forEach(function(t) {
-        var m = t.match(/^(?:hole\s*|#\s*|tee\s*)?(\d+)\s*$/i);
-        if (m && !hole) hole = m[1];
-        var m2 = t.match(/hole\s+(\d+)/i);
-        if (m2 && !hole) hole = m2[1];
-      });
-
-      // Look for time
-      var time = null;
-      texts.forEach(function(t) {
-        var m = t.match(/\b(\d{1,2}:\d{2}\s*(?:am|pm)?)\b/i);
-        if (m && !time) time = m[1];
-      });
-
-      // Look for result
-      var result = null;
-      texts.forEach(function(t) {
-        if (/\d+\s*(?:up|dn|down|&\s*\d+)\b/i.test(t) || /\ball\s+square\b/i.test(t) || /^\bT\b$/.test(t)) {
-          result = t;
-        }
-      });
-
-      return { home: home, away: away, hole: hole, time: time, result: result };
-    }
-
-    function guessFlightFromTeams(home, away, teamFlight) {
-      var normHome = normName(home), normAway = normName(away);
-      // Try exact then partial match
-      for (var key in teamFlight) {
-        if (key === normHome || key === normAway) return teamFlight[key];
-      }
-      for (var key in teamFlight) {
-        var tokens = normHome.split(' ').filter(function(t) { return t.length > 3; });
-        var hits = tokens.filter(function(t) { return key.indexOf(t) !== -1; });
-        if (hits.length >= 1) return teamFlight[key];
-        tokens = normAway.split(' ').filter(function(t) { return t.length > 3; });
-        hits = tokens.filter(function(t) { return key.indexOf(t) !== -1; });
-        if (hits.length >= 1) return teamFlight[key];
-      }
+    function parseMatchResult(tokens) {
+      if (!tokens.length) return '';
+      var last = tokens[tokens.length - 1];
+      var prev = tokens.length >= 2 ? tokens[tokens.length - 2] : '';
+      if ((last === 'up' || last === 'dn') && /^\d+$/.test(prev)) return prev + ' ' + last;
+      if (last === 'T') return 'T';
       return '';
     }
 
-    function normName(s) {
-      return (s || '').toLowerCase().replace(/[^a-z0-9]/g, ' ').replace(/\s+/g, ' ').trim();
+    // 1 = home won, -1 = home lost, 0 = tied/unknown
+    function compareResult(result) {
+      var r = (result || '').trim();
+      if (/ up$/.test(r)) return  1;
+      if (/ dn$/.test(r)) return -1;
+      return 0;
     }
 
-    function extractRoundNum(label) {
-      var m = label.match(/\d+/);
-      return m ? parseInt(m[0], 10) : null;
+    function parseDateSort(dateStr) {
+      // "Fri, September 12" → numeric for sorting
+      var m = dateStr.match(/([a-z]+)\s+(\d+)/i);
+      if (!m) return 0;
+      var monthOrder = {january:1,february:2,march:3,april:4,may:5,june:6,
+                        july:7,august:8,september:9,october:10,november:11,december:12};
+      var mon = monthOrder[(m[1] || '').toLowerCase()] || 0;
+      return mon * 100 + parseInt(m[2], 10);
     }
 
     // ============================================================
@@ -653,32 +601,45 @@
     }
 
     function buildMatchCard(m) {
-      var homeParts = m.home.split(/\s*\+\s*/);
-      var awayParts = m.away.split(/\s*\+\s*/);
-
-      function teamHtml(parts) {
+      function fmtTeam(name) {
+        var parts = name.split(/\s*\+\s*/);
         if (parts.length === 2) {
           return escHtml(parts[0].trim()) +
             ' <span style="color:var(--gold);font-weight:400">&amp;</span> ' +
             escHtml(parts[1].trim());
         }
-        return escHtml(parts[0]);
+        return escHtml(name);
       }
 
-      var metaHtml = '<span class="match-vs">vs.</span>';
-      if (m.hole) {
-        metaHtml += '<span class="match-hole">Hole ' + escHtml(m.hole) + '</span>';
-      } else if (m.time) {
-        metaHtml += '<span class="match-hole">' + escHtml(m.time) + '</span>';
+      // Winner indicator: bold the winner name, show result label
+      var homeWinner = m.homeWon === m.home;
+      var awayWinner = m.homeWon === m.away;
+      var resultLabel = '';
+      if (m.result === 'T') {
+        resultLabel = '<span class="match-result">All Square</span>';
+      } else if (m.result) {
+        // Normalize: "N up" from home perspective → show who won
+        var upDown = / up$/.test(m.result) ? 'up' : 'dn';
+        var num = m.result.replace(/\s*(up|dn)$/, '').trim();
+        var winnerName = homeWinner ? m.home : awayWinner ? m.away : null;
+        if (winnerName) {
+          var winParts = winnerName.split(/\s*\+\s*/);
+          var winLabel = winParts.length === 2
+            ? winParts[0].trim() + ' &amp; ' + winParts[1].trim()
+            : escHtml(winnerName);
+          resultLabel = '<span class="match-result win">' + num + ' up</span>';
+        }
       }
-      if (m.result) {
-        metaHtml += '<br><span class="match-result">' + escHtml(m.result) + '</span>';
-      }
+
+      var metaHtml = '<span class="match-vs">vs.</span>' + (resultLabel ? '<br>' + resultLabel : '');
+
+      var homeStyle = homeWinner ? ' style="font-weight:700"' : '';
+      var awayStyle = awayWinner ? ' style="font-weight:700"' : '';
 
       return '<div class="match-card">' +
-        '<div class="match-team home"><div class="member-names">' + teamHtml(homeParts) + '</div></div>' +
+        '<div class="match-team home"><div class="member-names"' + homeStyle + '>' + fmtTeam(m.home) + '</div></div>' +
         '<div class="match-meta">' + metaHtml + '</div>' +
-        '<div class="match-team away"><div class="member-names">' + teamHtml(awayParts) + '</div></div>' +
+        '<div class="match-team away"><div class="member-names"' + awayStyle + '>' + fmtTeam(m.away) + '</div></div>' +
         '</div>';
     }
 
