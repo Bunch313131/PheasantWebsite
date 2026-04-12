@@ -134,6 +134,42 @@
       border-radius: 3px;
     }
 
+    /* ── Round tabs ── */
+    .round-tabs-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin-bottom: 28px;
+      scrollbar-width: none;
+    }
+    .round-tabs-wrap::-webkit-scrollbar { display: none; }
+    .round-tabs {
+      display: flex;
+      gap: 6px;
+      min-width: max-content;
+      padding-bottom: 2px;
+    }
+    .round-tab {
+      font-family: 'Raleway', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 8px 18px;
+      border-radius: 4px;
+      border: 1px solid var(--gray-rule);
+      background: #fff;
+      color: var(--gray-dark);
+      cursor: pointer;
+      transition: all 0.18s;
+      white-space: nowrap;
+    }
+    .round-tab:hover { border-color: var(--gold); color: var(--green-dark); }
+    .round-tab.active { background: var(--green-dark); border-color: var(--green-dark); color: #fff; }
+    .round-tab.today-tab { border-color: var(--gold); }
+    .round-tab.today-tab.active { background: var(--green-dark); border-color: var(--green-dark); }
+    .round-panel { display: none; }
+    .round-panel.active { display: block; }
+
     /* ── Flight label within a date ── */
     .sched-flight-label {
       font-family: 'Raleway', sans-serif;
@@ -309,11 +345,14 @@
       </div>
 
       <div id="prContent" style="display:none;">
+        <div class="round-tabs-wrap">
+          <div class="round-tabs" id="roundTabs"></div>
+        </div>
         <div class="sched-search-wrap">
           <input type="search" id="schedSearch" class="sched-search-input"
                  placeholder="Find your team&hellip;" autocomplete="off">
         </div>
-        <div id="schedSections"></div>
+        <div id="roundPanels"></div>
         <p class="sched-no-results" id="schedNoResults">No matches found for that team name.</p>
       </div>
 
@@ -417,12 +456,8 @@
     }
 
     function parseDateSort(dateStr) {
-      // Handles "Fri, September 12" or "September 12"
-      var m = (dateStr || '').match(/([a-z]+)\s+(\d+)/i);
-      if (!m) return 0;
-      var monthOrder = { january:1,february:2,march:3,april:4,may:5,june:6,
-                         july:7,august:8,september:9,october:10,november:11,december:12 };
-      return (monthOrder[(m[1] || '').toLowerCase()] || 0) * 100 + parseInt(m[2], 10);
+      var p = parseDateMonthDay(dateStr);
+      return p ? p.month * 100 + p.day : 0;
     }
 
     // Format date string for display — strip day-of-week prefix if present
@@ -433,6 +468,38 @@
       return m ? m[1].trim() : dateStr;
     }
 
+    // ── Find which round index matches today (month+day only) ──
+    var monthOrder = { january:1,february:2,march:3,april:4,may:5,june:6,
+                       july:7,august:8,september:9,october:10,november:11,december:12 };
+
+    function parseDateMonthDay(dateStr) {
+      var m = (dateStr || '').match(/([a-z]+)\s+(\d+)/i);
+      if (!m) return null;
+      return { month: monthOrder[(m[1] || '').toLowerCase()] || 0, day: parseInt(m[2], 10) };
+    }
+
+    function findTodayRoundIndex(rounds) {
+      var now = new Date();
+      var tm = now.getMonth() + 1;
+      var td = now.getDate();
+      for (var i = 0; i < rounds.length; i++) {
+        var p = parseDateMonthDay(rounds[i].date);
+        if (p && p.month === tm && p.day === td) return i;
+      }
+      // No today match — find last round whose date has passed
+      var best = -1;
+      for (var j = 0; j < rounds.length; j++) {
+        var p2 = parseDateMonthDay(rounds[j].date);
+        if (!p2) continue;
+        var roundVal = p2.month * 100 + p2.day;
+        var todayVal = tm * 100 + td;
+        if (roundVal <= todayVal) best = j;
+      }
+      return best >= 0 ? best : 0;
+    }
+
+    var activeRoundIndex = 0;
+
     // ============================================================
     // Render
     // ============================================================
@@ -442,70 +509,104 @@
       document.getElementById('prHeroSub').textContent =
         GG.year + ' Season  \u00b7  El Macero Country Club';
 
-      var sectionsEl = document.getElementById('schedSections');
-      sectionsEl.innerHTML = '';
+      var tabsEl   = document.getElementById('roundTabs');
+      var panelsEl = document.getElementById('roundPanels');
 
       if (rounds.length === 0) {
-        sectionsEl.innerHTML = '<p class="pr-no-data">No schedule data available yet.</p>';
+        panelsEl.innerHTML = '<p class="pr-no-data">No schedule data available yet.</p>';
         document.getElementById('prLoading').style.display = 'none';
         document.getElementById('prContent').style.display = 'block';
         return;
       }
 
-      var totalVisible = 0;
+      // On first render (no filter), set active round to today or best past round
+      if (!filterStr) {
+        activeRoundIndex = findTodayRoundIndex(rounds);
+        buildTabs(rounds, tabsEl);
+      }
 
-      rounds.forEach(function(round) {
-        // Filter matches if search active
-        var visibleMatches = round.matches;
-        if (filter) {
-          visibleMatches = round.matches.filter(function(m) {
-            return (m.home || '').toLowerCase().indexOf(filter) !== -1 ||
-                   (m.away || '').toLowerCase().indexOf(filter) !== -1;
-          });
-        }
-        if (visibleMatches.length === 0) return;
-        totalVisible += visibleMatches.length;
-
-        var section = document.createElement('div');
-        section.className = 'sched-date-section';
-
-        // Date header
-        var hdr = '<div class="sched-date-header">' +
-          '<span class="sched-date-label">' + escHtml(fmtDateDisplay(round.date)) + '</span>' +
-          '<span class="sched-round-badge">Round ' + round.roundNum + '</span>' +
-          '</div>';
-
-        // Group by flight within this date
-        var byFlight = {};
-        var flightOrder = [];
-        visibleMatches.forEach(function(m) {
-          var f = m.flight || 'Matches';
-          if (!byFlight[f]) { byFlight[f] = []; flightOrder.push(f); }
-          byFlight[f].push(m);
-        });
-
-        var body = '';
-        var multiFlights = flightOrder.length > 1;
-        flightOrder.forEach(function(flightName) {
-          if (multiFlights) {
-            body += '<div class="sched-flight-label">' + escHtml(flightName) + '</div>';
-          }
-          body += '<div class="match-list">';
-          byFlight[flightName].forEach(function(m) {
-            body += buildMatchCard(m, filter);
-          });
-          body += '</div>';
-        });
-
-        section.innerHTML = hdr + body;
-        sectionsEl.appendChild(section);
-      });
-
-      var noResults = document.getElementById('schedNoResults');
-      noResults.style.display = (filter && totalVisible === 0) ? 'block' : 'none';
+      renderPanels(rounds, panelsEl, filter);
 
       document.getElementById('prLoading').style.display = 'none';
       document.getElementById('prContent').style.display = 'block';
+    }
+
+    function buildTabs(rounds, tabsEl) {
+      var now = new Date();
+      var tm = now.getMonth() + 1, td = now.getDate();
+      tabsEl.innerHTML = '';
+      rounds.forEach(function(round, i) {
+        var p = parseDateMonthDay(round.date);
+        var isToday = p && p.month === tm && p.day === td;
+        var tab = document.createElement('button');
+        tab.className = 'round-tab' + (i === activeRoundIndex ? ' active' : '') + (isToday ? ' today-tab' : '');
+        tab.textContent = 'Round ' + round.roundNum;
+        tab.setAttribute('data-index', i);
+        tab.addEventListener('click', function() {
+          activeRoundIndex = i;
+          document.querySelectorAll('.round-tab').forEach(function(t) {
+            t.classList.toggle('active', +t.getAttribute('data-index') === i);
+          });
+          document.querySelectorAll('.round-panel').forEach(function(p) {
+            p.classList.toggle('active', +p.getAttribute('data-index') === i);
+          });
+          // Re-filter panels with current search value
+          var q = document.getElementById('schedSearch').value;
+          renderPanels(allRounds, document.getElementById('roundPanels'), q.trim().toLowerCase());
+        });
+        tabsEl.appendChild(tab);
+      });
+    }
+
+    function renderPanels(rounds, panelsEl, filter) {
+      panelsEl.innerHTML = '';
+      var totalVisible = 0;
+
+      rounds.forEach(function(round, i) {
+        var isActive = i === activeRoundIndex;
+        var visibleMatches = filter
+          ? round.matches.filter(function(m) {
+              return (m.home || '').toLowerCase().indexOf(filter) !== -1 ||
+                     (m.away || '').toLowerCase().indexOf(filter) !== -1;
+            })
+          : round.matches;
+
+        totalVisible += visibleMatches.length;
+
+        var panel = document.createElement('div');
+        panel.className = 'round-panel' + (isActive ? ' active' : '');
+        panel.setAttribute('data-index', i);
+
+        // Date sub-header inside panel
+        var hdr = '<div class="sched-date-header" style="margin-bottom:16px">' +
+          '<span class="sched-date-label">' + escHtml(fmtDateDisplay(round.date)) + '</span>' +
+          '</div>';
+
+        if (visibleMatches.length === 0) {
+          panel.innerHTML = hdr + '<p class="pr-no-data">No matches' + (filter ? ' matching "' + escHtml(filter) + '"' : '') + ' for this round.</p>';
+        } else {
+          var byFlight = {}, flightOrder = [];
+          visibleMatches.forEach(function(m) {
+            var f = m.flight || 'Matches';
+            if (!byFlight[f]) { byFlight[f] = []; flightOrder.push(f); }
+            byFlight[f].push(m);
+          });
+
+          var body = '';
+          var multiFlights = flightOrder.length > 1;
+          flightOrder.forEach(function(flightName) {
+            if (multiFlights) body += '<div class="sched-flight-label">' + escHtml(flightName) + '</div>';
+            body += '<div class="match-list">';
+            byFlight[flightName].forEach(function(m) { body += buildMatchCard(m, filter); });
+            body += '</div>';
+          });
+          panel.innerHTML = hdr + body;
+        }
+
+        panelsEl.appendChild(panel);
+      });
+
+      document.getElementById('schedNoResults').style.display = 'none';
     }
 
     function buildMatchCard(m, filter) {
@@ -553,13 +654,13 @@
       return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
-    // ── Search ──
+    // ── Search — re-renders panels only, tabs stay put ──
     var searchTimer;
     document.getElementById('schedSearch').addEventListener('input', function() {
       clearTimeout(searchTimer);
       var val = this.value;
       searchTimer = setTimeout(function() {
-        render(allRounds, val);
+        renderPanels(allRounds, document.getElementById('roundPanels'), val.trim().toLowerCase());
       }, 180);
     });
 
