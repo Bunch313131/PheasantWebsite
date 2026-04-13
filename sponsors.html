@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sponsors | The Pheasant Invitational</title>
+  <meta name="description" content="Thank you to the sponsors of The Pheasant Invitational at El Macero Country Club.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="favicon.ico" sizes="32x32">
+  <meta name="theme-color" content="#1a3a2a">
+  <style>
+    /* ── Hero ── */
+    .sp-hero {
+      background: url('hero-bg.jpg') center/cover no-repeat;
+      min-height: 200px;
+      display: flex;
+      align-items: flex-end;
+      padding-bottom: 36px;
+      position: relative;
+    }
+    .sp-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(10,28,18,0.55) 0%, rgba(10,28,18,0.75) 100%);
+    }
+    .sp-hero-content {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      text-align: center;
+      color: #fff;
+      padding: 0 24px;
+      padding-top: 90px;
+    }
+    .sp-hero-eyebrow {
+      font-family: 'Raleway', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--gold-light);
+      margin-bottom: 10px;
+    }
+    .sp-hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 38px;
+      font-weight: 900;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    .sp-hero-sub {
+      font-size: 13px;
+      color: rgba(255,255,255,0.7);
+      letter-spacing: 1px;
+    }
+
+    /* ── Page ── */
+    .sp-page {
+      padding: 56px 0 80px;
+      background: var(--cream);
+      min-height: 60vh;
+    }
+
+    /* ── Intro ── */
+    .sp-intro {
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto 48px;
+      padding: 0 24px;
+    }
+    .sp-intro p {
+      font-family: 'Raleway', sans-serif;
+      font-size: 16px;
+      color: var(--gray-dark);
+      line-height: 1.7;
+    }
+
+    /* ── Grid ── */
+    .sp-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .sp-card {
+      background: #fff;
+      border: 1px solid var(--gray-rule);
+      border-radius: 10px;
+      padding: 32px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+      transition: box-shadow 0.2s, border-color 0.2s;
+    }
+    .sp-card:hover {
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      border-color: var(--gold);
+    }
+    .sp-logo-wrap {
+      width: 100%;
+      height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .sp-logo {
+      max-width: 100%;
+      max-height: 120px;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+    }
+    .sp-name {
+      font-family: 'Raleway', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--gray-mid);
+      text-align: center;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── Loading / empty ── */
+    .sp-loading, .sp-empty {
+      text-align: center;
+      padding: 60px 24px;
+      font-family: 'Raleway', sans-serif;
+      color: var(--gray-mid);
+    }
+    .sp-loading .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--gray-rule);
+      border-top-color: var(--green-mid);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .sp-empty-icon {
+      font-size: 36px;
+      margin-bottom: 12px;
+      opacity: 0.4;
+    }
+    .sp-empty p {
+      font-size: 15px;
+      font-style: italic;
+    }
+
+    /* ── Mobile ── */
+    @media (max-width: 900px) {
+      .sp-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 560px) {
+      .sp-hero-title { font-size: 28px; }
+      .sp-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav id="navbar" class="navbar">
+    <div class="nav-container">
+      <a href="full.html" class="nav-logo"><img src="copper-logo-nav.png" alt="The Pheasant Invitational" class="nav-logo-img"></a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-menu" id="navMenu">
+        <li><a href="full.html#about" class="nav-link">About</a></li>
+        <li><a href="full.html#registration" class="nav-link">Info &amp; Pricing</a></li>
+        <li><a href="full.html#schedule" class="nav-link">Schedule</a></li>
+        <li><a href="full.html#format" class="nav-link">Format</a></li>
+        <li><a href="full.html#rules" class="nav-link">Rules</a></li>
+        <li><a href="full.html#champions" class="nav-link">Champions</a></li>
+        <li><a href="sponsors.html" class="nav-link nav-link-active">Sponsors</a></li>
+        <li class="tournament-nav-item"><a href="leaderboard.html" class="nav-link">Leaderboard</a></li>
+        <li class="tournament-nav-item"><a href="pairings.html" class="nav-link">Pairings</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="sp-hero">
+    <div class="sp-hero-content">
+      <div class="sp-hero-eyebrow">El Macero Country Club</div>
+      <h1 class="sp-hero-title">Our Sponsors</h1>
+      <p class="sp-hero-sub">The Pheasant Invitational 2026</p>
+    </div>
+  </section>
+
+  <!-- Content -->
+  <div class="sp-page">
+    <div class="container">
+
+      <div class="sp-intro">
+        <p>Thank you to the following sponsors for their generous support of The Pheasant Invitational. Your partnership makes this event possible.</p>
+      </div>
+
+      <!-- Loading -->
+      <div id="spLoading" class="sp-loading">
+        <div class="spinner"></div>
+        <p>Loading sponsors&hellip;</p>
+      </div>
+
+      <!-- Grid -->
+      <div id="spGrid" class="sp-grid" style="display:none"></div>
+
+      <!-- Empty state -->
+      <div id="spEmpty" class="sp-empty" style="display:none">
+        <div class="sp-empty-icon">🏌️</div>
+        <p>Sponsor information coming soon.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <img src="copper-logo-nav.png" alt="The Pheasant Invitational" class="footer-logo">
+          <p class="footer-tagline">El Macero Country Club &middot; Est. 2012</p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 The Pheasant Invitational. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+  <script>
+    var GAS_URL = 'https://script.google.com/macros/s/AKfycbzv1eGhaOCn-Yb_zdtfeVFfDQMCfO_rFp7UJ_NU6xdVNXOuJoalxAHLGn150jFSFoYVHQ/exec';
+
+    fetch(GAS_URL + '?action=sponsors')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        document.getElementById('spLoading').style.display = 'none';
+
+        var sponsors = data.sponsors || [];
+        if (sponsors.length === 0) {
+          document.getElementById('spEmpty').style.display = 'block';
+          return;
+        }
+
+        var grid = document.getElementById('spGrid');
+        sponsors.forEach(function(s) {
+          var card = document.createElement('div');
+          card.className = 'sp-card';
+          card.innerHTML =
+            '<div class="sp-logo-wrap"><img class="sp-logo" src="' + s.url + '" alt="' + escHtml(s.name) + '" loading="lazy"></div>' +
+            '<div class="sp-name">' + escHtml(s.name) + '</div>';
+          grid.appendChild(card);
+        });
+        grid.style.display = 'grid';
+      })
+      .catch(function() {
+        document.getElementById('spLoading').style.display = 'none';
+        document.getElementById('spEmpty').style.display = 'block';
+      });
+
+    function escHtml(str) {
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+  </script>
+</body>
+</html>

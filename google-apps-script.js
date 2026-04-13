@@ -14,6 +14,7 @@
 var ORIGINAL_TAB_NAME = 'Original Data';
 var WORKING_TAB_NAME = 'Working Copy';
 var LOGO_FOLDER_NAME = 'Pheasant Invitational Logos 2026';
+var SPONSOR_FOLDER_NAME = 'Pheasant Invitational Sponsors';
 
 var HEADERS = [
   'Timestamp',
@@ -251,6 +252,39 @@ function doGet(e) {
       return ContentService.createTextOutput(JSON.stringify({ matches: matchList, debug: debugTeams }))
         .setMimeType(ContentService.MimeType.JSON);
 
+    } catch (err) {
+      return ContentService.createTextOutput(JSON.stringify({ error: err.message }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+
+  // Sponsors endpoint — lists all files in the Sponsors Drive folder
+  // Manage sponsors by adding/removing files in that folder on Drive.
+  if (e.parameter.action === 'sponsors') {
+    try {
+      var folders = DriveApp.getFoldersByName(SPONSOR_FOLDER_NAME);
+      if (!folders.hasNext()) {
+        return ContentService.createTextOutput(JSON.stringify({ sponsors: [] }))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+      var folder = folders.next();
+      var files = folder.getFiles();
+      var sponsors = [];
+      while (files.hasNext()) {
+        var file = files.next();
+        file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+        var id = file.getId();
+        // Strip file extension for display name
+        var displayName = file.getName().replace(/\.[^.]+$/, '');
+        sponsors.push({
+          name: displayName,
+          url: 'https://drive.google.com/uc?export=view&id=' + id
+        });
+      }
+      // Sort alphabetically by sponsor name
+      sponsors.sort(function(a, b) { return a.name.localeCompare(b.name); });
+      return ContentService.createTextOutput(JSON.stringify({ sponsors: sponsors }))
+        .setMimeType(ContentService.MimeType.JSON);
     } catch (err) {
       return ContentService.createTextOutput(JSON.stringify({ error: err.message }))
         .setMimeType(ContentService.MimeType.JSON);
