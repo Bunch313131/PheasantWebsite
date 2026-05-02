@@ -143,27 +143,29 @@
     sponsorExpired = true;
     var titleEl = document.getElementById('sponsorCountdownTitle');
     if (titleEl) titleEl.textContent = 'Hole Sponsor Registration Is Open!';
-    var timerEl = document.getElementById('sponsorCountdownTimer');
-    if (timerEl) timerEl.innerHTML = '<span class="countdown-live">Submit your team now</span>';
-    var dateEl = document.getElementById('countdownSponsor');
-    if (dateEl) {
-      var d = dateEl.querySelector('.countdown-date');
-      if (d) d.style.display = 'none';
-    }
+    // Set timer to zeros
+    if (sponsorElements.days) sponsorElements.days.textContent = '00';
+    if (sponsorElements.hours) sponsorElements.hours.textContent = '00';
+    if (sponsorElements.minutes) sponsorElements.minutes.textContent = '00';
+    if (sponsorElements.seconds) sponsorElements.seconds.textContent = '00';
+    // Show refresh prompt
+    var prompt = document.getElementById('sponsorRefreshPrompt');
+    if (prompt) prompt.style.display = 'block';
     updateFormVisibility();
   }
 
   function onOpenExpired() {
     openExpired = true;
     var titleEl = document.getElementById('openCountdownTitle');
-    if (titleEl) titleEl.textContent = 'Registration Is Open!';
-    var timerEl = document.getElementById('openCountdownTimer');
-    if (timerEl) timerEl.innerHTML = '<span class="countdown-live">Submit your team now</span>';
-    var dateEl = document.getElementById('countdownOpen');
-    if (dateEl) {
-      var d = dateEl.querySelector('.countdown-date');
-      if (d) d.style.display = 'none';
-    }
+    if (titleEl) titleEl.textContent = 'Open Registration Is Open!';
+    // Set timer to zeros
+    if (openElements.days) openElements.days.textContent = '00';
+    if (openElements.hours) openElements.hours.textContent = '00';
+    if (openElements.minutes) openElements.minutes.textContent = '00';
+    if (openElements.seconds) openElements.seconds.textContent = '00';
+    // Show refresh prompt
+    var prompt = document.getElementById('openRefreshPrompt');
+    if (prompt) prompt.style.display = 'block';
     updateFormVisibility();
   }
 

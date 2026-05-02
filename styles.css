@@ -781,6 +781,37 @@ input, select, textarea { font-family: inherit; }
   min-height: 20px;
 }
 
+.countdown-refresh-prompt {
+  text-align: center;
+  margin-top: 16px;
+}
+
+.btn-refresh {
+  background: var(--gold);
+  color: var(--green-dark);
+  border: none;
+  font-family: 'Raleway', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 12px 28px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-refresh:hover {
+  background: var(--gold-light);
+}
+
+.countdown-refresh-note {
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  margin-top: 10px;
+  font-style: italic;
+}
+
 .countdown-sponsor { border-top: 3px solid var(--gold); }
 .countdown-open { border-top: 3px solid var(--green-light); }
 
