@@ -929,7 +929,19 @@ input, select, textarea { font-family: inherit; }
 .checklist-intro {
   font-size: 13px;
   color: var(--gray-mid);
-  margin-bottom: 16px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.checklist-handicap-notice {
+  font-size: 13px;
+  color: #5a4a1a;
+  background: rgba(212,182,104,0.12);
+  border: 1px solid rgba(212,182,104,0.4);
+  border-radius: 8px;
+  padding: 10px 16px;
+  margin-bottom: 20px;
+  line-height: 1.5;
   text-align: center;
 }
 
@@ -1884,7 +1896,18 @@ input, select, textarea { font-family: inherit; }
 .prep-card-sub {
   font-size: 15px;
   color: var(--gray-dark);
-  margin-bottom: 28px;
+  margin-bottom: 12px;
+}
+
+.prep-card-handicap-notice {
+  font-size: 13px;
+  color: #5a4a1a;
+  background: rgba(212,182,104,0.15);
+  border: 1px solid rgba(212,182,104,0.4);
+  border-radius: 8px;
+  padding: 10px 16px;
+  margin-bottom: 24px;
+  line-height: 1.5;
 }
 
 .prep-card-cols {
