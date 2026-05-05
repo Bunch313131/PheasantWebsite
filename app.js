@@ -7,8 +7,9 @@
   'use strict';
 
   // ---------- Configuration ----------
-  var SPONSOR_OPEN_DATE = new Date('2026-06-05T17:00:00Z'); // June 5, 10 AM PDT
-  var REG_OPEN_DATE = new Date('2026-06-12T17:00:00Z');     // June 12, 10 AM PDT
+  var SPONSOR_OPEN_DATE  = new Date('2026-06-05T17:00:00Z'); // June 5, 10 AM PDT
+  var SPONSOR_CLOSE_DATE = new Date('2026-06-11T06:59:00Z'); // June 10, 11:59 PM PDT
+  var REG_OPEN_DATE      = new Date('2026-06-12T17:00:00Z'); // June 12, 10 AM PDT
   // Show Leaderboard/Pairings nav links during event week only.
   // Update these each year to match the tournament dates.
   var TOURNAMENT_NAV_START = new Date('2026-09-07T07:00:00Z'); // Mon before event
@@ -73,15 +74,16 @@
 
   (function updateRegBtnStates() {
     var now = new Date();
-    var sponsorOpen = now >= SPONSOR_OPEN_DATE;
-    var openOpen    = now >= REG_OPEN_DATE;
+    var sponsorOpen   = now >= SPONSOR_OPEN_DATE;
+    var sponsorClosed = now >= SPONSOR_CLOSE_DATE;
+    var openOpen      = now >= REG_OPEN_DATE;
 
     sponsorBtns.forEach(function(btn) {
       if (!btn) return;
-      if (openOpen) {
+      if (sponsorClosed) {
         // Sponsor window closed — hide entirely
         btn.style.display = 'none';
-      } else if (sponsorOpen) {
+      } else if (sponsorOpen && !sponsorClosed) {
         // Sponsor window active
         btn.textContent = 'Hole Sponsor Registration';
         btn.classList.remove('btn-reg-soon');
@@ -220,8 +222,9 @@
 
   function updateFormVisibility() {
     var now = new Date();
-    var sponsorOpen = now >= SPONSOR_OPEN_DATE;
-    var openOpen = now >= REG_OPEN_DATE;
+    var sponsorOpen   = now >= SPONSOR_OPEN_DATE;
+    var sponsorClosed = now >= SPONSOR_CLOSE_DATE;
+    var openOpen      = now >= REG_OPEN_DATE;
 
     // Status messages
     if (formStatusSponsor) formStatusSponsor.style.display = sponsorOpen ? 'none' : 'block';
@@ -248,9 +251,9 @@
     if (regTypeTabs) regTypeTabs.style.display = 'flex';
 
     // Enable/disable individual tabs
-    // Hole Sponsor tab: only available between June 5 and June 12
+    // Hole Sponsor tab: only available between June 5 and June 10 11:59 PM
     if (tabSponsor) {
-      var sponsorTabOpen = sponsorOpen && !openOpen;
+      var sponsorTabOpen = sponsorOpen && !sponsorClosed;
       tabSponsor.disabled = !sponsorTabOpen;
       tabSponsor.classList.toggle('tab-disabled', !sponsorTabOpen);
     }
@@ -262,7 +265,7 @@
     // If current mode is not yet available (or sponsor closed), switch to the available one
     if (currentMode === 'open' && !openOpen && sponsorOpen) {
       setMode('sponsor');
-    } else if (currentMode === 'sponsor' && (!sponsorOpen || openOpen)) {
+    } else if (currentMode === 'sponsor' && (!sponsorOpen || sponsorClosed)) {
       setMode('open');
     }
 
