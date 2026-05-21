@@ -461,12 +461,16 @@
       // --- Send to Google Apps Script ---
       fetch(APPS_SCRIPT_URL, {
         method: 'POST',
-        mode: 'no-cors',
         headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(formData),
+        redirect: 'follow'
       })
-      .then(function () {
-        // no-cors means opaque response — show success optimistically
+      .then(function (response) {
+        if (!response.ok) throw new Error('Server returned ' + response.status);
+        return response.json();
+      })
+      .then(function (result) {
+        if (result.status !== 'success') throw new Error(result.message || 'Registration failed');
         regForm.style.display = 'none';
         if (regTypeTabs) regTypeTabs.style.display = 'none';
         if (formSuccess) {
@@ -484,6 +488,8 @@
         console.error('Submission error:', err);
         regForm.style.display = 'none';
         if (formError) {
+          var errorMsg = document.getElementById('errorMessage');
+          if (errorMsg) errorMsg.textContent = 'Something went wrong: ' + err.message + '. Please try again or contact the committee directly.';
           formError.style.display = 'block';
           formError.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
