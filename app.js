@@ -201,6 +201,18 @@
   tickCountdowns();
   setInterval(tickCountdowns, 1000);
 
+  // Auto-reload when a registration window opens (for users already on the page)
+  var nextOpen = null;
+  var loadedAt = new Date();
+  if (loadedAt < SPONSOR_OPEN_DATE) nextOpen = SPONSOR_OPEN_DATE;
+  else if (loadedAt < REG_OPEN_DATE) nextOpen = REG_OPEN_DATE;
+  if (nextOpen) {
+    var msUntilOpen = nextOpen - loadedAt;
+    if (msUntilOpen < 86400000) {
+      setTimeout(function () { location.reload(); }, msUntilOpen + 500);
+    }
+  }
+
   // ---------- Registration Form Visibility & Mode Switching ----------
   var regTypeTabs = document.getElementById('regTypeTabs');
   var tabSponsor = document.getElementById('tabSponsor');
