@@ -245,8 +245,9 @@
     // Prep card: show until open registration is live
     if (prepCard) prepCard.style.display = openOpen ? 'none' : 'block';
 
-    // If neither window is open, hide form and tabs
-    if (!sponsorOpen && !openOpen) {
+    // If no registration window is currently active, hide form and tabs
+    var sponsorActive = sponsorOpen && !sponsorClosed;
+    if (!sponsorActive && !openOpen) {
       if (regTypeTabs) regTypeTabs.style.display = 'none';
       if (regForm) regForm.style.display = 'none';
       // Register page: show closed status, hide form area

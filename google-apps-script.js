@@ -13,6 +13,7 @@
 
 var ORIGINAL_TAB_NAME = 'Original Data';
 var WORKING_TAB_NAME = 'Working Copy';
+var WAITLIST_TAB_NAME = 'Waitlist';
 var LOGO_FOLDER_NAME = 'Pheasant Invitational Logos 2026';
 var SPONSOR_FOLDER_NAME = 'Pheasant Invitational Sponsors';
 
@@ -258,6 +259,31 @@ function doGet(e) {
     }
   }
 
+  // Waitlist endpoint — reads from Waitlist tab
+  if (e.parameter.action === 'waitlist') {
+    try {
+      var ss = SpreadsheetApp.getActiveSpreadsheet();
+      var sheet = ss.getSheetByName(WAITLIST_TAB_NAME);
+      if (!sheet || sheet.getLastRow() < 2) {
+        return ContentService.createTextOutput(JSON.stringify({ waitlist: [] }))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+      var data = sheet.getRange(2, 1, sheet.getLastRow() - 1, 2).getValues();
+      var waitlist = [];
+      data.forEach(function(row) {
+        var member = (row[0] || '').toString().trim();
+        if (member) {
+          waitlist.push({ member: member, guest: (row[1] || '').toString().trim() });
+        }
+      });
+      return ContentService.createTextOutput(JSON.stringify({ waitlist: waitlist }))
+        .setMimeType(ContentService.MimeType.JSON);
+    } catch (err) {
+      return ContentService.createTextOutput(JSON.stringify({ error: err.message }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+
   // Sponsors endpoint — lists all files in the Sponsors Drive folder
   // Manage sponsors by adding/removing files in that folder on Drive.
   if (e.parameter.action === 'sponsors') {
@@ -278,7 +304,7 @@ function doGet(e) {
         var displayName = file.getName().replace(/\.[^.]+$/, '');
         sponsors.push({
           name: displayName,
-          url: 'https://drive.google.com/uc?export=view&id=' + id
+          url: 'https://lh3.googleusercontent.com/d/' + id
         });
       }
       // Sort alphabetically by sponsor name
