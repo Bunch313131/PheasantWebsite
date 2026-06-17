@@ -16,6 +16,7 @@
   var TOURNAMENT_NAV_END   = new Date('2026-09-14T07:00:00Z'); // Sun after event
   var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzv1eGhaOCn-Yb_zdtfeVFfDQMCfO_rFp7UJ_NU6xdVNXOuJoalxAHLGn150jFSFoYVHQ/exec';
   var MAX_LOGO_SIZE = 5 * 1024 * 1024; // 5 MB
+  var PRANK_ENABLED = new Date() >= new Date('2027-05-01T07:00:00Z'); // auto-enable May 1, 2027
   var ALLOWED_LOGO_TYPES = ['image/png', 'image/jpeg', 'image/svg+xml', 'application/pdf'];
 
   // ---------- Tournament-week nav links ----------
@@ -414,6 +415,120 @@
     }
   }
 
+  // ---------- Success + Prank helpers ----------
+  function showRealSuccess(mode) {
+    if (formSuccess) {
+      var successMsg = document.getElementById('successMessage');
+      if (successMsg) {
+        successMsg.textContent = mode === 'sponsor'
+          ? 'Your hole sponsor registration has been logged and date-stamped. Please note that submission does not guarantee a spot — the opportunity is limited to 18 sponsorships. The committee will contact you regarding acceptance, hole assignment, and logo placement. You will receive a confirmation email shortly — if you don’t see it within a few minutes, please check your spam folder.'
+          : 'Your registration has been logged and date-stamped. Registration does not guarantee a spot — accepted registrations will follow the process outlined above. You will receive a confirmation email shortly — if you don’t see it within a few minutes, please check your spam folder.';
+      }
+      formSuccess.style.display = 'block';
+      formSuccess.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+
+  function showPrank(onDone) {
+    var riddles = [
+      { q: 'What has hands but can’t clap?', a: 'a clock' },
+      { q: 'What building has the most stories?', a: 'a library' },
+      { q: 'What can you catch but not throw?', a: 'a cold' },
+      { q: 'What has a head and a tail but no body?', a: 'a coin' },
+      { q: 'What goes up but never comes down?', a: 'your age' }
+    ];
+    var riddle = riddles[Math.floor(Math.random() * riddles.length)];
+    var secondsLeft = 10;
+
+    var overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:9999;display:flex;align-items:center;justify-content:center;';
+
+    var box = document.createElement('div');
+    box.style.cssText = 'background:#fff;border-radius:12px;padding:40px 36px;max-width:440px;width:90%;text-align:center;font-family:Raleway,sans-serif;';
+
+    var icon = document.createElement('div');
+    icon.style.cssText = 'font-size:44px;margin-bottom:12px;';
+    icon.textContent = '⚠️';
+
+    var title = document.createElement('h3');
+    title.style.cssText = 'font-family:Playfair Display,serif;font-size:22px;color:#c0392b;margin-bottom:8px;';
+    title.textContent = 'Security Verification Required';
+
+    var subtitle = document.createElement('p');
+    subtitle.style.cssText = 'font-size:14px;color:#666;margin-bottom:20px;';
+    subtitle.textContent = 'To prevent bot registrations, answer the following to confirm your spot:';
+
+    var question = document.createElement('p');
+    question.style.cssText = 'font-size:18px;font-weight:700;color:#1a3a2a;margin-bottom:20px;font-style:italic;';
+    question.textContent = riddle.q;
+
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = 'Type your answer...';
+    input.style.cssText = 'width:100%;padding:12px 16px;font-size:16px;border:2px solid #ddd;border-radius:8px;font-family:Raleway,sans-serif;box-sizing:border-box;margin-bottom:16px;text-align:center;';
+
+    var timer = document.createElement('div');
+    timer.style.cssText = 'font-size:32px;font-weight:700;color:#c0392b;margin-bottom:12px;font-family:Playfair Display,serif;';
+    timer.textContent = '0:' + String(secondsLeft).padStart(2, '0');
+
+    var warning = document.createElement('p');
+    warning.style.cssText = 'font-size:13px;color:#c0392b;font-weight:600;';
+    warning.textContent = 'Registration will be canceled if time expires.';
+
+    var submitBtn = document.createElement('button');
+    submitBtn.style.cssText = 'padding:12px 28px;background:#1a3a2a;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;font-family:Raleway,sans-serif;margin-top:8px;';
+    submitBtn.textContent = 'Submit Answer';
+
+    submitBtn.addEventListener('click', function () {
+      input.style.borderColor = '#c0392b';
+      input.value = '';
+      input.placeholder = 'Incorrect — try again!';
+    });
+
+    box.appendChild(icon);
+    box.appendChild(title);
+    box.appendChild(subtitle);
+    box.appendChild(question);
+    box.appendChild(input);
+    box.appendChild(submitBtn);
+    box.appendChild(timer);
+    box.appendChild(warning);
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+    input.focus();
+
+    var interval = setInterval(function () {
+      secondsLeft--;
+      timer.textContent = '0:' + String(secondsLeft).padStart(2, '0');
+      if (secondsLeft <= 3) {
+        timer.style.fontSize = '38px';
+        box.style.borderColor = '#c0392b';
+        box.style.border = '2px solid #c0392b';
+      }
+      if (secondsLeft <= 0) {
+        clearInterval(interval);
+        icon.textContent = '😂';
+        title.textContent = 'Just Kidding!';
+        title.style.color = '#1a3a2a';
+        subtitle.textContent = '';
+        question.style.cssText = 'font-size:16px;color:#333;margin-bottom:20px;line-height:1.6;font-style:normal;font-weight:400;';
+        question.textContent = 'Relax \u2014 your registration was saved the moment you hit Submit. You\u2019re all set. The answer was "' + riddle.a + '," by the way.';
+        input.style.display = 'none';
+        submitBtn.style.display = 'none';
+        timer.style.display = 'none';
+        warning.style.display = 'none';
+        var closeBtn = document.createElement('button');
+        closeBtn.style.cssText = 'padding:14px 32px;background:#1a3a2a;color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;font-family:Raleway,sans-serif;';
+        closeBtn.textContent = 'Got It';
+        closeBtn.addEventListener('click', function () {
+          document.body.removeChild(overlay);
+          onDone();
+        });
+        box.appendChild(closeBtn);
+      }
+    }, 1000);
+  }
+
   // ---------- Form Submission ----------
   if (regForm) {
     regForm.addEventListener('submit', function (e) {
@@ -486,15 +601,11 @@
         if (result.status !== 'success') throw new Error(result.message || 'Registration failed');
         regForm.style.display = 'none';
         if (regTypeTabs) regTypeTabs.style.display = 'none';
-        if (formSuccess) {
-          var successMsg = document.getElementById('successMessage');
-          if (successMsg) {
-            successMsg.textContent = currentMode === 'sponsor'
-              ? 'Your hole sponsor registration has been logged and date-stamped. Please note that submission does not guarantee a spot \u2014 the opportunity is limited to 18 sponsorships. The committee will contact you regarding acceptance, hole assignment, and logo placement. You will receive a confirmation email shortly \u2014 if you don\u2019t see it within a few minutes, please check your spam folder.'
-              : 'Your registration has been logged and date-stamped. Registration does not guarantee a spot \u2014 accepted registrations will follow the process outlined above. You will receive a confirmation email shortly \u2014 if you don\u2019t see it within a few minutes, please check your spam folder.';
-          }
-          formSuccess.style.display = 'block';
-          formSuccess.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        if (PRANK_ENABLED && currentMode === 'open') {
+          showPrank(function () { showRealSuccess('open'); });
+        } else {
+          showRealSuccess(currentMode);
         }
       })
       .catch(function (err) {
