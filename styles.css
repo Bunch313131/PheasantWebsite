@@ -2081,18 +2081,22 @@ input, select, textarea { font-family: inherit; }
     margin-top: 8px;
   }
 
-  /* Mobile Timeline */
+  /* Mobile Timeline — stack time above the event, both left-aligned so
+     the time sits with its description instead of floating to the edge. */
   .timeline::before { left: 12px; }
-  .timeline-item::before { left: 7px; }
-  .timeline-time { flex: 0 0 auto; font-size: 13px; min-width: 0; }
-  .timeline-item { flex-direction: column; gap: 4px; padding-left: 32px; }
+  .timeline-item::before { left: 7px; top: 20px; }
+  .timeline-time { flex: 0 0 auto; font-size: 12px; min-width: 0; text-align: left; padding-top: 0; }
+  .timeline-item { flex-direction: column; gap: 2px; padding-left: 32px; }
   .timeline-event { padding-left: 0; }
 
   .schedule-tabs { gap: 4px; }
   .tab-btn { padding: 10px 16px; font-size: 14px; }
 
   .reg-form-container { padding: 24px 20px; }
-  .bracket-round { flex-direction: column; gap: 4px; }
+  /* Stacked on mobile: reset the label's 72px flex-basis (a desktop column
+     width) so it doesn't become a 72px-tall box stranding the text on top. */
+  .bracket-round { flex-direction: column; gap: 4px; align-items: flex-start; }
+  .bracket-label { flex: 0 0 auto; }
 }
 
 @media (max-width: 480px) {
