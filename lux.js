@@ -10,8 +10,9 @@
                window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // ---------- Ambient gleam on the copper nameplate ----------
+  // (Masked to the plate silhouette in CSS so it stays on the metal.)
   var plate = document.querySelector('.nav-logo');
-  if (plate && !reduce) plate.classList.add('gleam', 'gleam-ambient');
+  if (plate && !reduce) plate.classList.add('gleam-plate');
 
   // ---------- Hero "first light" — staggered entrance ----------
   // Ordered so the eye travels top→bottom; the anniversary line is left

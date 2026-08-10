@@ -42,7 +42,6 @@ body::before {
   mix-blend-mode: screen;
   z-index: 3;
 }
-.gleam-ambient::after { opacity: 1; animation: luxSweep 7s ease-in-out 2.5s infinite; }
 .gleam-go::after      { opacity: 1; animation: luxSweep 1.5s ease-out forwards; }
 .gleam:hover::after   { opacity: 1; animation: luxSweep 0.9s ease-out; }
 @keyframes luxSweep {
@@ -50,6 +49,35 @@ body::before {
   12%  { opacity: 1; }
   88%  { opacity: 1; }
   100% { left: 130%; opacity: 0; }
+}
+
+/* Nav copper plate — the shine is masked to the plate's actual
+   silhouette (via the PNG's alpha) so it never spills past the metal
+   edges. A masked gradient sweeps across, then rests, on a slow loop. */
+.nav-logo { position: relative; }
+.gleam-plate::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg,
+    rgba(255,255,255,0) 43%,
+    rgba(255,250,232,0.55) 50%,
+    rgba(255,255,255,0) 57%);
+  background-repeat: no-repeat;
+  background-size: 250% 100%;
+  background-position: 200% 0;
+  -webkit-mask: url('copper-logo-nav.png') center / contain no-repeat;
+          mask: url('copper-logo-nav.png') center / contain no-repeat;
+  mix-blend-mode: screen;
+  pointer-events: none;
+  opacity: 0;
+  animation: plateSheen 7.5s ease-in-out 3s infinite;
+}
+@keyframes plateSheen {
+  0%        { background-position: 200% 0;  opacity: 0; }
+  6%        { opacity: 1; }
+  26%       { background-position: -120% 0; opacity: 1; }
+  32%, 100% { background-position: -120% 0; opacity: 0; }
 }
 
 /* ============================================================
