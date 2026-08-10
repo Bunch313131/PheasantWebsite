@@ -13,6 +13,13 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" href="favicon.ico" sizes="32x32">
   <meta name="theme-color" content="#1a3a2a">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="favicon.ico" sizes="32x32">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Pheasant">
   <style>
     /* ── Hero ── */
     .pr-hero {
@@ -140,7 +147,13 @@
     .round-tabs-wrap {
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
-      margin-bottom: 28px;
+      position: sticky;
+      top: 68px;                 /* sit just below the fixed navbar */
+      z-index: 50;
+      background: var(--cream);
+      padding: 10px 0 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 6px 10px -8px rgba(0,0,0,0.35);
       scrollbar-width: none;
     }
     .round-tabs-wrap::-webkit-scrollbar { display: none; }
@@ -239,6 +252,24 @@
       background: var(--gold-pale);
       box-shadow: 0 2px 8px rgba(184,150,62,0.15);
     }
+    .match-card.followed {
+      border-color: var(--gold);
+      box-shadow: inset 3px 0 0 var(--gold), 0 2px 8px rgba(184,150,62,0.15);
+    }
+    .follow-star {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      line-height: 1;
+      padding: 0 4px;
+      color: var(--gray-light);
+      vertical-align: baseline;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.12s, color 0.12s;
+    }
+    .follow-star.on { color: var(--gold); }
+    .follow-star:active { transform: scale(1.3); }
     .match-team {
       font-family: 'Raleway', sans-serif;
       font-size: 14px;
@@ -264,6 +295,7 @@
     }
     .match-pts-home { text-align: right; }
     .match-pts-away { text-align: left; }
+    .pts-unit { font-weight: 600; opacity: 0.65; }
 
     /* ── Loading / error ── */
     .pr-loading, .pr-error {
@@ -310,8 +342,15 @@
         padding: 10px 12px;
       }
       .match-team { font-size: 12px; }
-      .match-pts-home, .match-pts-away { font-size: 10px; }
+      .match-pts-home, .match-pts-away { font-size: 11px; }
       .sched-date-label { font-size: 18px; }
+    }
+    /* Very small phones: drop the "pts" word (numbers flanking "vs" read as points),
+       giving team names more room. */
+    @media (max-width: 400px) {
+      .pts-unit { display: none; }
+      .match-card { grid-template-columns: 1fr auto 24px auto 1fr; gap: 4px; padding: 10px 10px; }
+      .match-pts-home, .match-pts-away { font-size: 12px; }
     }
   </style>
 </head>
@@ -349,7 +388,7 @@
   <!-- Status bar -->
   <div class="pr-status-bar">
     <div class="container">
-      <span class="lb-badge final" id="prStatusBadge">2025 Season</span>
+      <span class="lb-badge final" id="prStatusBadge">2026 Season</span>
       <span class="pr-updated" id="prUpdated"></span>
     </div>
   </div>
@@ -504,6 +543,8 @@
 
           allRounds = buildRounds(matches);
           render(allRounds);
+          var badge = document.getElementById('prStatusBadge');
+          if (badge) { badge.className = 'lb-badge final'; badge.textContent = GG.year + ' Season'; }
           document.getElementById('prUpdated').textContent =
             'Updated ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         })
@@ -664,6 +705,9 @@
       if (!filterStr) {
         activeRoundIndex = findTodayRoundIndex(rounds);
         buildTabs(rounds, tabsEl);
+        // Bring the auto-selected (today's) round tab into view in the strip.
+        var activeTab = tabsEl.querySelector('.round-tab[data-index="' + activeRoundIndex + '"]');
+        if (activeTab) scrollRoundTabIntoView(activeTab);
       }
 
       renderPanels(rounds, panelsEl, filter);
@@ -711,11 +755,20 @@
           document.querySelectorAll('.round-tab').forEach(function(t) {
             t.classList.toggle('active', +t.getAttribute('data-index') === i);
           });
+          scrollRoundTabIntoView(tab);
           var q = document.getElementById('schedSearch').value;
           renderPanels(allRounds, document.getElementById('roundPanels'), q.trim().toLowerCase());
         });
         tabsEl.appendChild(tab);
       });
+    }
+
+    // Center the active round tab within its horizontal scroll strip.
+    function scrollRoundTabIntoView(tab) {
+      var wrap = document.querySelector('.round-tabs-wrap');
+      if (!wrap || !tab) return;
+      var target = tab.offsetLeft - (wrap.clientWidth - tab.offsetWidth) / 2;
+      wrap.scrollTo({ left: Math.max(0, target), behavior: 'smooth' });
     }
 
     function renderPanels(rounds, panelsEl, filter) {
@@ -775,6 +828,52 @@
       document.getElementById('schedNoResults').style.display = 'none';
     }
 
+    // ============================================================
+    // Follow My Team — shared with leaderboard.html via localStorage.
+    // ============================================================
+    var FOLLOW_KEY = 'pheasant_follows';
+    function getFollows() {
+      try { return JSON.parse(localStorage.getItem(FOLLOW_KEY) || '[]'); } catch (e) { return []; }
+    }
+    function isFollowedKey(k) { return getFollows().indexOf(k) !== -1; }
+    function toggleFollowKey(k) {
+      var a = getFollows(), i = a.indexOf(k);
+      if (i === -1) a.push(k); else a.splice(i, 1);
+      try { localStorage.setItem(FOLLOW_KEY, JSON.stringify(a)); } catch (e) {}
+      return i === -1;
+    }
+    function applyFollowForKey(key, on) {
+      var follows = getFollows();
+      document.querySelectorAll('.follow-star[data-key="' + key + '"]').forEach(function (b) {
+        b.classList.toggle('on', on);
+        b.textContent = on ? '★' : '☆';
+        b.setAttribute('aria-pressed', on);
+      });
+      // A card is "followed" if either of its two teams is followed.
+      document.querySelectorAll('.match-card').forEach(function (card) {
+        var f = [].some.call(card.querySelectorAll('.match-team'), function (t) {
+          return follows.indexOf(t.getAttribute('data-key')) !== -1;
+        });
+        card.classList.toggle('followed', f);
+      });
+    }
+    function initFollow() {
+      document.addEventListener('click', function (e) {
+        var btn = e.target.closest ? e.target.closest('.follow-star') : null;
+        if (!btn) return;
+        e.stopPropagation();
+        e.preventDefault();
+        applyFollowForKey(btn.getAttribute('data-key'), toggleFollowKey(btn.getAttribute('data-key')));
+      }, true);
+    }
+
+    function starHtml(key) {
+      var on = isFollowedKey(key);
+      return '<button type="button" class="follow-star' + (on ? ' on' : '') +
+             '" data-key="' + key + '" aria-label="Follow this team" aria-pressed="' + on + '">' +
+             (on ? '★' : '☆') + '</button>';
+    }
+
     function buildMatchCard(m, filter, roundNum) {
       var homeWinner = m.homeWon === m.home;
       var awayWinner = m.homeWon === m.away;
@@ -792,24 +891,28 @@
       var awayPts = awayPtsData ? awayPtsData[rKey] : null;
       var hasPoints = homePts != null && awayPts != null;
 
+      var homeKey = normKey(m.home), awayKey = normKey(m.away);
+      var cardFollowed = isFollowedKey(homeKey) || isFollowedKey(awayKey);
+
       var homeClass = 'match-team home' + (homeWinner ? ' winner' : '');
       var awayClass = 'match-team away' + (awayWinner ? ' winner' : '');
       var homePtsHtml = hasPoints ? '<div class="match-pts-home">' + fmtPts(homePts) + '</div>' : '<div></div>';
       var awayPtsHtml = hasPoints ? '<div class="match-pts-away">' + fmtPts(awayPts) + '</div>' : '<div></div>';
 
-      return '<div class="match-card' + (cardHighlight ? ' highlight' : '') + '">' +
-        '<div class="' + homeClass + '">' + fmtTeamName(m.home) + '</div>' +
+      return '<div class="match-card' + (cardHighlight ? ' highlight' : '') + (cardFollowed ? ' followed' : '') + '">' +
+        '<div class="' + homeClass + '" data-key="' + homeKey + '">' + starHtml(homeKey) + fmtTeamName(m.home) + '</div>' +
         homePtsHtml +
         '<div class="match-vs">vs.</div>' +
         awayPtsHtml +
-        '<div class="' + awayClass + '">' + fmtTeamName(m.away) + '</div>' +
+        '<div class="' + awayClass + '" data-key="' + awayKey + '">' + fmtTeamName(m.away) + starHtml(awayKey) + '</div>' +
         '</div>';
     }
 
     function fmtPts(pts) {
       var n = parseFloat(pts);
       if (isNaN(n)) return '—';
-      return (n % 1 === 0 ? n.toFixed(0) : n.toFixed(1)) + ' pts';
+      var num = (n % 1 === 0 ? n.toFixed(0) : n.toFixed(1));
+      return num + '<span class="pts-unit"> pts</span>';
     }
 
     function fmtTeamName(name) {
@@ -903,6 +1006,7 @@
         .catch(function() { /* stay on Coming Soon */ });
     }
 
+    initFollow();
     if (GG.live && GG.tournamentId) {
       loadSchedule();                                    // manual override
     } else if (GG.goLiveDate && todayISO() < GG.goLiveDate) {

@@ -6,6 +6,13 @@
 (function () {
   'use strict';
 
+  // ---------- PWA service worker (install-to-home-screen + fast loads) ----------
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('sw.js').catch(function () { /* non-fatal */ });
+    });
+  }
+
   // ---------- Configuration ----------
   var SPONSOR_OPEN_DATE  = new Date('2026-06-05T17:00:00Z'); // June 5, 10 AM PDT
   var SPONSOR_CLOSE_DATE = new Date('2026-06-11T06:59:00Z'); // June 10, 11:59 PM PDT

@@ -13,6 +13,13 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" href="favicon.ico" sizes="32x32">
   <meta name="theme-color" content="#1a3a2a">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="favicon.ico" sizes="32x32">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Pheasant">
   <style>
     /* ── Leaderboard page styles ── */
 
@@ -127,8 +134,13 @@
 
     /* ── Flight tabs ── */
     .flight-tabs-outer {
-      position: relative;
-      margin-bottom: 28px;
+      position: sticky;
+      top: 68px;                 /* sit just below the fixed navbar */
+      z-index: 50;
+      background: var(--cream);
+      padding: 10px 0 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 6px 10px -8px rgba(0,0,0,0.35);
     }
     .flight-tabs-wrap {
       overflow-x: auto;
@@ -292,6 +304,27 @@
       color: var(--green-dark);
       line-height: 1.3;
     }
+    /* ── Follow My Team ── */
+    .follow-star {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0 6px 0 0;
+      font-size: 17px;
+      line-height: 1;
+      color: var(--gray-light);
+      vertical-align: baseline;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.12s, color 0.12s;
+    }
+    .follow-star:hover { color: var(--gold); }
+    .follow-star.on { color: var(--gold); }
+    .follow-star:active { transform: scale(1.3); }
+    .lb-table tbody tr.followed {
+      background: var(--gold-pale);
+      box-shadow: inset 3px 0 0 var(--gold);
+    }
+    .lb-table tbody tr.followed:hover { background: #f5edcc; }
     .team-clubs {
       font-size: 11px;
       color: var(--gray-mid);
@@ -693,6 +726,7 @@
           document.querySelectorAll('.flight-panel').forEach(function(p) {
             p.classList.toggle('active', +p.getAttribute('data-index') === i);
           });
+          scrollTabIntoView(tab);
         });
         tabsEl.appendChild(tab);
 
@@ -737,6 +771,44 @@
       });
     }
 
+    // ============================================================
+    // Follow My Team — shared with pairings.html via localStorage.
+    // Keyed by a normalized team name so a team followed on either
+    // page lights up on both.
+    // ============================================================
+    var FOLLOW_KEY = 'pheasant_follows';
+    function normKey(s) { return (s || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
+    function getFollows() {
+      try { return JSON.parse(localStorage.getItem(FOLLOW_KEY) || '[]'); } catch (e) { return []; }
+    }
+    function isFollowedKey(k) { return getFollows().indexOf(k) !== -1; }
+    function toggleFollowKey(k) {
+      var a = getFollows(), i = a.indexOf(k);
+      if (i === -1) a.push(k); else a.splice(i, 1);
+      try { localStorage.setItem(FOLLOW_KEY, JSON.stringify(a)); } catch (e) {}
+      return i === -1;
+    }
+    function applyFollowForKey(key, on) {
+      document.querySelectorAll('.follow-star[data-key="' + key + '"]').forEach(function (b) {
+        b.classList.toggle('on', on);
+        b.textContent = on ? '★' : '☆';
+        b.setAttribute('aria-pressed', on);
+      });
+      document.querySelectorAll('tr[data-team="' + key + '"]').forEach(function (tr) {
+        tr.classList.toggle('followed', on);
+      });
+    }
+    function initFollow() {
+      // Capture phase so tapping a star never also triggers the row's expand handler.
+      document.addEventListener('click', function (e) {
+        var btn = e.target.closest ? e.target.closest('.follow-star') : null;
+        if (!btn) return;
+        e.stopPropagation();
+        e.preventDefault();
+        applyFollowForKey(btn.getAttribute('data-key'), toggleFollowKey(btn.getAttribute('data-key')));
+      }, true);
+    }
+
     function buildRow(row, roundData, hasRounds) {
       var rank     = parseInt(row.rank, 10) || 99;
       var cls      = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : '';
@@ -779,10 +851,17 @@
           '<td class="round-total">' + fmtPts(row.points) + '</td>';
       }
 
-      return '<tr class="' + cls + '" data-id="' + escHtml(row.id_str || '') + '">' +
+      var teamKey  = normKey(teamRaw);
+      var followed = isFollowedKey(teamKey);
+      var trCls    = (cls + (followed ? ' followed' : '')).trim();
+      var starHtml = '<button type="button" class="follow-star' + (followed ? ' on' : '') +
+                     '" data-key="' + teamKey + '" aria-label="Follow this team" aria-pressed="' +
+                     followed + '">' + (followed ? '★' : '☆') + '</button>';
+
+      return '<tr class="' + trCls + '" data-id="' + escHtml(row.id_str || '') + '" data-team="' + teamKey + '">' +
         '<td class="pos">' + escHtml(row.position || '') + '<span class="row-chevron"></span></td>' +
         '<td class="team-cell">' +
-          '<div class="team-names">' + teamHtml + badge + '</div>' +
+          '<div class="team-names">' + starHtml + teamHtml + badge + '</div>' +
           '<div class="team-clubs">' + clubs + '</div>' +
           roundDetailHtml +
         '</td>' +
@@ -1053,6 +1132,14 @@
       return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
+    // Center the active flight tab within its horizontal scroll strip.
+    function scrollTabIntoView(tab) {
+      var wrap = document.getElementById('flightTabsWrap');
+      if (!wrap || !tab) return;
+      var target = tab.offsetLeft - (wrap.clientWidth - tab.offsetWidth) / 2;
+      wrap.scrollTo({ left: Math.max(0, target), behavior: 'smooth' });
+    }
+
     // ============================================================
     // Flight tab scroll arrows
     // ============================================================
@@ -1158,6 +1245,7 @@
     // ============================================================
     // Boot
     // ============================================================
+    initFollow();
     if (GG.live && GG.tournamentId) {
       loadStandings();                                   // manual override
     } else if (GG.goLiveDate && todayISO() < GG.goLiveDate) {

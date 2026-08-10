@@ -2,8 +2,11 @@
   "name": "The Pheasant Invitational",
   "short_name": "Pheasant",
   "description": "El Macero Country Club's Premier Member-Guest Golf Tournament",
-  "start_url": "/PheasantWebsite/",
+  "id": "/",
+  "start_url": ".",
+  "scope": ".",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#1a3a2a",
   "theme_color": "#1a3a2a",
   "icons": [
