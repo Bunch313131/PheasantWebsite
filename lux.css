@@ -1,0 +1,162 @@
+/* ============================================================
+   The Pheasant Invitational — "Engraved Copper" style layer
+   Signature: metal that catches the light. Refined & subtle.
+   Layered on top of styles.css; classes applied by lux.js.
+   ============================================================ */
+
+/* ---------- Gilt hairline at the very top of the page ---------- */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  z-index: 200;
+  background: linear-gradient(90deg, transparent, var(--gold) 18%, var(--gold-light) 50%, var(--gold) 82%, transparent);
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+/* ============================================================
+   Metallic gleam — a slow specular sweep across "metal"
+   .gleam            → container (clips the sweep)
+   .gleam-ambient    → gentle, repeating (nav plate)
+   .gleam-go         → one sweep, triggered on scroll-in
+   :hover            → one sweep on hover
+   ============================================================ */
+.gleam { position: relative; overflow: hidden; isolation: isolate; }
+.gleam::after {
+  content: '';
+  position: absolute;
+  top: -20%; bottom: -20%;
+  left: -75%;
+  width: 45%;
+  background: linear-gradient(105deg,
+    rgba(255,255,255,0) 0%,
+    rgba(255,248,224,0.08) 38%,
+    rgba(255,249,230,0.42) 50%,
+    rgba(255,248,224,0.08) 62%,
+    rgba(255,255,255,0) 100%);
+  transform: skewX(-16deg);
+  pointer-events: none;
+  opacity: 0;
+  mix-blend-mode: screen;
+  z-index: 3;
+}
+.gleam-ambient::after { opacity: 1; animation: luxSweep 7s ease-in-out 2.5s infinite; }
+.gleam-go::after      { opacity: 1; animation: luxSweep 1.5s ease-out forwards; }
+.gleam:hover::after   { opacity: 1; animation: luxSweep 0.9s ease-out; }
+@keyframes luxSweep {
+  0%   { left: -75%; opacity: 0; }
+  12%  { opacity: 1; }
+  88%  { opacity: 1; }
+  100% { left: 130%; opacity: 0; }
+}
+
+/* ============================================================
+   Hero "first light" — orchestrated entrance
+   lux.js adds .lux-in to hero elements with a staggered --d.
+   (The anniversary line keeps its own count-up in app.js.)
+   ============================================================ */
+.lux-in {
+  opacity: 0;
+  transform: translateY(16px);
+  animation: luxRise 0.75s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: var(--d, 0s);
+}
+@keyframes luxRise {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+/* the hero divider draws itself open as it arrives */
+.hero-divider.lux-in {
+  animation: luxRise 0.75s cubic-bezier(0.2,0.7,0.2,1) both, luxDraw 0.9s cubic-bezier(0.2,0.7,0.2,1) both;
+  animation-delay: var(--d, 0s), var(--d, 0s);
+}
+@keyframes luxDraw {
+  from { width: 0; }
+  to   { width: 80px; }
+}
+
+/* ============================================================
+   Scroll-reveal choreography
+   ============================================================ */
+.reveal {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition-delay: var(--rd, 0s);
+}
+.reveal.revealed { opacity: 1; transform: none; }
+
+/* ============================================================
+   Champions "Trophy Wall" — engraved brass plaques on mahogany
+   ============================================================ */
+.champions-list { max-width: 680px; }
+
+.champion-row {
+  position: relative;
+  gap: 16px;
+  padding: 15px 20px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(184,150,62,0.30);
+  border-bottom: 1px solid rgba(184,150,62,0.30);   /* override base hairline */
+  border-radius: 6px;
+  background:
+    linear-gradient(157deg, #33271c 0%, #40301f 46%, #281d13 100%);
+  box-shadow:
+    0 1px 0 rgba(255,236,193,0.12) inset,
+    0 -1px 0 rgba(0,0,0,0.45) inset,
+    0 6px 14px rgba(0,0,0,0.34);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+.champion-row:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(157deg, #3a2d20 0%, #493626 46%, #2c2015 100%);
+  box-shadow:
+    0 1px 0 rgba(255,236,193,0.16) inset,
+    0 -1px 0 rgba(0,0,0,0.5) inset,
+    0 12px 22px rgba(0,0,0,0.4);
+}
+
+/* engraved (incised) type — dark below, faint light above */
+.champion-year {
+  color: var(--gold-light);
+  text-shadow: 0 -1px 0 rgba(0,0,0,0.55), 0 1px 0 rgba(255,232,180,0.18);
+}
+.champion-names {
+  color: #efe4cd;
+  letter-spacing: 0.2px;
+  text-shadow: 0 -1px 0 rgba(0,0,0,0.5), 0 1px 0 rgba(255,232,180,0.10);
+}
+
+/* defending champions — a gilded plate */
+.champion-row.defending {
+  margin-bottom: 14px;
+  padding: 18px 20px;
+  border: 1px solid rgba(212,182,104,0.7);
+  border-radius: 8px;
+  background: linear-gradient(157deg, #6d5320 0%, #8b6a29 46%, #5b451a 100%);
+  box-shadow:
+    0 1px 0 rgba(255,242,205,0.35) inset,
+    0 -2px 5px rgba(0,0,0,0.4) inset,
+    0 10px 24px rgba(0,0,0,0.42);
+}
+.champion-row.defending .champion-year,
+.champion-row.defending .champion-names {
+  color: #fff7e6;
+  text-shadow: 0 -1px 0 rgba(0,0,0,0.5), 0 1px 0 rgba(255,240,200,0.25);
+}
+.champion-row.defending .champion-badge {
+  color: #3a2c12;
+  background: linear-gradient(180deg, var(--gold-light), var(--gold));
+  border: 1px solid rgba(255,240,200,0.5);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+/* On phones, drop the defending badge to its own centered line so the
+   champions' names get the full width instead of wrapping hard. */
+@media (max-width: 560px) {
+  .champion-row.defending { flex-wrap: wrap; align-items: center; }
+  .champion-row.defending .champion-names { flex: 1 1 60%; }
+  .champion-row.defending .champion-badge { order: 3; margin: 12px auto 2px; }
+}
