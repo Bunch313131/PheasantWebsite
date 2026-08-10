@@ -55,8 +55,16 @@
           setTimeout(function () { p.classList.add('gleam-go'); }, 200 + i * 140);
         });
       });
-    }, { threshold: 0.14, rootMargin: '0px 0px -8% 0px' });
+    }, { threshold: 0, rootMargin: '0px 0px -5% 0px' });
 
     sections.forEach(function (s) { io.observe(s); });
+
+    // Safety net: never leave an in-view section hidden (e.g. the
+    // registration form) if the observer is slow to fire.
+    window.addEventListener('load', function () {
+      sections.forEach(function (s) {
+        if (s.getBoundingClientRect().top < window.innerHeight) s.classList.add('revealed');
+      });
+    });
   }
 })();
