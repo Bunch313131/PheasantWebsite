@@ -317,6 +317,64 @@ function doGet(e) {
     }
   }
 
+  // Resolve endpoint — auto-discovers the live tournament id from the
+  // event's league portal, so the site can go live with no manual ID entry.
+  // The league widget returns "No Tournaments Found" until GG builds the
+  // leaderboard; once it does, the tournament id appears in the markup.
+  // Usage: ?action=gg-resolve&league=LEAGUE_ID&page=PAGE_ID&exclude=id1,id2
+  if (e.parameter.action === 'gg-resolve' && e.parameter.league) {
+    try {
+      var wUrl = 'https://www.golfgenius.com/leagues/' + e.parameter.league +
+                 '/widgets/customized_tournament_results?page_id=' +
+                 (e.parameter.page || '') + '&shared=false';
+      var wResp = UrlFetchApp.fetch(wUrl, {
+        muteHttpExceptions: true,
+        headers: { 'Accept': 'text/html', 'User-Agent': 'Mozilla/5.0' }
+      });
+      var wHtml = wResp.getContentText();
+
+      // Not built yet → tell the client to keep showing "Coming Soon".
+      if (/No Tournaments Found/i.test(wHtml)) {
+        return ContentService.createTextOutput(JSON.stringify({ ready: false }))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+
+      // Build an exclusion set (league / website / page ids are not the tournament id).
+      var exclude = {};
+      [e.parameter.league, e.parameter.page, e.parameter.exclude].forEach(function(x) {
+        if (x) String(x).split(',').forEach(function(v) { exclude[v.trim()] = true; });
+      });
+
+      // Try known id-bearing patterns first, then fall back to any long numeric token.
+      var patterns = [
+        /v2tournaments\/(\d{15,})/,
+        /tournaments2\/(?:details\/)?(\d{15,})/,
+        /data-tournament-id=["'](\d{15,})["']/,
+        /["']tournament_id["']\s*[:=]\s*["']?(\d{15,})/
+      ];
+      var tid = '';
+      for (var i = 0; i < patterns.length && !tid; i++) {
+        var m = wHtml.match(patterns[i]);
+        if (m && !exclude[m[1]]) tid = m[1];
+      }
+      var candidates = [];
+      (wHtml.match(/\d{18,20}/g) || []).forEach(function(n) {
+        if (!exclude[n] && candidates.indexOf(n) === -1) candidates.push(n);
+      });
+      if (!tid && candidates.length) tid = candidates[0];
+
+      return ContentService.createTextOutput(JSON.stringify({
+        ready: true,
+        tournamentId: tid,
+        candidates: candidates.slice(0, 12)
+      })).setMimeType(ContentService.MimeType.JSON);
+
+    } catch (err) {
+      return ContentService.createTextOutput(JSON.stringify({ ready: false, error: err.message }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+
   return ContentService
     .createTextOutput('Pheasant Invitational Registration API is active.')
     .setMimeType(ContentService.MimeType.TEXT);

@@ -126,10 +126,13 @@
     }
 
     /* ── Flight tabs ── */
+    .flight-tabs-outer {
+      position: relative;
+      margin-bottom: 28px;
+    }
     .flight-tabs-wrap {
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
-      margin-bottom: 28px;
       scrollbar-width: none;
     }
     .flight-tabs-wrap::-webkit-scrollbar { display: none; }
@@ -138,6 +141,33 @@
       gap: 6px;
       min-width: max-content;
       padding-bottom: 2px;
+    }
+    .flight-tabs-arrow {
+      position: absolute;
+      top: 0;
+      bottom: 2px;
+      width: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      cursor: pointer;
+      z-index: 2;
+      font-size: 16px;
+      color: var(--gray-mid);
+      transition: opacity 0.2s;
+    }
+    .flight-tabs-arrow:hover { color: var(--green-dark); }
+    .flight-tabs-arrow.hidden { opacity: 0; pointer-events: none; }
+    .flight-tabs-arrow--left {
+      left: -4px;
+      background: linear-gradient(to right, var(--cream) 60%, transparent);
+      padding-right: 8px;
+    }
+    .flight-tabs-arrow--right {
+      right: -4px;
+      background: linear-gradient(to left, var(--cream) 60%, transparent);
+      padding-left: 8px;
     }
     .flight-tab {
       font-family: 'Raleway', sans-serif;
@@ -402,14 +432,13 @@
       </button>
       <ul class="nav-menu" id="navMenu">
         <li><a href="index.html#about" class="nav-link">About</a></li>
-        <li><a href="index.html#registration" class="nav-link">Info &amp; Pricing</a></li>
         <li><a href="index.html#schedule" class="nav-link">Schedule</a></li>
-        <li><a href="index.html#format" class="nav-link">Format</a></li>
-        <li><a href="index.html#rules" class="nav-link">Rules</a></li>
-        <li><a href="index.html#champions" class="nav-link">Champions</a></li>
+        <li><a href="pairings.html" class="nav-link">Pairings</a></li>
+        <li><a href="leaderboard.html" class="nav-link nav-link-active">Leaderboard</a></li>
         <li><a href="sponsors.html" class="nav-link">Sponsors</a></li>
-        <li class="tournament-nav-item"><a href="leaderboard.html" class="nav-link nav-link-active">Leaderboard</a></li>
-        <li class="tournament-nav-item"><a href="pairings.html" class="nav-link">Pairings</a></li>
+        <li><a href="index.html#champions" class="nav-link">Champions</a></li>
+        <li><a href="waitlist.html" class="nav-link">Waitlist</a></li>
+        <li><a href="register.html" class="nav-link nav-cta">Register</a></li>
       </ul>
     </div>
   </nav>
@@ -445,8 +474,12 @@
       </div>
 
       <div id="lbContent" style="display:none;">
-        <div class="flight-tabs-wrap">
-          <div class="flight-tabs" id="flightTabs"></div>
+        <div class="flight-tabs-outer">
+          <button class="flight-tabs-arrow flight-tabs-arrow--left hidden" id="tabArrowLeft" aria-label="Scroll left">&#8249;</button>
+          <div class="flight-tabs-wrap" id="flightTabsWrap">
+            <div class="flight-tabs" id="flightTabs"></div>
+          </div>
+          <button class="flight-tabs-arrow flight-tabs-arrow--right hidden" id="tabArrowRight" aria-label="Scroll right">&#8250;</button>
         </div>
         <div id="flightPanels"></div>
       </div>
@@ -481,13 +514,24 @@
   <script src="app.js"></script>
   <script>
     // ============================================================
-    // GOLF GENIUS CONFIGURATION
-    // Swap tournamentId for the 2026 event when ready
+    // GOLF GENIUS CONFIGURATION — auto-pull
+    // 2026 event portal:  golfgenius.com/websites/12929960966904364298
+    // The page auto-discovers the live tournament id from the event's
+    // league portal (leagueId below) the moment GG builds the leaderboard,
+    // then flips itself live. No manual ID entry needed.
+    //   goLiveDate — 'YYYY-MM-DD' to start auto-checking on/after; blank = always check.
+    //   live/tournamentId — manual override: set both to force a specific tournament.
+    // (2025 tournament id was 11881230346303323406, for reference.)
     // ============================================================
     var GG = {
-      tournamentId: '11881230346303323406',
+      tournamentId: '',            // auto-resolved at runtime (leave blank)
+      leagueId:     '12929960899258629360',
+      resultsPage:  '12929960987506785500',
+      portalUrl:    'https://www.golfgenius.com/websites/12929960966904364298',
       gasUrl:       'https://script.google.com/macros/s/AKfycbzv1eGhaOCn-Yb_zdtfeVFfDQMCfO_rFp7UJ_NU6xdVNXOuJoalxAHLGn150jFSFoYVHQ/exec',
-      year:         '2025',
+      year:         '2026',
+      goLiveDate:   '2026-09-16',  // ← expected go-live; auto-checks on/after this date
+      live:         false,         // manual override (with tournamentId) — skips auto-resolve
       pollMs:       3 * 60 * 1000
     };
 
@@ -515,8 +559,7 @@
         schedulePoll();
       })
       .catch(function() {
-        document.getElementById('lbLoading').style.display = 'none';
-        document.getElementById('lbError').style.display = 'block';
+        showPortalFallback();   // live data exists but custom render failed → native embed
       });
     }
 
@@ -682,6 +725,7 @@
       document.getElementById('lbLoading').style.display = 'none';
       document.getElementById('lbContent').style.display = 'block';
       initMobileExpand();
+      initFlightArrows();
     }
 
     function initMobileExpand() {
@@ -1010,9 +1054,117 @@
     }
 
     // ============================================================
+    // Flight tab scroll arrows
+    // ============================================================
+    function initFlightArrows() {
+      var wrap  = document.getElementById('flightTabsWrap');
+      var left  = document.getElementById('tabArrowLeft');
+      var right = document.getElementById('tabArrowRight');
+      if (!wrap || !left || !right) return;
+
+      function updateArrows() {
+        var sl = wrap.scrollLeft;
+        var maxScroll = wrap.scrollWidth - wrap.clientWidth;
+        left.classList.toggle('hidden', sl < 4);
+        right.classList.toggle('hidden', maxScroll - sl < 4);
+      }
+
+      left.addEventListener('click', function() {
+        wrap.scrollBy({ left: -150, behavior: 'smooth' });
+      });
+      right.addEventListener('click', function() {
+        wrap.scrollBy({ left: 150, behavior: 'smooth' });
+      });
+
+      wrap.addEventListener('scroll', updateArrows);
+      window.addEventListener('resize', updateArrows);
+      updateArrows();
+    }
+
+    // ============================================================
+    // Coming-soon state (shown until GG.live && tournamentId set)
+    // ============================================================
+    function showComingSoon() {
+      document.getElementById('lbLoading').style.display = 'none';
+      document.getElementById('lbError').style.display = 'none';
+      var sub = document.getElementById('lbHeroSub');
+      if (sub) sub.textContent = 'Standings will appear here once play begins.';
+      var badge = document.getElementById('lbStatusBadge');
+      if (badge) { badge.className = 'lb-badge final'; badge.textContent = GG.year + ' • Coming Soon'; }
+      var upd = document.getElementById('lbUpdated');
+      if (upd) upd.textContent = '';
+      var host = document.getElementById('lbContent');
+      host.style.display = 'block';
+      host.innerHTML =
+        '<div style="text-align:center;padding:64px 20px;max-width:560px;margin:0 auto;">' +
+        '<h2 style="margin:0 0 12px;">Standings Coming Soon</h2>' +
+        '<p style="margin:0 0 8px;opacity:.85;">The ' + GG.year + ' Pheasant Invitational leaderboard will go live here once the first matches begin.</p>' +
+        '<p style="margin:0;opacity:.7;">Check back on tournament day for real-time flight standings.</p>' +
+        '</div>';
+    }
+
+    // ============================================================
+    // Live-results portal fallback — shown if the tournament is live
+    // but the custom parser can't render it (embeds GG's native results).
+    // ============================================================
+    function showPortalFallback() {
+      document.getElementById('lbLoading').style.display = 'none';
+      document.getElementById('lbError').style.display = 'none';
+      var sub = document.getElementById('lbHeroSub');
+      if (sub) sub.textContent = 'Live results';
+      var badge = document.getElementById('lbStatusBadge');
+      if (badge) { badge.className = 'lb-badge live'; badge.textContent = GG.year + ' • Live'; }
+      var host = document.getElementById('lbContent');
+      host.style.display = 'block';
+      host.innerHTML =
+        '<div style="max-width:900px;margin:0 auto;">' +
+        '<iframe title="Live Results" src="' + GG.portalUrl + '" ' +
+        'style="width:100%;height:80vh;border:0;background:#fff;border-radius:8px;"></iframe>' +
+        '</div>';
+    }
+
+    // ============================================================
+    // Auto-resolve the live tournament id from the league portal
+    // ============================================================
+    function todayISO() {
+      var d = new Date(), p = function(n){ return (n < 10 ? '0' : '') + n; };
+      return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+    }
+    function resolveTournament() {
+      var CACHE_KEY = 'gg_tid_' + GG.year;
+      var cached = null;
+      try { cached = localStorage.getItem(CACHE_KEY); } catch (e) {}
+      if (cached) { GG.tournamentId = cached; loadStandings(); return; }
+
+      showComingSoon();  // hold on Coming Soon until we know results exist
+      var url = GG.gasUrl + '?action=gg-resolve&league=' + GG.leagueId +
+                '&page=' + GG.resultsPage +
+                '&exclude=' + [GG.leagueId, GG.resultsPage, '12929960966904364298'].join(',');
+      fetch(url)
+        .then(function(r) { return r.json(); })
+        .then(function(res) {
+          if (res && res.ready && res.tournamentId) {
+            GG.tournamentId = res.tournamentId;
+            try { localStorage.setItem(CACHE_KEY, res.tournamentId); } catch (e) {}
+            loadStandings();
+          } else if (res && res.ready) {
+            showPortalFallback();   // live, but no id extracted → native embed
+          }
+          // else not ready → stay on Coming Soon
+        })
+        .catch(function() { /* stay on Coming Soon */ });
+    }
+
+    // ============================================================
     // Boot
     // ============================================================
-    loadStandings();
+    if (GG.live && GG.tournamentId) {
+      loadStandings();                                   // manual override
+    } else if (GG.goLiveDate && todayISO() < GG.goLiveDate) {
+      showComingSoon();                                  // before go-live window
+    } else {
+      resolveTournament();                               // auto-pull
+    }
   </script>
 </body>
 </html>

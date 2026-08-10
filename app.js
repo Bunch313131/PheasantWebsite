@@ -12,8 +12,8 @@
   var REG_OPEN_DATE      = new Date('2026-06-12T17:00:00Z'); // June 12, 10 AM PDT
   // Show Leaderboard/Pairings nav links during event week only.
   // Update these each year to match the tournament dates.
-  var TOURNAMENT_NAV_START = new Date('2026-09-07T07:00:00Z'); // Mon before event
-  var TOURNAMENT_NAV_END   = new Date('2026-09-14T07:00:00Z'); // Sun after event
+  var TOURNAMENT_NAV_START = new Date('2026-09-16T07:00:00Z'); // Sept 16, day before event
+  var TOURNAMENT_NAV_END   = new Date('2026-12-31T23:59:59Z'); // end of year
   var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzv1eGhaOCn-Yb_zdtfeVFfDQMCfO_rFp7UJ_NU6xdVNXOuJoalxAHLGn150jFSFoYVHQ/exec';
   var MAX_LOGO_SIZE = 5 * 1024 * 1024; // 5 MB
   var PRANK_ENABLED = new Date() >= new Date('2027-05-01T07:00:00Z'); // auto-enable May 1, 2027
@@ -23,7 +23,7 @@
   var now = new Date();
   if (now >= TOURNAMENT_NAV_START && now <= TOURNAMENT_NAV_END) {
     document.querySelectorAll('.tournament-nav-item').forEach(function(el) {
-      el.style.display = '';
+      el.style.display = 'list-item';
     });
   }
 

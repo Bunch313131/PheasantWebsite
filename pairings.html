@@ -326,14 +326,13 @@
       </button>
       <ul class="nav-menu" id="navMenu">
         <li><a href="index.html#about" class="nav-link">About</a></li>
-        <li><a href="index.html#registration" class="nav-link">Info &amp; Pricing</a></li>
         <li><a href="index.html#schedule" class="nav-link">Schedule</a></li>
-        <li><a href="index.html#format" class="nav-link">Format</a></li>
-        <li><a href="index.html#rules" class="nav-link">Rules</a></li>
-        <li><a href="index.html#champions" class="nav-link">Champions</a></li>
+        <li><a href="pairings.html" class="nav-link nav-link-active">Pairings</a></li>
+        <li><a href="leaderboard.html" class="nav-link">Leaderboard</a></li>
         <li><a href="sponsors.html" class="nav-link">Sponsors</a></li>
-        <li class="tournament-nav-item"><a href="leaderboard.html" class="nav-link">Leaderboard</a></li>
-        <li class="tournament-nav-item"><a href="pairings.html" class="nav-link nav-link-active">Pairings</a></li>
+        <li><a href="index.html#champions" class="nav-link">Champions</a></li>
+        <li><a href="waitlist.html" class="nav-link">Waitlist</a></li>
+        <li><a href="register.html" class="nav-link nav-cta">Register</a></li>
       </ul>
     </div>
   </nav>
@@ -409,10 +408,21 @@
 
   <script src="app.js"></script>
   <script>
+    // GOLF GENIUS CONFIGURATION — auto-pull (mirrors leaderboard.html)
+    // Auto-discovers the live tournament id from the event's league portal
+    // the moment GG builds the schedule, then flips itself live.
+    //   goLiveDate — 'YYYY-MM-DD' to start auto-checking on/after; blank = always check.
+    //   live/tournamentId — manual override to force a specific tournament.
+    // (2025 tournament id was 11881230346303323406, for reference.)
     var GG = {
-      tournamentId: '11881230346303323406',
+      tournamentId: '',            // auto-resolved at runtime (leave blank)
+      leagueId:     '12929960899258629360',
+      resultsPage:  '12929960987506785500',
+      portalUrl:    'https://www.golfgenius.com/websites/12929960966904364298',
       gasUrl:       'https://script.google.com/macros/s/AKfycbzv1eGhaOCn-Yb_zdtfeVFfDQMCfO_rFp7UJ_NU6xdVNXOuJoalxAHLGn150jFSFoYVHQ/exec',
-      year:         '2025'
+      year:         '2026',
+      goLiveDate:   '2026-09-16',  // ← expected go-live; auto-checks on/after this date
+      live:         false          // manual override (with tournamentId) — skips auto-resolve
     };
 
     // All matches, kept for search filtering
@@ -499,8 +509,7 @@
         })
         .catch(function(err) {
           console.error('[Schedule] load error:', err);
-          document.getElementById('prLoading').style.display = 'none';
-          document.getElementById('prError').style.display = 'block';
+          showPortalFallback();   // live data exists but custom render failed → native embed
         });
     }
 
@@ -828,7 +837,79 @@
       }, 180);
     });
 
-    loadSchedule();
+    // Coming-soon state (shown until GG.live && tournamentId set)
+    function showComingSoon() {
+      document.getElementById('prLoading').style.display = 'none';
+      document.getElementById('prError').style.display = 'none';
+      var sub = document.getElementById('prHeroSub');
+      if (sub) sub.textContent = 'The match schedule will appear here once pairings are set.';
+      var badge = document.getElementById('prStatusBadge');
+      if (badge) { badge.className = 'lb-badge final'; badge.textContent = GG.year + ' • Coming Soon'; }
+      var upd = document.getElementById('prUpdated');
+      if (upd) upd.textContent = '';
+      var host = document.getElementById('prContent');
+      host.style.display = 'block';
+      host.innerHTML =
+        '<div style="text-align:center;padding:64px 20px;max-width:560px;margin:0 auto;">' +
+        '<h2 style="margin:0 0 12px;">Pairings Coming Soon</h2>' +
+        '<p style="margin:0 0 8px;opacity:.85;">The ' + GG.year + ' Pheasant Invitational match schedule will be posted here once pairings are finalized.</p>' +
+        '<p style="margin:0;opacity:.7;">Check back closer to tournament day.</p>' +
+        '</div>';
+    }
+
+    // Live portal fallback — schedule is live but custom parser can't render it.
+    function showPortalFallback() {
+      document.getElementById('prLoading').style.display = 'none';
+      document.getElementById('prError').style.display = 'none';
+      var sub = document.getElementById('prHeroSub');
+      if (sub) sub.textContent = 'Live schedule';
+      var badge = document.getElementById('prStatusBadge');
+      if (badge) { badge.className = 'lb-badge live'; badge.textContent = GG.year + ' • Live'; }
+      var host = document.getElementById('prContent');
+      host.style.display = 'block';
+      host.innerHTML =
+        '<div style="max-width:900px;margin:0 auto;">' +
+        '<iframe title="Live Schedule" src="' + GG.portalUrl + '" ' +
+        'style="width:100%;height:80vh;border:0;background:#fff;border-radius:8px;"></iframe>' +
+        '</div>';
+    }
+
+    // Auto-resolve the live tournament id from the league portal.
+    function todayISO() {
+      var d = new Date(), p = function(n){ return (n < 10 ? '0' : '') + n; };
+      return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+    }
+    function resolveTournament() {
+      var CACHE_KEY = 'gg_tid_' + GG.year;
+      var cached = null;
+      try { cached = localStorage.getItem(CACHE_KEY); } catch (e) {}
+      if (cached) { GG.tournamentId = cached; loadSchedule(); return; }
+
+      showComingSoon();
+      var url = GG.gasUrl + '?action=gg-resolve&league=' + GG.leagueId +
+                '&page=' + GG.resultsPage +
+                '&exclude=' + [GG.leagueId, GG.resultsPage, '12929960966904364298'].join(',');
+      fetch(url)
+        .then(function(r) { return r.json(); })
+        .then(function(res) {
+          if (res && res.ready && res.tournamentId) {
+            GG.tournamentId = res.tournamentId;
+            try { localStorage.setItem(CACHE_KEY, res.tournamentId); } catch (e) {}
+            loadSchedule();
+          } else if (res && res.ready) {
+            showPortalFallback();
+          }
+        })
+        .catch(function() { /* stay on Coming Soon */ });
+    }
+
+    if (GG.live && GG.tournamentId) {
+      loadSchedule();                                    // manual override
+    } else if (GG.goLiveDate && todayISO() < GG.goLiveDate) {
+      showComingSoon();                                  // before go-live window
+    } else {
+      resolveTournament();                               // auto-pull
+    }
   </script>
 </body>
 </html>
