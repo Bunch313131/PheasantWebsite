@@ -188,3 +188,9 @@ body::before {
   .champion-row.defending .champion-names { flex: 1 1 60%; }
   .champion-row.defending .champion-badge { order: 3; margin: 12px auto 2px; }
 }
+
+/* Leaderboard & Pairings: scrap the status pill and the redundant hero
+   sub-line — the title + body already say it. (Elements stay in the DOM so
+   the pages' render code never errors; they're just hidden.) */
+#lbHeroSub, #prHeroSub,
+#lbStatusBadge, #prStatusBadge { display: none !important; }

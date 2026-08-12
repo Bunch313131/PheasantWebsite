@@ -952,12 +952,8 @@
     function showComingSoon() {
       document.getElementById('prLoading').style.display = 'none';
       document.getElementById('prError').style.display = 'none';
-      var sub = document.getElementById('prHeroSub');
-      if (sub) sub.textContent = 'The match schedule will appear here once pairings are set.';
-      var badge = document.getElementById('prStatusBadge');
-      if (badge) { badge.className = 'lb-badge final'; badge.textContent = GG.year + ' • Coming Soon'; }
-      var upd = document.getElementById('prUpdated');
-      if (upd) upd.textContent = '';
+      var sbar = document.querySelector('.pr-status-bar');
+      if (sbar) sbar.style.display = 'none';   // nothing to show here until live
       var host = document.getElementById('prContent');
       host.style.display = 'block';
       host.innerHTML =

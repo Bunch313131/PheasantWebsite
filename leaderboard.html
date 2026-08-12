@@ -1160,12 +1160,8 @@
     function showComingSoon() {
       document.getElementById('lbLoading').style.display = 'none';
       document.getElementById('lbError').style.display = 'none';
-      var sub = document.getElementById('lbHeroSub');
-      if (sub) sub.textContent = 'Standings will appear here once play begins.';
-      var badge = document.getElementById('lbStatusBadge');
-      if (badge) { badge.className = 'lb-badge final'; badge.textContent = GG.year + ' • Coming Soon'; }
-      var upd = document.getElementById('lbUpdated');
-      if (upd) upd.textContent = '';
+      var sbar = document.querySelector('.lb-status-bar');
+      if (sbar) sbar.style.display = 'none';   // nothing to show here until live
       var host = document.getElementById('lbContent');
       host.style.display = 'block';
       host.innerHTML =
