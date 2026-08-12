@@ -402,7 +402,15 @@
 
     /* ── Mobile ── */
     @media (max-width: 680px) {
-      .lb-hero-title { font-size: 28px; }
+      /* Compact header — clean but data-rich, ~40% shorter */
+      .lb-hero { min-height: 0; padding-bottom: 12px; }
+      .lb-hero-content { padding-top: 78px; }
+      .lb-hero-eyebrow { font-size: 10px; letter-spacing: 2px; margin-bottom: 3px; }
+      .lb-hero-title { font-size: 23px; margin-bottom: 5px; }
+      .lb-hero-sub { font-size: 12px; }
+      .lb-status-bar { padding: 7px 20px; }
+      .lb-badge { font-size: 10px; padding: 3px 10px; letter-spacing: 1.5px; }
+      .lb-updated { font-size: 11px; }
       .lb-table td, .lb-table th { padding: 10px 8px; }
       .lb-table .col-r1, .lb-table .col-r2, .lb-table .col-r3,
       .lb-table .col-r4, .lb-table .col-r5 { display: none; }
