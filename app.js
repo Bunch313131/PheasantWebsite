@@ -75,23 +75,69 @@
     document.body.classList.add('has-tabbar');
   }
 
-  // Open the Golf Genius app if installed, otherwise the right app store.
-  // Android: an intent URL launches the app or falls back to Play Store.
-  // iOS: the App Store listing (shows "Open" when installed). If we later get
-  // a GGID/universal link, drop it in here for one-tap app open on iOS too.
+  // ---------- Score → Golf Genius (open the app to its home screen) ----------
+  // iPhone: Golf Genius exposes no "open to home" link, so we run a one-time
+  //   Shortcut ("Open App → Golf Genius"). If it isn't installed yet, the
+  //   x-error callback bounces back here and we show the install screen —
+  //   so nobody can score-launch without adding it first.
+  // Android: golfgenius.com is an App Link → opens the app to home in one tap.
+  var SHORTCUT_NAME   = 'Pheasant Score';
+  var SHORTCUT_ICLOUD = 'https://www.icloud.com/shortcuts/22afec9e61a64dbe8345dbdee39dc96e';
+
+  function isIOSDevice() { return /iPhone|iPad|iPod/i.test(navigator.userAgent || ''); }
+
+  function runScoreShortcut() {
+    var back = location.origin + location.pathname + '#score-missing';
+    location.href = 'shortcuts://x-callback-url/run-shortcut?name=' +
+      encodeURIComponent(SHORTCUT_NAME) + '&x-error=' + encodeURIComponent(back);
+  }
+
   function openGolfGeniusApp() {
-    var ua = navigator.userAgent || '';
-    var IOS_STORE = 'https://apps.apple.com/us/app/golf-genius/id555651262';
-    var ANDROID_PKG = 'com.golftripgenius.android.leaguegenius';
-    var ANDROID_STORE = 'https://play.google.com/store/apps/details?id=' + ANDROID_PKG;
-    if (/Android/i.test(ua)) {
-      window.location.href = 'intent://www.golfgenius.com/#Intent;scheme=https;package=' +
-        ANDROID_PKG + ';S.browser_fallback_url=' + encodeURIComponent(ANDROID_STORE) + ';end';
-    } else if (/iPhone|iPad|iPod/i.test(ua)) {
-      window.location.href = IOS_STORE;
+    if (isIOSDevice()) {
+      var ready = false;
+      try { ready = localStorage.getItem('pheasant_score_ready') === '1'; } catch (e) {}
+      if (ready) runScoreShortcut(); else showScoreInstall();
+    } else if (/Android/i.test(navigator.userAgent || '')) {
+      window.location.href = 'https://www.golfgenius.com/';   // App Link → opens GG app
     } else {
       window.open('https://www.golfgenius.com/', '_blank', 'noopener');
     }
+  }
+
+  function showScoreInstall() {
+    if (document.querySelector('.score-modal')) return;
+    var m = document.createElement('div');
+    m.className = 'score-modal';
+    m.innerHTML =
+      '<div class="score-modal__card" role="dialog" aria-label="Set up scoring">' +
+        '<button class="score-modal__close" aria-label="Close">&times;</button>' +
+        '<img class="score-modal__logo" src="golf-genius-logo.png" alt="Golf Genius">' +
+        '<h3>One-Tap Scoring</h3>' +
+        '<p>Scoring is done in the Golf Genius app. Add this quick shortcut once, then the <strong>Score</strong> button opens it instantly.</p>' +
+        '<a class="score-modal__btn" href="' + SHORTCUT_ICLOUD + '" rel="noopener">Add the Score Shortcut</a>' +
+        '<ol>' +
+          '<li>Tap <strong>Add the Score Shortcut</strong> above.</li>' +
+          '<li>In Shortcuts, tap <strong>Add Shortcut</strong>.</li>' +
+          '<li>Return here and tap <strong>I’ve added it</strong>.</li>' +
+        '</ol>' +
+        '<button class="score-modal__done">I’ve added it →</button>' +
+      '</div>';
+    document.body.appendChild(m);
+    function close() { m.remove(); }
+    m.querySelector('.score-modal__close').onclick = close;
+    m.addEventListener('click', function (e) { if (e.target === m) close(); });
+    m.querySelector('.score-modal__done').onclick = function () {
+      try { localStorage.setItem('pheasant_score_ready', '1'); } catch (e) {}
+      close();
+      runScoreShortcut();
+    };
+  }
+
+  // Handle the return trip when the shortcut isn't installed.
+  if (isIOSDevice() && location.hash === '#score-missing') {
+    try { localStorage.removeItem('pheasant_score_ready'); } catch (e) {}
+    if (history.replaceState) history.replaceState(null, '', location.pathname + location.search);
+    setTimeout(showScoreInstall, 200);
   }
 
   // ---------- Navbar scroll effect ----------

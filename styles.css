@@ -2283,3 +2283,53 @@ input, select, textarea { font-family: inherit; }
   .app-tabbar.app-tabbar--on { display: block; }
   body.has-tabbar { padding-bottom: calc(58px + env(safe-area-inset-bottom, 0px)); }
 }
+
+/* ============================================================
+   Score → Golf Genius: one-tap shortcut install screen
+   ============================================================ */
+.score-modal {
+  position: fixed; inset: 0; z-index: 300;
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+  background: rgba(10,25,16,0.72);
+  -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+  animation: scoreFade 0.2s ease;
+}
+@keyframes scoreFade { from { opacity: 0; } to { opacity: 1; } }
+.score-modal__card {
+  position: relative;
+  background: var(--cream);
+  border-radius: 16px;
+  max-width: 380px; width: 100%;
+  padding: 26px 22px 20px;
+  text-align: center;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.45);
+}
+.score-modal__logo { width: 190px; max-width: 72%; height: auto; margin: 2px auto 16px; }
+.score-modal h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px; color: var(--green-dark); margin-bottom: 8px;
+}
+.score-modal p { font-size: 14px; color: var(--gray-dark); line-height: 1.5; margin-bottom: 18px; }
+.score-modal__btn {
+  display: block; width: 100%;
+  background: var(--gold); color: #fff;
+  font-family: 'Raleway', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.3px;
+  padding: 13px 16px; border: none; border-radius: 10px; margin-bottom: 14px; cursor: pointer;
+}
+.score-modal__btn:hover { background: var(--gold-light); }
+.score-modal ol {
+  text-align: left; font-size: 13px; color: var(--gray-dark);
+  margin: 0 auto 16px; padding-left: 20px; max-width: 300px; line-height: 1.5;
+}
+.score-modal ol li { margin: 5px 0; }
+.score-modal__done {
+  background: none; border: none; color: var(--green-mid);
+  font-family: 'Raleway', sans-serif; font-weight: 600; font-size: 14px;
+  padding: 6px; cursor: pointer; text-decoration: underline;
+}
+.score-modal__close {
+  position: absolute; top: 8px; right: 12px;
+  background: none; border: none; font-size: 24px; line-height: 1;
+  color: var(--gray-light); cursor: pointer; padding: 4px 8px;
+}
