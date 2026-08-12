@@ -17,9 +17,10 @@
   var SPONSOR_OPEN_DATE  = new Date('2026-06-05T17:00:00Z'); // June 5, 10 AM PDT
   var SPONSOR_CLOSE_DATE = new Date('2026-06-11T06:59:00Z'); // June 10, 11:59 PM PDT
   var REG_OPEN_DATE      = new Date('2026-06-12T17:00:00Z'); // June 12, 10 AM PDT
-  // Show Leaderboard/Pairings nav links during event week only.
+  // Show Leaderboard/Pairings nav links. Turned on early so the pages
+  // (in their "Coming Soon" state until data goes live 9/16) are reachable.
   // Update these each year to match the tournament dates.
-  var TOURNAMENT_NAV_START = new Date('2026-09-16T07:00:00Z'); // Sept 16, day before event
+  var TOURNAMENT_NAV_START = new Date('2026-08-11T00:00:00Z'); // links live now
   var TOURNAMENT_NAV_END   = new Date('2026-12-31T23:59:59Z'); // end of year
   var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzv1eGhaOCn-Yb_zdtfeVFfDQMCfO_rFp7UJ_NU6xdVNXOuJoalxAHLGn150jFSFoYVHQ/exec';
   var MAX_LOGO_SIZE = 5 * 1024 * 1024; // 5 MB
