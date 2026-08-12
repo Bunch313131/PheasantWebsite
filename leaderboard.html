@@ -4,7 +4,7 @@
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-2JSQBXHEBN"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-2JSQBXHEBN');</script>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Leaderboard | The Pheasant Invitational</title>
   <meta name="description" content="Live leaderboard and flight standings for The Pheasant Invitational at El Macero Country Club.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="lux.css">
   <link rel="icon" href="favicon.ico" sizes="32x32">
-  <meta name="theme-color" content="#1a3a2a">
+  <meta name="theme-color" content="#6c1e0d">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="favicon.ico" sizes="32x32">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -45,7 +45,7 @@
       text-align: center;
       color: #fff;
       padding: 0 24px;
-      padding-top: 90px;
+      padding-top: calc(90px + env(safe-area-inset-top, 0px));
     }
     .lb-hero-eyebrow {
       font-family: 'Raleway', sans-serif;
@@ -136,7 +136,7 @@
     /* ── Flight tabs ── */
     .flight-tabs-outer {
       position: sticky;
-      top: 68px;                 /* sit just below the fixed navbar */
+      top: calc(68px + env(safe-area-inset-top, 0px));                 /* sit just below the fixed navbar */
       z-index: 50;
       background: var(--cream);
       padding: 10px 0 8px;
@@ -404,7 +404,7 @@
     @media (max-width: 680px) {
       /* Compact header — clean but data-rich, ~40% shorter */
       .lb-hero { min-height: 0; padding-bottom: 12px; }
-      .lb-hero-content { padding-top: 78px; }
+      .lb-hero-content { padding-top: calc(78px + env(safe-area-inset-top, 0px)); }
       .lb-hero-eyebrow { font-size: 10px; letter-spacing: 2px; margin-bottom: 3px; }
       .lb-hero-title { font-size: 23px; margin-bottom: 5px; }
       .lb-hero-sub { font-size: 12px; }

@@ -4,7 +4,7 @@
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-2JSQBXHEBN"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-2JSQBXHEBN');</script>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Schedule | The Pheasant Invitational</title>
   <meta name="description" content="Three-day schedule of events for The Pheasant Invitational at El Macero Country Club.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="lux.css">
   <link rel="icon" href="favicon.ico" sizes="32x32">
-  <meta name="theme-color" content="#1a3a2a">
+  <meta name="theme-color" content="#6c1e0d">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -26,7 +26,7 @@
       background: linear-gradient(160deg, #24523a 0%, #14311d 100%);
       color: #fff;
       text-align: center;
-      padding: 88px 24px 22px;   /* top clears the fixed navbar */
+      padding: calc(88px + env(safe-area-inset-top, 0px)) 24px 22px;   /* top clears the fixed navbar */
       position: relative;
     }
     .sch-hero-eyebrow {
@@ -54,7 +54,7 @@
     .schedule .section-header { display: none; }
     .schedule.section { padding-top: 32px; }
     @media (max-width: 600px) {
-      .sch-hero { padding: 78px 20px 16px; }
+      .sch-hero { padding: calc(78px + env(safe-area-inset-top, 0px)) 20px 12px; }
       .sch-hero-title { font-size: 23px; margin-bottom: 4px; }
       .sch-hero-eyebrow { font-size: 10px; letter-spacing: 2px; margin-bottom: 4px; }
       .sch-hero-sub { font-size: 12px; }
