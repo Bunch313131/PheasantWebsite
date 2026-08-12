@@ -517,9 +517,9 @@ input, select, textarea { font-family: inherit; }
 }
 
 .day-title {
-  font-size: 22px;
+  font-size: 20px;
   color: var(--green-dark);
-  margin-bottom: 28px;
+  margin-bottom: 14px;
   text-align: center;
 }
 
