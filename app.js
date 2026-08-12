@@ -29,10 +29,69 @@
 
   // ---------- Tournament-week nav links ----------
   var now = new Date();
-  if (now >= TOURNAMENT_NAV_START && now <= TOURNAMENT_NAV_END) {
+  var inEventWindow = now >= TOURNAMENT_NAV_START && now <= TOURNAMENT_NAV_END;
+  if (inEventWindow) {
     document.querySelectorAll('.tournament-nav-item').forEach(function(el) {
       el.style.display = 'list-item';
     });
+  }
+
+  // ---------- App-style bottom tab bar (event mode, mobile) ----------
+  // Big touch targets for the four things people need during the event.
+  // Shown only in the event window; CSS keeps it mobile-only.
+  if (inEventWindow) buildTabBar();
+
+  function buildTabBar() {
+    var path = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+    var ic = {
+      schedule:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>',
+      pairings:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="13" y2="16"/></svg>',
+      leaderboard: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3"/><path d="M7 5H4v2a3 3 0 0 0 3 3"/></svg>',
+      score:       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="21" x2="6" y2="3"/><path d="M6 4l12 2.6L6 9.2z"/></svg>'
+    };
+    var tabs = [
+      { key: 'schedule',    label: 'Schedule',    href: 'schedule.html' },
+      { key: 'pairings',    label: 'Pairings',    href: 'pairings.html' },
+      { key: 'leaderboard', label: 'Leaderboard', href: 'leaderboard.html' },
+      { key: 'score',       label: 'Score',       href: 'https://www.golfgenius.com/', score: true }
+    ];
+    var inner = '';
+    tabs.forEach(function (t) {
+      var active = !t.score && path === t.href.toLowerCase();
+      inner += '<a class="app-tab' + (t.score ? ' app-tab--score' : '') + (active ? ' active' : '') +
+               '" href="' + t.href + '"' + (t.score ? ' data-score="1" rel="noopener"' : '') + '>' +
+               '<span class="app-tab__icon">' + ic[t.key] + '</span>' +
+               '<span class="app-tab__label">' + t.label + '</span></a>';
+    });
+    var bar = document.createElement('nav');
+    bar.className = 'app-tabbar app-tabbar--on';
+    bar.setAttribute('aria-label', 'Event navigation');
+    bar.innerHTML = '<div class="app-tabbar__inner">' + inner + '</div>';
+    bar.querySelector('[data-score]').addEventListener('click', function (e) {
+      e.preventDefault();
+      openGolfGeniusApp();
+    });
+    document.body.appendChild(bar);
+    document.body.classList.add('has-tabbar');
+  }
+
+  // Open the Golf Genius app if installed, otherwise the right app store.
+  // Android: an intent URL launches the app or falls back to Play Store.
+  // iOS: the App Store listing (shows "Open" when installed). If we later get
+  // a GGID/universal link, drop it in here for one-tap app open on iOS too.
+  function openGolfGeniusApp() {
+    var ua = navigator.userAgent || '';
+    var IOS_STORE = 'https://apps.apple.com/us/app/golf-genius/id555651262';
+    var ANDROID_PKG = 'com.golftripgenius.android.leaguegenius';
+    var ANDROID_STORE = 'https://play.google.com/store/apps/details?id=' + ANDROID_PKG;
+    if (/Android/i.test(ua)) {
+      window.location.href = 'intent://www.golfgenius.com/#Intent;scheme=https;package=' +
+        ANDROID_PKG + ';S.browser_fallback_url=' + encodeURIComponent(ANDROID_STORE) + ';end';
+    } else if (/iPhone|iPad|iPod/i.test(ua)) {
+      window.location.href = IOS_STORE;
+    } else {
+      window.open('https://www.golfgenius.com/', '_blank', 'noopener');
+    }
   }
 
   // ---------- Navbar scroll effect ----------
