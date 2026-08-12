@@ -11,7 +11,7 @@
 //     for instant loads that still refresh in the background.
 // Bump CACHE_VERSION to force old caches to clear on next visit.
 // ============================================================
-var CACHE_VERSION = 'pheasant-v3';
+var CACHE_VERSION = 'pheasant-v4';
 var PRECACHE = [
   './',
   'index.html',
@@ -58,10 +58,11 @@ self.addEventListener('fetch', function (event) {
     return;
   }
 
-  // Navigations / HTML documents → network first, cache fallback.
+  // HTML, CSS and JS → network first (always fresh), cache fallback offline.
   var isHTML = req.mode === 'navigate' ||
                (req.headers.get('accept') || '').indexOf('text/html') !== -1;
-  if (isHTML) {
+  var isCode = /\.(css|js)(\?|$)/i.test(req.url);
+  if (isHTML || isCode) {
     event.respondWith(
       fetch(req).then(function (resp) {
         var copy = resp.clone();
