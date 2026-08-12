@@ -2250,7 +2250,9 @@ input, select, textarea { font-family: inherit; }
   background: linear-gradient(180deg, #204731 0%, #143019 100%);
   border-top: 1px solid rgba(184,150,62,0.4);
   box-shadow: 0 -6px 20px rgba(0,0,0,0.32);
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-top: 4px;
+  /* raise the buttons off the very bottom edge (+ home-indicator inset) */
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
 }
 .app-tabbar__inner { display: flex; max-width: 720px; margin: 0 auto; }
 .app-tab {
@@ -2260,8 +2262,8 @@ input, select, textarea { font-family: inherit; }
   align-items: center;
   justify-content: center;
   gap: 4px;
-  padding: 9px 4px 9px;
-  min-height: 56px;
+  padding: 10px 4px 10px;
+  min-height: 60px;
   text-decoration: none;
   color: rgba(255,255,255,0.68);
   font-family: 'Raleway', sans-serif;
@@ -2281,7 +2283,7 @@ input, select, textarea { font-family: inherit; }
 
 @media (max-width: 768px) {
   .app-tabbar.app-tabbar--on { display: block; }
-  body.has-tabbar { padding-bottom: calc(58px + env(safe-area-inset-bottom, 0px)); }
+  body.has-tabbar { padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
 }
 
 /* ============================================================
