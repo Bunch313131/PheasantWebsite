@@ -43,6 +43,16 @@
       // the daily gate.
       var force = /[?&](replay|force)/i.test(location.search);
 
+      // Event-week only: outside the tournament window, the app opens to the
+      // homepage instead of the splash. (Matches app.js TOURNAMENT_NAV dates.)
+      var EVENT_START = new Date('2026-08-11T00:00:00Z');
+      var EVENT_END   = new Date('2026-12-31T23:59:59Z');
+      var now = new Date();
+      if (!force && (now < EVENT_START || now > EVENT_END)) {
+        window.location.replace('index.html');
+        return;
+      }
+
       // Once per day: if already shown today, skip straight to Schedule.
       var d = new Date();
       var today = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();

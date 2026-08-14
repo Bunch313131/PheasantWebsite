@@ -3,12 +3,12 @@
   "short_name": "Pheasant",
   "description": "El Macero Country Club's Premier Member-Guest Golf Tournament",
   "id": "/",
-  "start_url": ".",
+  "start_url": "splash.html",
   "scope": ".",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#1a3a2a",
-  "theme_color": "#1a3a2a",
+  "background_color": "#0e2415",
+  "theme_color": "#0e2415",
   "icons": [
     {
       "src": "app-icon-192.png",

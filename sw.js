@@ -11,7 +11,7 @@
 //     for instant loads that still refresh in the background.
 // Bump CACHE_VERSION to force old caches to clear on next visit.
 // ============================================================
-var CACHE_VERSION = 'pheasant-v7';
+var CACHE_VERSION = 'pheasant-v8';
 var PRECACHE = [
   './',
   'index.html',
