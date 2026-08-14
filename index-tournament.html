@@ -18,7 +18,6 @@
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <meta name="theme-color" content="#1a0a05">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Pheasant">
 </head>
@@ -34,15 +33,12 @@
             </button>
             <ul class="nav-menu" id="navMenu">
                 <li><a href="#about" class="nav-link">About</a></li>
-                <li><a href="#registration" class="nav-link">Registration</a></li>
                 <li><a href="#schedule" class="nav-link">Schedule</a></li>
-                <li><a href="#format" class="nav-link">Format</a></li>
-                <li><a href="#rules" class="nav-link">Rules</a></li>
-                <li><a href="#champions" class="nav-link">Champions</a></li>
+                <li><a href="pairings.html" class="nav-link">Pairings</a></li>
+                <li><a href="leaderboard.html" class="nav-link">Leaderboard</a></li>
                 <li><a href="sponsors.html" class="nav-link">Sponsors</a></li>
+                <li><a href="#champions" class="nav-link">Champions</a></li>
                 <li><a href="waitlist.html" class="nav-link">Waitlist</a></li>
-                <li class="tournament-nav-item"><a href="leaderboard.html" class="nav-link">Leaderboard</a></li>
-                <li class="tournament-nav-item"><a href="pairings.html" class="nav-link">Pairings</a></li>
                 <li><a href="register.html" class="nav-link nav-cta">Register</a></li>
             </ul>
         </div>
@@ -65,11 +61,7 @@
                 <p class="hero-est">Est. 1962</p>
             </div>
             <div class="hero-actions">
-                <div class="hero-reg-btns">
-                    <a href="register.html" class="btn btn-reg-sponsor" id="heroSponsorBtn">Hole Sponsor Registration</a>
-                    <a href="register.html" class="btn btn-reg-open" id="heroOpenBtn">Open Registration</a>
-                </div>
-                <a href="#format" class="btn btn-outline">Tournament Details</a>
+                <a href="#schedule" class="btn btn-outline">Tournament Details</a>
             </div>
         </div>
     </section>
@@ -96,240 +88,6 @@
                     <div class="about-icon">&#127860;</div>
                     <h3>First-Class Experience</h3>
                     <p>Entry includes all golf, breakfast, lunch, dinner, and hosted bar throughout the three-day event — everything you need for an unforgettable weekend at El Macero.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Registration Section -->
-    <section id="registration" class="section registration">
-        <div class="container">
-            <div class="section-header">
-                <h2>Registration</h2>
-                <div class="section-divider"></div>
-                <p class="section-subtitle">72 teams &middot; Limited field &middot; Don't miss your spot</p>
-            </div>
-
-            <!-- Dual Countdown Timers -->
-            <div class="countdown-dual" id="countdownDual">
-
-                <!-- Sponsor Registration Countdown -->
-                <div class="countdown-box countdown-sponsor" id="countdownSponsor">
-                    <div class="countdown-badge">Hole Sponsor Registration</div>
-                    <h3 id="sponsorCountdownTitle">Hole Sponsor Registration Opens In</h3>
-                    <div class="countdown-timer" id="sponsorCountdownTimer">
-                        <div class="countdown-unit">
-                            <span class="countdown-value" id="sponsorDays">--</span>
-                            <span class="countdown-label">Days</span>
-                        </div>
-                        <div class="countdown-sep">:</div>
-                        <div class="countdown-unit">
-                            <span class="countdown-value" id="sponsorHours">--</span>
-                            <span class="countdown-label">Hours</span>
-                        </div>
-                        <div class="countdown-sep">:</div>
-                        <div class="countdown-unit">
-                            <span class="countdown-value" id="sponsorMinutes">--</span>
-                            <span class="countdown-label">Minutes</span>
-                        </div>
-                        <div class="countdown-sep">:</div>
-                        <div class="countdown-unit">
-                            <span class="countdown-value" id="sponsorSeconds">--</span>
-                            <span class="countdown-label">Seconds</span>
-                        </div>
-                    </div>
-                    <p class="countdown-date">June 5, 2026 &middot; 10:00 AM PDT</p>
-                    <div class="countdown-flex-gap"></div>
-                    <button class="btn btn-outline" onclick="downloadICS('sponsor')" style="font-size:12px; padding:10px 22px;">&#128197; Add to Calendar</button>
-                    <div class="countdown-refresh-prompt" id="sponsorRefreshPrompt" style="display:none;">
-                        <button onclick="window.location.reload()" class="btn-refresh">&#8635; Refresh to Register</button>
-                        <p class="countdown-refresh-note">Refresh your browser to access the registration form.</p>
-                    </div>
-                </div>
-
-                <!-- Open Registration Countdown -->
-                <div class="countdown-box countdown-open" id="countdownOpen">
-                    <div class="countdown-badge">Open Registration</div>
-                    <h3 id="openCountdownTitle">Open Registration Opens In</h3>
-                    <div class="countdown-timer" id="openCountdownTimer">
-                        <div class="countdown-unit">
-                            <span class="countdown-value" id="openDays">--</span>
-                            <span class="countdown-label">Days</span>
-                        </div>
-                        <div class="countdown-sep">:</div>
-                        <div class="countdown-unit">
-                            <span class="countdown-value" id="openHours">--</span>
-                            <span class="countdown-label">Hours</span>
-                        </div>
-                        <div class="countdown-sep">:</div>
-                        <div class="countdown-unit">
-                            <span class="countdown-value" id="openMinutes">--</span>
-                            <span class="countdown-label">Minutes</span>
-                        </div>
-                        <div class="countdown-sep">:</div>
-                        <div class="countdown-unit">
-                            <span class="countdown-value" id="openSeconds">--</span>
-                            <span class="countdown-label">Seconds</span>
-                        </div>
-                    </div>
-                    <p class="countdown-date">June 12, 2026 &middot; 10:00 AM PDT</p>
-                    <div class="countdown-flex-gap"></div>
-                    <button class="btn btn-outline" onclick="downloadICS('open')" style="font-size:12px; padding:10px 22px;">&#128197; Add to Calendar</button>
-                    <div class="countdown-refresh-prompt" id="openRefreshPrompt" style="display:none;">
-                        <button onclick="window.location.reload()" class="btn-refresh">&#8635; Refresh to Register</button>
-                        <p class="countdown-refresh-note">Refresh your browser to access the registration form.</p>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- Key Dates -->
-            <div class="reg-dates">
-                <div class="reg-date-card">
-                    <div class="reg-date-icon">&#128197;</div>
-                    <h4>Hole Sponsor Registration</h4>
-                    <p class="reg-date-value">June 5 &ndash; June 10, 2026</p>
-                    <p>All golf members eligible &middot; Proprietary &amp; Emeritus priority &middot; 18 spots &middot; $750 + entry fees &middot; Guarantees entry &middot; Notifications June 11</p>
-                </div>
-                <div class="reg-date-card">
-                    <div class="reg-date-icon">&#127775;</div>
-                    <h4>Open Registration</h4>
-                    <p class="reg-date-value">June 12, 2026 @ 10:00 AM PDT</p>
-                    <p>All membership categories &middot; Proprietary &amp; Emeritus priority through June 14</p>
-                </div>
-                <div class="reg-date-card">
-                    <div class="reg-date-icon">&#128274;</div>
-                    <h4>Priority Expires</h4>
-                    <p class="reg-date-value">June 14, 2026 @ 11:59 PM PDT</p>
-                    <p>All submissions ranked by timestamp after midnight &middot; Waitlist once 72 teams reached</p>
-                </div>
-            </div>
-
-            <!-- Registration Process -->
-            <div class="reg-process">
-                <h3>Registration Process</h3>
-                <div class="process-steps">
-                    <div class="process-step">
-                        <div class="step-number">1</div>
-                        <div class="step-content">
-                            <h4>Hole Sponsor Registration (June 5&ndash;10)</h4>
-                            <ul style="margin: 0 0 10px 18px; font-size: 14px; color: var(--gray-dark); line-height: 1.8; list-style-type: disc;">
-                                <li><strong>18 sponsorships available</strong> at $750 per hole, in addition to entry fees</li>
-                                <li>Hole sponsors receive <strong>guaranteed entry</strong> into the tournament</li>
-                                <li>Open to all golf membership categories — spots awarded by priority:</li>
-                            </ul>
-                            <ul style="margin: 0 0 10px 36px; font-size: 14px; color: var(--gray-dark); line-height: 1.8; list-style-type: circle;">
-                                <li>Proprietary and Emeritus members receive <strong>priority throughout the registration window</strong> and will be awarded sponsorships first, in order of submission</li>
-                                <li>Any spots not claimed by Proprietary or Emeritus members will be awarded to other membership categories in order of submission</li>
-                                <li>Members who register but are not awarded a sponsorship remain eligible for open registration</li>
-                            </ul>
-                            <p style="margin-top: 10px;">Hole sponsor registrations close on <strong>Wednesday, June 10 at 11:59 PM PDT</strong>. All applicants will be notified on <strong>Thursday, June 11</strong> whether they have been awarded a sponsorship. Members who are not awarded a sponsorship are encouraged to register during the Open Registration window beginning June 12. Accepted sponsors will be contacted regarding hole assignment and logo placement.</p>
-                        </div>
-                    </div>
-                    <div class="process-step">
-                        <div class="step-number">2</div>
-                        <div class="step-content">
-                            <h4>Open Registration (June 12)</h4>
-                            <ul style="margin: 0 0 0 18px; font-size: 14px; color: var(--gray-dark); line-height: 1.8; list-style-type: disc;">
-                                <li>Open to all membership categories, including hole sponsor applicants not awarded a sponsorship</li>
-                                <li>All registrations are logged and <strong>date-stamped upon submission</strong></li>
-                                <li>Proprietary and Emeritus members receive <strong>priority through 11:59 PM on Sunday, June 14</strong></li>
-                                <li>At midnight, remaining spots are filled in order of submission across all categories</li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="process-step">
-                        <div class="step-number">3</div>
-                        <div class="step-content">
-                            <h4>Waitlist</h4>
-                            <p>Once 72 teams are reached, additional submissions are placed on a waitlist in order of receipt. Cancellations are refunded only if the spot can be filled.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Pricing -->
-            <div class="pricing">
-                <h3>Entry Fees</h3>
-                <p class="pricing-subtitle">Per team &middot; Covers all golf, meals, and hosted bar</p>
-
-                <div class="pricing-grid">
-                    <div class="pricing-card">
-                        <h4>Men's Club Members</h4>
-                        <div class="price">$1,050</div>
-                        <p class="price-detail">+ $150 Mandatory Buy-in</p>
-                        <p class="price-total">$1,200 total</p>
-                    </div>
-                    <div class="pricing-card">
-                        <h4>Non-Men's Club Members</h4>
-                        <div class="price">$1,200</div>
-                        <p class="price-detail">+ $150 Mandatory Buy-in</p>
-                        <p class="price-total">$1,350 total</p>
-                    </div>
-                    <div class="pricing-card">
-                        <h4>Vertical Members</h4>
-                        <div class="price">$1,450</div>
-                        <p class="price-detail">+ $150 Mandatory Buy-in</p>
-                        <p class="price-total">$1,600 total</p>
-                    </div>
-                </div>
-
-                <div class="optional-pricing">
-                    <h4>Optional Events</h4>
-                    <div class="optional-pricing-items">
-                        <div class="optional-price-item">
-                            <span>Par 3 Contest (Thursday Morning)</span>
-                            <span class="optional-price">$50/team</span>
-                        </div>
-                        <div class="optional-price-item">
-                            <span>Open Horse Race (Thursday Afternoon)</span>
-                            <span class="optional-price">$50/team</span>
-                        </div>
-                    </div>
-                </div>
-
-                <p class="deposit-notice">A non-refundable $250 deposit (credited towards entry fee) is required upon registration acceptance.</p>
-            </div>
-
-            <!-- Registration Checklist -->
-            <div class="checklist-box">
-                <h3>Before You Register</h3>
-                <p class="checklist-intro">Have this information ready &mdash; the field fills quickly.</p>
-                <p class="checklist-handicap-notice">&#9888;&nbsp; <strong>All participants must have an established GHIN handicap index to play in the Pheasant.</strong> Have GHIN numbers for both you and your guest ready before you register.</p>
-                <div class="checklist-grid">
-                    <div class="checklist-col">
-                        <h4>Member (You)</h4>
-                        <ul class="reg-checklist">
-                            <li>Full name &amp; email address</li>
-                            <li>Membership level</li>
-                            <li>GHIN number</li>
-                        </ul>
-                    </div>
-                    <div class="checklist-col">
-                        <h4>Your Guest</h4>
-                        <ul class="reg-checklist">
-                            <li>Full name &amp; GHIN number</li>
-                            <li>Email &amp; club affiliation (optional)</li>
-                        </ul>
-                    </div>
-                    <div class="checklist-col">
-                        <h4>Selections</h4>
-                        <ul class="reg-checklist">
-                            <li>Optional events: Par 3 ($50) &amp; Horse Race ($50)</li>
-                            <li>Saturday dinner additional guest count</li>
-                        </ul>
-                    </div>
-                </div>
-                <p class="checklist-note">A non-refundable $250 deposit (credited toward entry fee) is billed upon acceptance.</p>
-            </div>
-
-            <!-- Registration CTA -->
-            <div class="reg-cta-box">
-                <h3>Ready to Register?</h3>
-                <p>Have your team info, GHIN numbers, and membership details ready &mdash; the field fills fast.</p>
-                <div class="cta-reg-btns">
-                    <a href="register.html" class="btn btn-reg-sponsor btn-register-cta" id="ctaSponsorBtn">Hole Sponsor Registration</a>
-                    <a href="register.html" class="btn btn-reg-open btn-register-cta" id="ctaOpenBtn">Open Registration</a>
                 </div>
             </div>
         </div>
