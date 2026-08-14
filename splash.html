@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>The Pheasant Invitational</title>
+  <meta name="theme-color" content="#0e2415">
+  <link rel="icon" href="favicon.ico" sizes="32x32">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <style>
+    html, body { height: 100%; margin: 0; background: #0e2415; }
+    #splash {
+      position: fixed; inset: 0;
+      background: #0e2415;
+      overflow: hidden;
+    }
+    #splashVid {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;            /* fill the screen; crop the sides */
+      display: block;
+      transition: opacity 500ms ease;
+    }
+    #splash.done #splashVid { opacity: 0; }
+  </style>
+</head>
+<body>
+  <div id="splash">
+    <video id="splashVid" src="pheasant-splash.mp4" muted playsinline autoplay preload="auto"></video>
+  </div>
+
+  <script>
+    (function () {
+      var NEXT = 'schedule.html';
+      var KEY  = 'pheasantSplashSeen';
+
+      function goNext() { window.location.replace(NEXT); }
+
+      // Once per day: if already shown today, skip straight to Schedule.
+      var d = new Date();
+      var today = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+      var seen;
+      try { seen = localStorage.getItem(KEY); } catch (e) {}
+      if (seen === today) { goNext(); return; }
+      try { localStorage.setItem(KEY, today); } catch (e) {}
+
+      var v = document.getElementById('splashVid');
+      var went = false;
+      function once() { if (went) return; went = true; goNext(); }
+
+      v.addEventListener('ended', once);
+      v.addEventListener('error', once);
+      // Safety net: never trap the user if the video stalls.
+      setTimeout(once, 14000);
+
+      var p = v.play();
+      if (p && p.catch) p.catch(function () { once(); });  // autoplay blocked → just go
+    })();
+  </script>
+</body>
+</html>
