@@ -39,13 +39,19 @@
 
       function goNext() { window.location.replace(NEXT); }
 
+      // ?replay (or ?force) always plays — handy for testing; doesn't touch
+      // the daily gate.
+      var force = /[?&](replay|force)/i.test(location.search);
+
       // Once per day: if already shown today, skip straight to Schedule.
       var d = new Date();
       var today = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
-      var seen;
-      try { seen = localStorage.getItem(KEY); } catch (e) {}
-      if (seen === today) { goNext(); return; }
-      try { localStorage.setItem(KEY, today); } catch (e) {}
+      if (!force) {
+        var seen;
+        try { seen = localStorage.getItem(KEY); } catch (e) {}
+        if (seen === today) { goNext(); return; }
+        try { localStorage.setItem(KEY, today); } catch (e) {}
+      }
 
       var v = document.getElementById('splashVid');
       var went = false;
