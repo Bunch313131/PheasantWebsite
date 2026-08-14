@@ -62,7 +62,11 @@ input, select, textarea { font-family: inherit; }
   /* Extend the wood grain up into the iPhone notch/status-bar area
      (installed app, viewport-fit=cover) and keep nav content below it. */
   padding-top: env(safe-area-inset-top, 0px);
-  background: url('mahogany-nav.jpg') center/cover no-repeat;
+  background:
+    /* darken just the notch/status-bar strip so no light wood grain shows there */
+    linear-gradient(to bottom, rgba(24,9,4,0.92), rgba(24,9,4,0) calc(env(safe-area-inset-top, 0px) + 6px)),
+    url('mahogany-nav.jpg') center/cover no-repeat;
+  background-color: #3a1a0e;
   border-bottom: 1px solid rgba(140,100,50,0.3);
   box-shadow: 0 6px 18px rgba(0,0,0,0.5), inset 0 -1px 0 rgba(255,220,160,0.08);
   transition: box-shadow 0.3s;
