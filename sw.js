@@ -11,7 +11,7 @@
 //     for instant loads that still refresh in the background.
 // Bump CACHE_VERSION to force old caches to clear on next visit.
 // ============================================================
-var CACHE_VERSION = 'pheasant-v6';
+var CACHE_VERSION = 'pheasant-v7';
 var PRECACHE = [
   './',
   'index.html',
@@ -65,8 +65,10 @@ self.addEventListener('fetch', function (event) {
   if (isHTML || isCode) {
     event.respondWith(
       fetch(req, { cache: 'reload' }).then(function (resp) {
-        var copy = resp.clone();
-        caches.open(CACHE_VERSION).then(function (c) { c.put(req, copy); });
+        if (resp && resp.status === 200) {   // never cache 404s/redirects
+          var copy = resp.clone();
+          caches.open(CACHE_VERSION).then(function (c) { c.put(req, copy); });
+        }
         return resp;
       }).catch(function () {
         return caches.match(req).then(function (hit) {

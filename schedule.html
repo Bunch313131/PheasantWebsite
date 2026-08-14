@@ -20,7 +20,17 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Pheasant">
+  <!-- If we arrived from the splash, cover the page so it can fade in cleanly -->
+  <script>try{if(sessionStorage.getItem('pheasantFade'))document.documentElement.classList.add('from-splash');}catch(e){}</script>
   <style>
+    /* Fade-in from the splash's backdrop color (only when coming from splash) */
+    #pageFade {
+      position: fixed; inset: 0; z-index: 9999;
+      background: #0e2415; pointer-events: none;
+      opacity: 0; transition: opacity 650ms ease;
+    }
+    html.from-splash #pageFade { opacity: 1; }
+
     /* Compact hero — matches leaderboard/pairings */
     .sch-hero {
       background: linear-gradient(160deg, #24523a 0%, #14311d 100%);
@@ -62,6 +72,7 @@
   </style>
 </head>
 <body>
+  <div id="pageFade"></div>
 
   <!-- Navigation -->
   <nav id="navbar" class="navbar">
@@ -217,5 +228,17 @@
 
   <script src="app.js?v=7"></script>
   <script src="lux.js?v=7"></script>
+  <script>
+    // Fade the page in from the splash color, then clean up.
+    (function () {
+      var f = document.getElementById('pageFade');
+      if (!document.documentElement.classList.contains('from-splash')) { if (f) f.remove(); return; }
+      try { sessionStorage.removeItem('pheasantFade'); } catch (e) {}
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () { document.documentElement.classList.remove('from-splash'); });
+      });
+      setTimeout(function () { if (f) f.remove(); }, 750);
+    })();
+  </script>
 </body>
 </html>
