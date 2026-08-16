@@ -6,7 +6,7 @@
 /* ---------- Reset & Base ---------- */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { scroll-behavior: smooth; scroll-padding-top: calc(72px + env(safe-area-inset-top, 0px)); overflow-x: hidden; }
+html { scroll-behavior: smooth; scroll-padding-top: calc(72px + env(safe-area-inset-top, 0px)); overflow-x: hidden; background: #160904; }
 
 body {
   font-family: 'Raleway', system-ui, -apple-system, sans-serif;
@@ -74,6 +74,21 @@ input, select, textarea { font-family: inherit; }
   border-bottom: 1px solid rgba(140,100,50,0.3);
   box-shadow: 0 6px 18px rgba(0,0,0,0.5), inset 0 -1px 0 rgba(255,220,160,0.08);
   transition: box-shadow 0.3s;
+}
+
+/* Bulletproof opaque cap over the status-bar / notch strip: sits above the
+   white page but only spans the safe-area inset, so the notch is always dark
+   (never the white body bleeding through iOS's translucent status bar). */
+.navbar::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: env(safe-area-inset-top, 0px);
+  background: #160904;
+  z-index: 1;
+  pointer-events: none;
 }
 
 .navbar.scrolled {

@@ -27,6 +27,9 @@
       height: auto;
       max-height: 94%;
       display: block;
+      /* Show the first frame instantly so the card is never a blank green box
+         while the video buffers/decodes on iOS. */
+      background: #0e2415 url('pheasant-splash-poster.jpg?v=1') center/cover no-repeat;
       border-radius: 18px;
       box-shadow: 0 18px 50px rgba(0,0,0,0.55), 0 0 0 1px rgba(198,160,90,0.18);
       transition: opacity 650ms ease;
