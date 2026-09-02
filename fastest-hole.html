@@ -184,16 +184,6 @@
     font-family: "Raleway", sans-serif; font-weight: 600; font-size: clamp(9px, 1.3cqw, 12px);
     letter-spacing: .18em; text-transform: uppercase; opacity: .9;
   }
-  .strokes {
-    position: absolute; top: 3.2%; left: 2.6%; z-index: 6;
-    font-family: "Raleway", sans-serif; font-weight: 600; letter-spacing: .18em; text-transform: uppercase;
-    font-size: clamp(10px, 1.5cqw, 14px); color: var(--chalk);
-    background: rgba(26, 10, 5, .82); padding: .5em .8em; border-radius: 3px;
-    opacity: 0; pointer-events: none;
-  }
-  .strokes b { font-family: "DM Mono", monospace; font-size: 1.4em; margin-left: .4em; font-weight: 500; }
-  .strokes b { position: relative; display: inline-block; }
-  .strokes b i { position: absolute; left: -2px; right: -2px; top: 52%; height: 3px; background: #c8352b; transform: scaleX(0); transform-origin: left center; }
 
   .stage { container-type: inline-size; }
 
@@ -260,7 +250,7 @@
     box-shadow: 0 14px 40px rgba(0,0,0,.4);
     transition: opacity .3s ease, transform .18s ease, background .2s;
   }
-  .bigplay svg { width: 38%; height: 38%; fill: #fff; margin-left: 9%; filter: drop-shadow(0 1px 2px rgba(0,0,0,.35)); }
+  .bigplay svg { position: absolute; inset: 0; margin: auto; width: 40%; height: 40%; fill: #fff; filter: drop-shadow(0 1px 2px rgba(0,0,0,.35)); }
   .bigplay:hover { transform: translate(-50%, -50%) scale(1.06); background: rgba(255, 255, 255, 0.26); }
   .bigplay:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 4px; }
   .stage.playing .bigplay { opacity: 0; pointer-events: none; }
@@ -313,7 +303,6 @@
     .hud { top: 3.2%; bottom: auto; right: auto; left: 50%; transform: translateX(-50%); align-items: center; }
     .hud small { display: none; }
     .clock { font-size: 24px; }
-    .strokes { font-size: 10px; }
     /* phones: the clock sits top-center, so keep the caption along the bottom
        (clear of it) with a bottom wash instead of the desktop top-left one */
     .captions { background: linear-gradient(to top, rgba(8,18,10,.82) 0%, rgba(8,18,10,.3) 16%, rgba(8,18,10,0) 34%); }
@@ -501,7 +490,6 @@
       </g>
     </svg>
 
-    <div class="strokes" id="strokes">Strokes<b id="strokeN">0<i></i></b></div>
     <div class="hud">
       <div class="clock" id="clock">0:00.0</div>
       <small id="clockNote">Clock shown at 4× speed</small>
@@ -537,7 +525,7 @@
     </div>
 
     <button class="bigplay" id="bigPlay" aria-label="Play the animation">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5 L20 12 L9 19 Z"/></svg>
     </button>
   </div>
 
@@ -635,7 +623,7 @@
   function run(at, who, x, y, dur) {
     tl.to(players[who], { x, y, duration: dur, ease: 'power1.inOut' }, at);
   }
-  function stroke(at, n) { tl.set($('#strokeN'), { textContent: n }, at); }
+  function stroke() {}   // strokes counter removed — no-op keeps the run sequence tidy
 
   // ---------- SCENE 1: title (0–4) ----------
   tl.addLabel('intro', 0);
@@ -687,7 +675,6 @@
   tl.addLabel('run', R);
   tl.set(ball, { x: 230, y: 785, lift: 0 }, R);
   tl.to(ball, { alpha: 1, duration: .3 }, R + .1);
-  tl.to('#strokes', { opacity: 1, duration: .3 }, R + .1);
   tl.to('.hud', { opacity: 1, duration: .4 }, R + .1);
   caption($('#c3'), R + .2, R + 3.2);
 
@@ -730,9 +717,6 @@
   // ---------- SCENE 5: scoreboard (39–45) ----------
   const S = 39;
   tl.addLabel('score', S);
-  tl.to('#strokes i', { scaleX: 1, duration: .4 }, S - 2);
-  tl.set('#strokes i', { scaleX: 0 }, S);
-  tl.to('#strokes', { opacity: 0, duration: .3 }, S - .4);
   tl.to('#board', { opacity: 1, duration: .6 }, S);
   tl.to('.hud', { opacity: 0, duration: .4 }, S);
   tl.from('#board .time', { y: 16, opacity: 0, duration: .6 }, S + .2);
