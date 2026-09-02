@@ -119,17 +119,18 @@ input, select, textarea { font-family: inherit; }
 .nav-menu {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
 }
 
 .nav-link {
   color: rgba(255,255,255,0.85);
   font-size: 14px;
   font-weight: 500;
-  padding: 8px 14px;
+  padding: 8px 10px;
   border-radius: 6px;
   transition: color 0.2s, background 0.2s;
   letter-spacing: 0.3px;
+  white-space: nowrap;
 }
 
 .nav-link:hover {
@@ -141,9 +142,9 @@ input, select, textarea { font-family: inherit; }
   background: var(--gold);
   color: #fff !important;
   border-radius: 999px;
-  padding: 8px 20px;
+  padding: 8px 16px;
   font-weight: 600;
-  margin-left: 8px;
+  margin-left: 6px;
 }
 
 /* Tournament-week nav items — hidden until event week */
