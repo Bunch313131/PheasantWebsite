@@ -164,7 +164,7 @@
   .stage svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 
   .hud {
-    position: absolute; bottom: 3.4%; right: 2.6%;
+    position: absolute; bottom: 3.4%; right: 2.6%; z-index: 6;
     display: flex; flex-direction: column; align-items: flex-end; gap: 4px;
     color: var(--chalk); text-align: right;
     pointer-events: none;
@@ -185,7 +185,7 @@
     letter-spacing: .18em; text-transform: uppercase; opacity: .9;
   }
   .strokes {
-    position: absolute; top: 3.2%; left: 2.6%;
+    position: absolute; top: 3.2%; left: 2.6%; z-index: 6;
     font-family: "Raleway", sans-serif; font-weight: 600; letter-spacing: .18em; text-transform: uppercase;
     font-size: clamp(10px, 1.5cqw, 14px); color: var(--chalk);
     background: rgba(26, 10, 5, .82); padding: .5em .8em; border-radius: 3px;
@@ -199,7 +199,7 @@
 
   /* title card */
   .card {
-    position: absolute; inset: 0; display: grid; place-items: center; text-align: center;
+    position: absolute; inset: 0; z-index: 10; display: grid; place-items: center; text-align: center;
     background: radial-gradient(ellipse at 50% 60%, rgba(26,60,42,.35), rgba(10,31,20,.88));
     color: var(--chalk); opacity: 0; pointer-events: none; padding: 6%;
   }
@@ -220,7 +220,7 @@
 
   /* scoreboard card (final) */
   .board {
-    position: absolute; inset: 0; display: grid; place-items: center;
+    position: absolute; inset: 0; z-index: 10; display: grid; place-items: center;
     background: rgba(10, 31, 20, .82); color: var(--chalk); opacity: 0; pointer-events: none;
   }
   .board .inner {
@@ -232,19 +232,35 @@
   .board .stk .val { font-size: clamp(28px, 6cqw, 64px); opacity: .55; text-decoration: line-through; text-decoration-color: #c8352b; text-decoration-thickness: 4px; }
   .board .foot { grid-column: 1 / -1; margin-top: 1.4em; font-family: "Playfair Display", Georgia, serif; font-style: italic; font-size: clamp(12px, 2.4cqw, 24px); }
 
-  /* caption strip: sits under the frame so nothing covers the hole */
+  /* Captions overlaid inside the frame — a soft scrim across the bottom keeps
+     text legible without covering the hole, players, ball, or clock. */
   .captions {
-    position: relative; min-height: 3.6em; margin-top: 14px;
-    border-left: 4px solid var(--gold); padding-left: 16px;
+    position: absolute; inset: 0; z-index: 4; pointer-events: none;
+    background: linear-gradient(to top, rgba(8,18,10,.82) 0%, rgba(8,18,10,.32) 16%, rgba(8,18,10,0) 34%);
   }
   .cap {
-    position: absolute; left: 16px; top: 0; right: 0;
-    font-family: "Playfair Display", Georgia, serif; font-size: clamp(16px, 2.2vw, 22px); line-height: 1.35;
-    color: var(--ink); opacity: 0; margin: 0;
+    position: absolute; left: 4%; right: 27%; bottom: 6.5%;
+    font-family: "Playfair Display", Georgia, serif; font-size: clamp(13px, 2.7cqw, 23px); line-height: 1.3;
+    color: #faf9f6; opacity: 0; margin: 0; text-shadow: 0 1px 4px rgba(0,0,0,.6);
   }
-  .cap.sub { font-family: "Raleway", sans-serif; font-weight: 600; text-transform: uppercase; letter-spacing: .14em; font-size: clamp(12px, 1.5vw, 15px); color: var(--muted); padding-top: .4em; }
-  .cap em { font-style: normal; color: var(--gold); font-weight: 700; }
-  .cap.sub em { color: var(--gold); }
+  .cap.sub { font-family: "Raleway", sans-serif; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; font-size: clamp(11px, 2cqw, 15px); color: #e9e2d2; }
+  .cap em { font-style: normal; color: var(--gold-light); font-weight: 700; }
+  .cap.sub em { color: var(--gold-light); }
+
+  /* Big play button — the animation waits for a tap instead of auto-running,
+     so nobody misses the opening. Hidden while it plays. */
+  .bigplay {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 20;
+    width: clamp(58px, 12cqw, 96px); aspect-ratio: 1; border-radius: 50%; padding: 0;
+    background: rgba(20, 46, 30, .74); border: 2px solid var(--gold-light);
+    display: grid; place-items: center; cursor: pointer;
+    box-shadow: 0 10px 34px rgba(0,0,0,.5);
+    transition: opacity .3s ease, transform .18s ease, background .2s;
+  }
+  .bigplay svg { width: 42%; height: 42%; fill: #faf9f6; margin-left: 8%; }
+  .bigplay:hover { transform: translate(-50%, -50%) scale(1.06); background: rgba(26, 60, 42, .9); }
+  .bigplay:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 4px; }
+  .stage.playing .bigplay { opacity: 0; pointer-events: none; }
 
   /* ---------- controls ---------- */
   .controls {
@@ -295,7 +311,9 @@
     .hud small { display: none; }
     .clock { font-size: 24px; }
     .strokes { font-size: 10px; }
-    .captions { min-height: 4.4em; }
+    /* clock sits top-center on phones, so captions can use the full width */
+    .cap { right: 4%; bottom: 8%; font-size: clamp(13px, 3.8cqw, 18px); }
+    .cap.sub { font-size: clamp(11px, 3cqw, 14px); }
     #players text { font-size: 34px; letter-spacing: 2px; }
     #players .fig > circle:first-of-type { r: 28; }
     #players .fig > circle:last-of-type { r: 12; }
@@ -501,17 +519,21 @@
         <div class="foot">Nobody's counting strokes. Only the clock. Now beat it.</div>
       </div>
     </div>
-  </div>
 
-  <div class="captions" aria-live="polite">
-    <div class="cap" id="c1">Four players, <em>one ball</em>. One of you hits the tee shot. The other three stand wherever you think the ball's going — one of them up by the green.</div>
-    <div class="cap" id="c2">The one rule: the ball has to <em>stop</em> before anyone hits it. Run to it, yell at it — just let it stop.</div>
-    <div class="cap" id="c2b">Send it <em>out of bounds</em> and that's it. You're done.</div>
-    <div class="cap" id="c3">Clock starts at the tee shot. Get it in the hole. <em>Fast.</em></div>
-    <div class="cap sub" id="s1">Station 2 sprints to it — and hits</div>
-    <div class="cap sub" id="s2">Ball's still rolling — wait for it…</div>
-    <div class="cap sub" id="s3">Station 3, greenside — chip or putt, whatever it leaves</div>
-    <div class="cap sub" id="s4">Flag out · putt · drop</div>
+    <div class="captions" aria-live="polite">
+      <div class="cap" id="c1">Four players, <em>one ball</em>. One of you hits the tee shot. The other three stand wherever you think the ball's going — one of them up by the green.</div>
+      <div class="cap" id="c2">The one rule: the ball has to <em>stop</em> before anyone hits it. Run to it, yell at it — just let it stop.</div>
+      <div class="cap" id="c2b">Send it <em>out of bounds</em> and that's it. You're done.</div>
+      <div class="cap" id="c3">Clock starts at the tee shot. Get it in the hole. <em>Fast.</em></div>
+      <div class="cap sub" id="s1">Station 2 sprints to it — and hits</div>
+      <div class="cap sub" id="s2">Ball's still rolling — wait for it…</div>
+      <div class="cap sub" id="s3">Station 3, greenside — chip or putt, whatever it leaves</div>
+      <div class="cap sub" id="s4">Flag out · putt · drop</div>
+    </div>
+
+    <button class="bigplay" id="bigPlay" aria-label="Play the animation">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+    </button>
   </div>
 
   <div class="controls">
@@ -735,12 +757,14 @@
 
   // ---------- controls ----------
   const playBtn = $('#playBtn'), iconPlay = $('#iconPlay'), iconPause = $('#iconPause'), playLabel = $('#playLabel');
+  const stage = $('#stage');
   let ended = false;
   function setPlaying(on, atEnd) {
     ended = !!atEnd;
     iconPlay.hidden = on; iconPause.hidden = !on;
     playLabel.textContent = on ? 'Pause' : (ended ? 'Replay' : 'Play');
     playBtn.setAttribute('aria-label', playLabel.textContent);
+    stage.classList.toggle('playing', on);   // hide the big play button while it runs
   }
   playBtn.addEventListener('click', () => {
     if (tl.isActive() && !tl.paused()) { tl.pause(); setPlaying(false); return; }
@@ -755,16 +779,17 @@
     setPlaying(false);
   });
   scrub.addEventListener('change', () => { scrubbing = false; });
-  $('#stage').addEventListener('click', () => playBtn.click());
+  stage.addEventListener('click', () => playBtn.click());
+  $('#bigPlay').addEventListener('click', (e) => { e.stopPropagation(); playBtn.click(); });
   document.addEventListener('keydown', (e) => {
     if (e.code === 'Space' && e.target === document.body) { e.preventDefault(); playBtn.click(); }
   });
 
-  // first frame: title card visible, then autoplay (unless the viewer prefers reduced motion)
+  // Start paused on the title card so nobody misses the opening — the viewer
+  // taps the big play button (or the controls) to begin.
   tl.progress(0);
   hud();
-  if (reduce) { setPlaying(false); }
-  else { tl.play(); setPlaying(true); }
+  setPlaying(false);
 })();
 </script>
 <script>
