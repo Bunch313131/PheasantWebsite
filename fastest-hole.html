@@ -236,12 +236,13 @@
      text legible without covering the hole, players, ball, or clock. */
   .captions {
     position: absolute; inset: 0; z-index: 4; pointer-events: none;
-    background: linear-gradient(to top, rgba(8,18,10,.82) 0%, rgba(8,18,10,.32) 16%, rgba(8,18,10,0) 34%);
+    /* soft dark wash in the top-left only — keeps the green/flag & tee clear */
+    background: radial-gradient(115% 82% at 0% 0%, rgba(8,18,10,.62) 0%, rgba(8,18,10,.18) 34%, rgba(8,18,10,0) 58%);
   }
   .cap {
-    position: absolute; left: 4%; right: 27%; bottom: 6.5%;
-    font-family: "Playfair Display", Georgia, serif; font-size: clamp(13px, 2.7cqw, 23px); line-height: 1.3;
-    color: #faf9f6; opacity: 0; margin: 0; text-shadow: 0 1px 4px rgba(0,0,0,.6);
+    position: absolute; left: 4%; right: 34%; top: 10.5%; bottom: auto;
+    font-family: "Playfair Display", Georgia, serif; font-size: clamp(13px, 2.5cqw, 22px); line-height: 1.3;
+    color: #faf9f6; opacity: 0; margin: 0; text-shadow: 0 1px 4px rgba(0,0,0,.75);
   }
   .cap.sub { font-family: "Raleway", sans-serif; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; font-size: clamp(11px, 2cqw, 15px); color: #e9e2d2; }
   .cap em { font-style: normal; color: var(--gold-light); font-weight: 700; }
@@ -251,14 +252,16 @@
      so nobody misses the opening. Hidden while it plays. */
   .bigplay {
     position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 20;
-    width: clamp(58px, 12cqw, 96px); aspect-ratio: 1; border-radius: 50%; padding: 0;
-    background: rgba(20, 46, 30, .74); border: 2px solid var(--gold-light);
+    width: clamp(76px, 15cqw, 118px); aspect-ratio: 1; border-radius: 22px; padding: 0;
+    background: rgba(255, 255, 255, 0.15);
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.42);
     display: grid; place-items: center; cursor: pointer;
-    box-shadow: 0 10px 34px rgba(0,0,0,.5);
+    box-shadow: 0 14px 40px rgba(0,0,0,.4);
     transition: opacity .3s ease, transform .18s ease, background .2s;
   }
-  .bigplay svg { width: 42%; height: 42%; fill: #faf9f6; margin-left: 8%; }
-  .bigplay:hover { transform: translate(-50%, -50%) scale(1.06); background: rgba(26, 60, 42, .9); }
+  .bigplay svg { width: 38%; height: 38%; fill: #fff; margin-left: 9%; filter: drop-shadow(0 1px 2px rgba(0,0,0,.35)); }
+  .bigplay:hover { transform: translate(-50%, -50%) scale(1.06); background: rgba(255, 255, 255, 0.26); }
   .bigplay:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 4px; }
   .stage.playing .bigplay { opacity: 0; pointer-events: none; }
 
@@ -311,8 +314,10 @@
     .hud small { display: none; }
     .clock { font-size: 24px; }
     .strokes { font-size: 10px; }
-    /* clock sits top-center on phones, so captions can use the full width */
-    .cap { right: 4%; bottom: 8%; font-size: clamp(13px, 3.8cqw, 18px); }
+    /* phones: the clock sits top-center, so keep the caption along the bottom
+       (clear of it) with a bottom wash instead of the desktop top-left one */
+    .captions { background: linear-gradient(to top, rgba(8,18,10,.82) 0%, rgba(8,18,10,.3) 16%, rgba(8,18,10,0) 34%); }
+    .cap { left: 4%; right: 5%; top: auto; bottom: 5%; font-size: clamp(13px, 3.8cqw, 18px); }
     .cap.sub { font-size: clamp(11px, 3cqw, 14px); }
     #players text { font-size: 34px; letter-spacing: 2px; }
     #players .fig > circle:first-of-type { r: 28; }
