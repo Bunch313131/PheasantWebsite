@@ -80,6 +80,30 @@
     content: ""; display: block; height: 3px;
     background: linear-gradient(90deg, transparent, var(--gold) 18%, var(--gold-light) 50%, var(--gold) 82%, transparent);
   }
+
+  /* Site nav bar — a way back to the rest of the app (esp. the installed PWA,
+     which has no browser toolbar or back button). */
+  .sitebar {
+    position: sticky; top: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 8px clamp(14px, 4vw, 28px);
+    padding-top: calc(8px + env(safe-area-inset-top, 0px));
+    background: #1a3c2a;
+    border-bottom: 1px solid rgba(184,150,62,.45);
+  }
+  .sitebar .brand { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; color: #faf9f6; font-family: "Playfair Display", Georgia, serif; font-weight: 700; font-size: 16px; white-space: nowrap; }
+  .sitebar .brand:hover { color: var(--gold-light); }
+  .sitebar .brand .chev { font-size: 24px; line-height: 0; color: var(--gold-light); position: relative; top: 1px; }
+  .sitebar .brand .short { display: none; }
+  .sitebar nav { display: flex; align-items: center; gap: clamp(12px, 3vw, 22px); }
+  .sitebar nav a { color: #e8f0eb; text-decoration: none; font-family: "Raleway", sans-serif; font-weight: 600; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+  .sitebar nav a:hover { color: var(--gold-light); }
+  .sitebar nav a.cta { background: var(--gold); color: #1a3c2a; padding: 8px 14px; border-radius: 3px; }
+  .sitebar nav a.cta:hover { background: var(--gold-light); color: #1a3c2a; }
+  .sitebar a:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 3px; }
+  @media (max-width: 560px) { .sitebar .brand .full { display: none; } .sitebar .brand .short { display: inline; } }
+  @media (max-width: 400px) { .sitebar nav a.opt { display: none; } }
+
   .wrap { max-width: 1040px; margin: 0 auto; padding: 28px 20px 72px; }
 
   header { display: grid; grid-template-columns: auto 1fr; gap: 10px 28px; align-items: center; margin-bottom: 18px; }
@@ -275,6 +299,18 @@
 <style>[hidden] { display: none !important; }</style>
 </head>
 <body>
+<header class="sitebar">
+  <a class="brand" href="index.html" aria-label="Back to The Pheasant Invitational home">
+    <span class="chev" aria-hidden="true">&lsaquo;</span>
+    <span class="full">The Pheasant Invitational</span>
+    <span class="short">Home</span>
+  </a>
+  <nav aria-label="Site">
+    <a href="schedule.html">Schedule</a>
+    <a class="opt" href="leaderboard.html">Leaderboard</a>
+    <a class="cta" href="register.html">Register</a>
+  </nav>
+</header>
 <div class="wrap">
   <header>
     <a href="index.html" aria-label="The Pheasant Invitational — home"><img class="logo" src="copper-logo-nav.png" alt="The Pheasant Invitational" width="366" height="120"></a>
@@ -286,7 +322,7 @@
   </header>
 
   <div class="notice">
-    <div class="when"><small>Heads up</small>Friday<br>after the matches</div>
+    <div class="when"><small>Heads up</small>Friday after the matches</div>
     <p>Friday afternoon into the evening, once the matches wrap, we're running the Fastest Hole on <strong>hole 5 from shortened tees</strong>. It's played in <strong>foursomes</strong>, so you and your partner will need another two-man team — find one now, before Friday, and settle who's hitting the tee shot.</p>
   </div>
 
