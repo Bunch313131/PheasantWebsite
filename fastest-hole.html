@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1a0a05">
+<meta name="description" content="The Fastest Hole — a Pheasant Invitational side game on a shortened hole 5, Friday after the matches. Four players, one ball, one clock.">
+<meta property="og:title" content="The Fastest Hole · The Pheasant Invitational">
+<meta property="og:description" content="Friday after the matches. Four players, one ball, one clock. Nobody's counting strokes.">
+<link rel="icon" href="favicon.ico" sizes="32x32">
+<title>The Fastest Hole</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Pheasant">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Raleway:wght@400;500;600;700&family=DM+Mono:wght@500&display=swap">
+<style>
+  :root {
+    /* Pheasant Invitational palette (pheasantinvitational.com styles.css) */
+    --ground: #faf9f6;
+    --surface: #ffffff;
+    --ink: #1a1a1a;
+    --muted: #4a4a4a;
+    --line: #e0ddd7;
+    --green-dark: #1a3c2a;
+    --green-mid: #2d5a3f;
+    --green-light: #3a7d5c;
+    --green-pale: #e8f0eb;
+    --gold: #b8963e;
+    --gold-light: #d4b668;
+    --gold-pale: #faf5e8;
+    --accent: #b8963e;
+    --chalk: #faf9f6;
+    --amber: #d4b668;
+    --plate: #1a3c2a;
+    --plate-ink: #faf9f6;
+    --shadow: 0 24px 60px -30px rgba(26, 60, 42, .5);
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0f2a1a;
+      --surface: #143019;
+      --ink: #faf9f6;
+      --muted: #c9d3cb;
+      --line: #2d5a3f;
+      --green-pale: #1a3c2a;
+      --gold-pale: #1e2f22;
+      --plate: #0a1f14;
+      --shadow: 0 24px 60px -30px rgba(0, 0, 0, .8);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0f2a1a;
+    --surface: #143019;
+    --ink: #faf9f6;
+    --muted: #c9d3cb;
+    --line: #2d5a3f;
+    --green-pale: #1a3c2a;
+    --gold-pale: #1e2f22;
+    --plate: #0a1f14;
+    --shadow: 0 24px 60px -30px rgba(0, 0, 0, .8);
+  }
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: "Raleway", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 17px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  body::before {
+    content: ""; display: block; height: 3px;
+    background: linear-gradient(90deg, transparent, var(--gold) 18%, var(--gold-light) 50%, var(--gold) 82%, transparent);
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 28px 20px 72px; }
+
+  header { display: grid; grid-template-columns: auto 1fr; gap: 10px 28px; align-items: center; margin-bottom: 18px; }
+  .logo { width: clamp(150px, 22vw, 230px); height: auto; display: block; filter: drop-shadow(0 6px 14px rgba(0,0,0,.25)); }
+  .eyebrow {
+    font-family: "Raleway", sans-serif;
+    font-weight: 600; font-size: 12px; letter-spacing: .3em; text-transform: uppercase;
+    color: var(--gold);
+  }
+  h1 {
+    font-family: "Playfair Display", Georgia, "Times New Roman", serif;
+    font-weight: 900; font-size: clamp(36px, 6vw, 64px); line-height: 1.02; margin: 2px 0 0;
+    text-wrap: balance; color: var(--ink);
+  }
+  .lede { margin: 8px 0 0; max-width: 60ch; color: var(--muted); font-family: "Playfair Display", Georgia, serif; font-style: italic; font-size: 18px; }
+  @media (max-width: 640px) {
+    header { grid-template-columns: 1fr; gap: 12px; }
+  }
+
+  /* heads-up notice */
+  .notice {
+    display: grid; grid-template-columns: auto 1fr; gap: 14px 18px; align-items: start;
+    background: var(--gold-pale); border: 1px solid var(--gold-light); border-left: 4px solid var(--gold);
+    padding: 16px 20px; margin: 18px 0 22px; border-radius: 3px;
+  }
+  .notice .when {
+    font-family: "Playfair Display", Georgia, serif; font-weight: 700; font-size: 20px; line-height: 1.15; color: var(--ink);
+    min-width: 9ch;
+  }
+  .notice .when small { display: block; font-family: "Raleway", sans-serif; font-weight: 600; font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: var(--gold); margin-bottom: 4px; }
+  .notice p { margin: 0; font-size: 16px; color: var(--ink); }
+  .notice p strong { font-weight: 700; }
+  @media (max-width: 640px) { .notice { grid-template-columns: 1fr; gap: 8px; } }
+
+  /* ---------- stage ---------- */
+  .stage {
+    position: relative; aspect-ratio: 16 / 9; width: 100%;
+    background: #2E6534; border-radius: 4px; overflow: hidden;
+    box-shadow: var(--shadow);
+    outline: 1px solid var(--gold); outline-offset: 3px;
+  }
+  .stage svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+  .hud {
+    position: absolute; bottom: 3.4%; right: 2.6%;
+    display: flex; flex-direction: column; align-items: flex-end; gap: 4px;
+    color: var(--chalk); text-align: right;
+    pointer-events: none;
+  }
+  .clock {
+    font-family: "DM Mono", "SFMono-Regular", Menlo, monospace;
+    font-weight: 500; font-variant-numeric: tabular-nums;
+    font-size: clamp(22px, 5.2cqw, 54px); line-height: 1;
+    background: rgba(26, 10, 5, .82); padding: .28em .45em .22em; border-radius: 3px;
+    border-left: 5px solid var(--gold-light);
+    letter-spacing: .02em;
+    transition: border-color .3s;
+  }
+  .clock.running { border-color: #c8352b; }
+  .clock.done { border-color: #8FCB6E; }
+  .hud small {
+    font-family: "Raleway", sans-serif; font-weight: 600; font-size: clamp(9px, 1.3cqw, 12px);
+    letter-spacing: .18em; text-transform: uppercase; opacity: .9;
+  }
+  .strokes {
+    position: absolute; top: 3.2%; left: 2.6%;
+    font-family: "Raleway", sans-serif; font-weight: 600; letter-spacing: .18em; text-transform: uppercase;
+    font-size: clamp(10px, 1.5cqw, 14px); color: var(--chalk);
+    background: rgba(26, 10, 5, .82); padding: .5em .8em; border-radius: 3px;
+    opacity: 0; pointer-events: none;
+  }
+  .strokes b { font-family: "DM Mono", monospace; font-size: 1.4em; margin-left: .4em; font-weight: 500; }
+  .strokes b { position: relative; display: inline-block; }
+  .strokes b i { position: absolute; left: -2px; right: -2px; top: 52%; height: 3px; background: #c8352b; transform: scaleX(0); transform-origin: left center; }
+
+  .stage { container-type: inline-size; }
+
+  /* title card */
+  .card {
+    position: absolute; inset: 0; display: grid; place-items: center; text-align: center;
+    background: radial-gradient(ellipse at 50% 60%, rgba(26,60,42,.35), rgba(10,31,20,.88));
+    color: var(--chalk); opacity: 0; pointer-events: none; padding: 6%;
+  }
+  .card .t0 {
+    font-family: "Raleway", sans-serif; font-weight: 600; letter-spacing: .32em; text-transform: uppercase;
+    font-size: clamp(9px, 1.5cqw, 15px); color: var(--gold-light); margin-bottom: 1.2em;
+  }
+  .card .t1 {
+    font-family: "Playfair Display", Georgia, serif; font-weight: 900;
+    font-size: clamp(28px, 8.5cqw, 92px); line-height: 1; letter-spacing: 0;
+    text-wrap: balance;
+  }
+  .card .t2 {
+    font-family: "Playfair Display", Georgia, serif; font-style: italic; font-size: clamp(12px, 2.4cqw, 24px);
+    margin-top: .7em; opacity: .92;
+  }
+  .card .rule { width: 12%; height: 2px; background: linear-gradient(90deg, transparent, var(--gold-light), transparent); margin: 1.1em auto 0; }
+
+  /* scoreboard card (final) */
+  .board {
+    position: absolute; inset: 0; display: grid; place-items: center;
+    background: rgba(10, 31, 20, .82); color: var(--chalk); opacity: 0; pointer-events: none;
+  }
+  .board .inner {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0 6cqw; align-items: end; text-align: center;
+  }
+  .board .lbl { font-family: "Raleway", sans-serif; font-weight: 600; letter-spacing: .26em; text-transform: uppercase; font-size: clamp(9px, 1.5cqw, 14px); color: var(--gold-light); }
+  .board .val { font-family: "DM Mono", monospace; font-variant-numeric: tabular-nums; line-height: 1; margin-top: .15em; }
+  .board .time .val { font-size: clamp(40px, 11cqw, 118px); color: var(--gold-light); }
+  .board .stk .val { font-size: clamp(28px, 6cqw, 64px); opacity: .55; text-decoration: line-through; text-decoration-color: #c8352b; text-decoration-thickness: 4px; }
+  .board .foot { grid-column: 1 / -1; margin-top: 1.4em; font-family: "Playfair Display", Georgia, serif; font-style: italic; font-size: clamp(12px, 2.4cqw, 24px); }
+
+  /* caption strip: sits under the frame so nothing covers the hole */
+  .captions {
+    position: relative; min-height: 3.6em; margin-top: 14px;
+    border-left: 4px solid var(--gold); padding-left: 16px;
+  }
+  .cap {
+    position: absolute; left: 16px; top: 0; right: 0;
+    font-family: "Playfair Display", Georgia, serif; font-size: clamp(16px, 2.2vw, 22px); line-height: 1.35;
+    color: var(--ink); opacity: 0; margin: 0;
+  }
+  .cap.sub { font-family: "Raleway", sans-serif; font-weight: 600; text-transform: uppercase; letter-spacing: .14em; font-size: clamp(12px, 1.5vw, 15px); color: var(--muted); padding-top: .4em; }
+  .cap em { font-style: normal; color: var(--gold); font-weight: 700; }
+  .cap.sub em { color: var(--gold); }
+
+  /* ---------- controls ---------- */
+  .controls {
+    display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: center;
+    margin-top: 12px;
+  }
+  button {
+    font-family: "Raleway", sans-serif; font-weight: 600; letter-spacing: .16em; text-transform: uppercase;
+    font-size: 12px; color: var(--ink); background: var(--surface); border: 1px solid var(--line);
+    padding: 11px 16px; border-radius: 3px; cursor: pointer; line-height: 1;
+    display: inline-flex; align-items: center; gap: 8px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #playBtn { background: var(--green-dark); color: #faf9f6; border-color: var(--green-dark); min-width: 118px; justify-content: center; }
+  #playBtn:hover { background: var(--green-mid); }
+  button:hover { border-color: var(--gold); }
+  button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  button svg { width: 12px; height: 12px; fill: currentColor; }
+  .scrub { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; background: var(--line); border-radius: 3px; outline: none; cursor: pointer; }
+  .scrub::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--gold); border: 2px solid var(--surface); box-shadow: 0 0 0 1px var(--line); }
+  .scrub::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: var(--gold); border: 2px solid var(--surface); }
+  .scrub:focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; }
+  .tc { font-family: "DM Mono", monospace; font-variant-numeric: tabular-nums; font-size: 13px; color: var(--muted); }
+
+  @media (max-width: 480px) {
+    .controls { grid-template-columns: auto 1fr; }
+    .tc { grid-column: 2; justify-self: end; margin-top: -6px; }
+  }
+
+  /* ---------- house rules ---------- */
+  .rules { margin-top: 48px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+  .rules h2 {
+    font-family: "Playfair Display", Georgia, serif; font-weight: 700;
+    font-size: 23px; margin: 0 0 8px; line-height: 1.15; text-wrap: balance;
+  }
+  .rules h2::before { content: ""; display: block; width: 40px; height: 2px; background: var(--gold); margin-bottom: 12px; }
+  .rules p { margin: 0; color: var(--muted); font-size: 16px; }
+  .rules strong { color: var(--ink); font-weight: 700; }
+  @media (max-width: 720px) { .rules { grid-template-columns: 1fr; gap: 26px; } }
+
+  footer { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 15px; font-family: "Playfair Display", Georgia, serif; font-style: italic; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  footer a { color: var(--gold); text-decoration: none; font-family: "Raleway", sans-serif; font-style: normal; font-weight: 600; font-size: 12px; letter-spacing: .18em; text-transform: uppercase; }
+  footer a:hover { text-decoration: underline; }
+
+  /* phones: bigger marks in the SVG, clock up top, captions full width */
+  @media (max-width: 600px) {
+    .hud { top: 3.2%; bottom: auto; right: auto; left: 50%; transform: translateX(-50%); align-items: center; }
+    .hud small { display: none; }
+    .clock { font-size: 24px; }
+    .strokes { font-size: 10px; }
+    .captions { min-height: 4.4em; }
+    #players text { font-size: 34px; letter-spacing: 2px; }
+    #players .fig > circle:first-of-type { r: 28; }
+    #players .fig > circle:last-of-type { r: 12; }
+    #players .sh { rx: 30; ry: 12; }
+    #ball circle { r: 15; }
+    #ballShadow ellipse { rx: 15; ry: 8; }
+    #pill rect { x: -120; y: -36; width: 240; height: 72; rx: 36; }
+    #pill text { font-size: 40px; }
+    #obLabel { font-size: 46px; }
+    .board .inner { gap: 0 6cqw; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .clock { transition: none; }
+  }
+</style>
+<style>[hidden] { display: none !important; }</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a href="index.html" aria-label="The Pheasant Invitational — home"><img class="logo" src="copper-logo-nav.png" alt="The Pheasant Invitational" width="366" height="120"></a>
+    <div>
+      <div class="eyebrow">El Macero Men's Club · Side game</div>
+      <h1>The Fastest Hole</h1>
+      <p class="lede">One ball, four players, one clock. Nobody's counting strokes.</p>
+    </div>
+  </header>
+
+  <div class="notice">
+    <div class="when"><small>Heads up</small>Friday<br>after the matches</div>
+    <p>Friday afternoon into the evening, once the matches wrap, we're running the Fastest Hole on <strong>hole 5 from shortened tees</strong>. It's played in <strong>foursomes</strong>, so you and your partner will need another two-man team — find one now, before Friday, and settle who's hitting the tee shot.</p>
+  </div>
+
+  <div class="stage" id="stage" aria-label="Animated explainer of the fastest-hole format">
+    <svg viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs>
+        <pattern id="mow" width="80" height="80" patternUnits="userSpaceOnUse" patternTransform="rotate(-32)">
+          <rect width="40" height="80" fill="#5B9E46"/>
+          <rect x="40" width="40" height="80" fill="#549642"/>
+        </pattern>
+        <pattern id="mowG" width="36" height="36" patternUnits="userSpaceOnUse" patternTransform="rotate(58)">
+          <rect width="18" height="36" fill="#8FCB6E"/>
+          <rect x="18" width="18" height="36" fill="#86C267"/>
+        </pattern>
+        <radialGradient id="spot" cx="50%" cy="50%" r="50%">
+          <stop offset="70%" stop-color="#000"/>
+          <stop offset="100%" stop-color="#fff"/>
+        </radialGradient>
+        <mask id="spotMask">
+          <rect width="1600" height="900" fill="#fff"/>
+          <circle id="spotHole" cx="700" cy="600" r="230" fill="url(#spot)"/>
+        </mask>
+        <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="3"/>
+        </filter>
+      </defs>
+
+      <!-- rough -->
+      <rect width="1600" height="900" fill="#2E6534"/>
+      <g fill="#2A5E30" opacity=".6">
+        <ellipse cx="180" cy="200" rx="320" ry="160"/>
+        <ellipse cx="1500" cy="780" rx="260" ry="140"/>
+        <ellipse cx="900" cy="130" rx="260" ry="90"/>
+      </g>
+
+      <!-- out of bounds: white stakes along the right side -->
+      <g id="ob">
+        <line x1="1030" y1="880" x2="1590" y2="420" stroke="#F4F0E4" stroke-width="3" stroke-dasharray="4 14" opacity=".55"/>
+        <g fill="#F4F0E4" stroke="#16241A" stroke-width="1.5">
+          <rect x="1024" y="866" width="10" height="28" rx="2"/>
+          <rect x="1136" y="774" width="10" height="28" rx="2"/>
+          <rect x="1248" y="682" width="10" height="28" rx="2"/>
+          <rect x="1360" y="590" width="10" height="28" rx="2"/>
+          <rect x="1472" y="498" width="10" height="28" rx="2"/>
+          <rect x="1584" y="406" width="10" height="28" rx="2"/>
+        </g>
+        <text id="obLabel" x="1400" y="760" font-family="Raleway, sans-serif" font-weight="700" font-size="34" letter-spacing="6" fill="#F4F0E4" text-anchor="middle" opacity="0" transform="rotate(-39 1400 760)">OUT OF BOUNDS</text>
+      </g>
+
+      <!-- fairway -->
+      <path id="fairway" d="M230 785 C420 700 520 720 700 605 S1010 430 1140 350 S1300 250 1340 230" fill="none" stroke="#4A8A3C" stroke-width="236" stroke-linecap="round"/>
+      <path d="M230 785 C420 700 520 720 700 605 S1010 430 1140 350 S1300 250 1340 230" fill="none" stroke="url(#mow)" stroke-width="210" stroke-linecap="round"/>
+
+      <!-- bunkers -->
+      <path d="M760 480 C800 450 870 460 880 500 C888 535 840 555 800 545 C765 536 740 505 760 480Z" fill="#E9D9AB"/>
+      <path d="M1180 190 C1210 165 1260 175 1265 205 C1268 230 1230 245 1205 238 C1180 232 1165 205 1180 190Z" fill="#E9D9AB"/>
+
+      <!-- green -->
+      <ellipse cx="1360" cy="215" rx="150" ry="112" fill="#74B85A"/>
+      <ellipse cx="1360" cy="215" rx="130" ry="94" fill="url(#mowG)"/>
+
+      <!-- tee box -->
+      <rect x="170" y="755" width="120" height="70" rx="8" fill="#6FB456" transform="rotate(-24 230 790)"/>
+      <rect x="205" y="783" width="10" height="4" fill="#fff" opacity=".8" transform="rotate(-24 230 790)"/>
+      <rect x="245" y="783" width="10" height="4" fill="#fff" opacity=".8" transform="rotate(-24 230 790)"/>
+      <g transform="translate(150 692)">
+        <rect x="-26" y="-26" width="52" height="52" rx="6" fill="#F4F0E4" stroke="#16241A" stroke-width="3"/>
+        <text y="12" font-family="Playfair Display, Georgia, serif" font-weight="900" font-size="34" fill="#16241A" text-anchor="middle">5</text>
+      </g>
+
+      <!-- trees -->
+      <g id="trees">
+        <circle cx="120" cy="620" r="44" fill="#214C26"/><circle cx="110" cy="612" r="30" fill="#2C6132"/>
+        <circle cx="70" cy="700" r="38" fill="#214C26"/><circle cx="62" cy="692" r="26" fill="#2C6132"/>
+        <circle cx="480" cy="860" r="42" fill="#214C26"/><circle cx="470" cy="852" r="28" fill="#2C6132"/>
+        <circle cx="560" cy="470" r="40" fill="#214C26"/><circle cx="552" cy="462" r="27" fill="#2C6132"/>
+        <circle cx="640" cy="420" r="34" fill="#214C26"/><circle cx="633" cy="413" r="22" fill="#2C6132"/>
+        <circle cx="1240" cy="520" r="48" fill="#214C26"/><circle cx="1230" cy="510" r="32" fill="#2C6132"/>
+        <circle cx="1500" cy="420" r="46" fill="#214C26"/><circle cx="1490" cy="410" r="31" fill="#2C6132"/>
+        <circle cx="1560" cy="120" r="40" fill="#214C26"/><circle cx="1552" cy="112" r="27" fill="#2C6132"/>
+        <circle cx="880" cy="230" r="44" fill="#214C26"/><circle cx="870" cy="220" r="30" fill="#2C6132"/>
+        <circle cx="1080" cy="150" r="36" fill="#214C26"/><circle cx="1072" cy="142" r="24" fill="#2C6132"/>
+        <circle cx="320" cy="560" r="36" fill="#214C26"/><circle cx="312" cy="552" r="24" fill="#2C6132"/>
+      </g>
+
+      <!-- hole + flag -->
+      <circle cx="1392" cy="200" r="9" fill="#1A2E1C"/>
+      <g id="flag">
+        <line x1="1392" y1="200" x2="1392" y2="120" stroke="#F4F0E4" stroke-width="4"/>
+        <path d="M1394 121 L1440 136 L1394 151 Z" fill="#C8352B"/>
+      </g>
+
+      <!-- station labels + players -->
+      <g id="players" font-family="Raleway, sans-serif" font-weight="700" text-anchor="middle">
+        <g class="pl" id="p1"><g class="fig" opacity="0">
+          <ellipse class="sh" cx="0" cy="8" rx="20" ry="8" fill="#000" opacity=".28"/>
+          <circle r="19" fill="#E9EFF5" stroke="#16241A" stroke-width="3"/>
+          <circle r="8" fill="#C79A6B"/>
+          <text y="-30" font-size="20" letter-spacing="1.5" fill="#F4F0E4" stroke="#16241A" stroke-width="4" paint-order="stroke">TEE</text>
+        </g></g>
+        <g class="pl" id="p2"><g class="fig" opacity="0">
+          <ellipse class="sh" cx="0" cy="8" rx="20" ry="8" fill="#000" opacity=".28"/>
+          <circle r="19" fill="#F2B53F" stroke="#16241A" stroke-width="3"/>
+          <circle r="8" fill="#6B4A2B"/>
+          <text y="-30" font-size="20" letter-spacing="1.5" fill="#F4F0E4" stroke="#16241A" stroke-width="4" paint-order="stroke">STATION 2</text>
+        </g></g>
+        <g class="pl" id="p3"><g class="fig" opacity="0">
+          <ellipse class="sh" cx="0" cy="8" rx="20" ry="8" fill="#000" opacity=".28"/>
+          <circle r="19" fill="#C8352B" stroke="#16241A" stroke-width="3"/>
+          <circle r="8" fill="#E2B48C"/>
+          <text y="-30" font-size="20" letter-spacing="1.5" fill="#F4F0E4" stroke="#16241A" stroke-width="4" paint-order="stroke">STATION 3</text>
+        </g></g>
+        <g class="pl" id="p4"><g class="fig" opacity="0">
+          <ellipse class="sh" cx="0" cy="8" rx="20" ry="8" fill="#000" opacity=".28"/>
+          <circle r="19" fill="#2E6F9E" stroke="#16241A" stroke-width="3"/>
+          <circle r="8" fill="#8C5A3C"/>
+          <text y="-30" font-size="20" letter-spacing="1.5" fill="#F4F0E4" stroke="#16241A" stroke-width="4" paint-order="stroke">GREEN</text>
+        </g></g>
+      </g>
+
+      <!-- ball -->
+      <g id="ballShadow" opacity="0"><ellipse rx="9" ry="5" fill="#000" opacity=".35" filter="url(#soft)"/></g>
+      <g id="ball" opacity="0"><circle r="9" fill="#FFFFFF" stroke="#8A8A80" stroke-width="1.5"/></g>
+
+      <!-- spotlight overlay for the rule scene -->
+      <rect id="dim" width="1600" height="900" fill="#0A160C" opacity="0" mask="url(#spotMask)"/>
+
+      <!-- status pill -->
+      <g id="pill" opacity="0" font-family="Raleway, sans-serif" font-weight="700" text-anchor="middle">
+        <rect x="-92" y="-26" width="184" height="52" rx="26" fill="#C8352B"/>
+        <text id="pillText" y="10" font-size="28" fill="#F4F0E4" letter-spacing="3">WAIT</text>
+      </g>
+    </svg>
+
+    <div class="strokes" id="strokes">Strokes<b id="strokeN">0<i></i></b></div>
+    <div class="hud">
+      <div class="clock" id="clock">0:00.0</div>
+      <small id="clockNote">Clock shown at 4× speed</small>
+    </div>
+
+
+    <div class="card" id="title">
+      <div>
+        <div class="t0">The Pheasant Invitational presents</div>
+        <div class="t1">The Fastest Hole</div>
+        <div class="t2">Hole 5, shortened. Four players. One clock.</div>
+        <div class="rule"></div>
+      </div>
+    </div>
+
+    <div class="board" id="board">
+      <div class="inner">
+        <div class="time"><div class="lbl">Time to hole out</div><div class="val" id="finalTime">0:00.0</div></div>
+        <div class="stk"><div class="lbl">Strokes</div><div class="val">4</div></div>
+        <div class="foot">Nobody's counting strokes. Only the clock. Now beat it.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="captions" aria-live="polite">
+    <div class="cap" id="c1">Four players, <em>one ball</em>. One of you hits the tee shot. The other three stand wherever you think the ball's going — one of them up by the green.</div>
+    <div class="cap" id="c2">The one rule: the ball has to <em>stop</em> before anyone hits it. Run to it, yell at it — just let it stop.</div>
+    <div class="cap" id="c2b">Send it <em>out of bounds</em> and that's it. You're done.</div>
+    <div class="cap" id="c3">Clock starts at the tee shot. Get it in the hole. <em>Fast.</em></div>
+    <div class="cap sub" id="s1">Station 2 sprints to it — and hits</div>
+    <div class="cap sub" id="s2">Ball's still rolling — wait for it…</div>
+    <div class="cap sub" id="s3">Station 3, greenside — chip or putt, whatever it leaves</div>
+    <div class="cap sub" id="s4">Flag out · putt · drop</div>
+  </div>
+
+  <div class="controls">
+    <button id="playBtn" aria-label="Play or pause">
+      <svg id="iconPlay" viewBox="0 0 12 12"><path d="M2 1l9 5-9 5z"/></svg>
+      <svg id="iconPause" viewBox="0 0 12 12" hidden><path d="M2 1h3v10H2zM7 1h3v10H7z"/></svg>
+      <span id="playLabel">Pause</span>
+    </button>
+    <input class="scrub" id="scrub" type="range" min="0" max="1000" value="0" aria-label="Scrub the animation">
+    <div class="tc"><span id="tcNow">0:00</span> / <span id="tcEnd">0:45</span></div>
+  </div>
+
+
+  <section class="rules">
+    <div>
+      <h2>Four players, one ball</h2>
+      <p>One player has to hit the tee shot. After that it's up to the team <strong>where the other three stand</strong> — someone at the landing zone, someone farther down, and someone up by the green ready to chip or putt depending on how the second shot comes out. Placement is the whole strategy.</p>
+    </div>
+    <div>
+      <h2>The ball must stop</h2>
+      <p>That's the only rule. Run to it, yell at it, swing with whatever club is in your hand — but <strong>the ball has to come to rest before it's struck</strong>. And if you hit it out of bounds, <strong>you're done</strong>.</p>
+    </div>
+    <div>
+      <h2>The clock, not the card</h2>
+      <p>Time starts when the tee shot is struck and stops when the ball drops. <strong>Strokes don't matter.</strong> A seven in ninety seconds beats a four in two minutes. Fastest foursome on Friday takes it.</p>
+    </div>
+  </section>
+
+  <footer><span>Hole 5, shortened tees. Friday after the matches. Agree on stations, start the clock on the first swing.</span><a href="https://www.pheasantinvitational.com">pheasantinvitational.com</a></footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>
+(function () {
+  const $ = (s) => document.querySelector(s);
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---------- scene state (rendered every frame) ----------
+  const ball = { x: 230, y: 785, lift: 0, alpha: 0 };
+  const players = {
+    p1: { x: 230, y: 785 },
+    p2: { x: 660, y: 630 },
+    p3: { x: 1205, y: 320 },
+    p4: { x: 1450, y: 250 }
+  };
+  const pill = { x: 0, y: 0 };
+  const els = {
+    ball: $('#ball'), shadow: $('#ballShadow'), pill: $('#pill'), pillText: $('#pillText'),
+    pillRect: $('#pill rect'), flag: $('#flag'), spot: $('#spotHole')
+  };
+  const pEls = { p1: $('#p1'), p2: $('#p2'), p3: $('#p3'), p4: $('#p4') };
+
+  function render() {
+    const s = 1 + ball.lift / 160;
+    els.ball.setAttribute('transform', `translate(${ball.x} ${ball.y - ball.lift}) scale(${s})`);
+    els.ball.setAttribute('opacity', ball.alpha);
+    els.shadow.setAttribute('transform', `translate(${ball.x} ${ball.y + 5})`);
+    els.shadow.setAttribute('opacity', ball.alpha * Math.max(0.25, 1 - ball.lift / 200));
+    for (const k in players) pEls[k].setAttribute('transform', `translate(${players[k].x} ${players[k].y})`);
+    els.pill.setAttribute('transform', `translate(${pill.x} ${pill.y - 92})`);
+  }
+  gsap.ticker.add(render);
+  render();
+
+  // ---------- helpers ----------
+  const CLOCK_SCALE = 4;
+  const fmt = (sec) => {
+    const m = Math.floor(sec / 60), s = sec - m * 60;
+    return `${m}:${s < 10 ? '0' : ''}${s.toFixed(1)}`;
+  };
+  const tl = gsap.timeline({ paused: true, defaults: { ease: 'power2.out' } });
+
+  // A shot: ball flies from its current place to (lx,ly), then rolls to (rx,ry).
+  function shot(at, lx, ly, rx, ry, flight, height, roll) {
+    tl.to(ball, { x: lx, y: ly, duration: flight, ease: 'none' }, at);
+    tl.to(ball, { lift: height, duration: flight / 2, ease: 'sine.out' }, at);
+    tl.to(ball, { lift: 0, duration: flight / 2, ease: 'sine.in' }, at + flight / 2);
+    tl.to(ball, { x: rx, y: ry, duration: roll, ease: 'power3.out' }, at + flight);
+    return at + flight + roll;
+  }
+  function pillAt(at, x, y, waitFor, hitFor) {
+    tl.set(pill, { x, y }, at);
+    tl.set(els.pillText, { textContent: 'WAIT' }, at);
+    tl.set(els.pillRect, { attr: { fill: '#C8352B' } }, at);
+    tl.to(els.pill, { opacity: 1, duration: .2 }, at);
+    tl.set(els.pillText, { textContent: 'HIT' }, at + waitFor);
+    tl.set(els.pillRect, { attr: { fill: '#3E8E3A' } }, at + waitFor);
+    tl.to(els.pill, { opacity: 0, duration: .2 }, at + waitFor + hitFor);
+  }
+  function caption(el, at, until) {
+    tl.to(el, { opacity: 1, duration: .35 }, at);
+    tl.to(el, { opacity: 0, duration: .3 }, until - .3);
+  }
+  function run(at, who, x, y, dur) {
+    tl.to(players[who], { x, y, duration: dur, ease: 'power1.inOut' }, at);
+  }
+  function stroke(at, n) { tl.set($('#strokeN'), { textContent: n }, at); }
+
+  // ---------- SCENE 1: title (0–4) ----------
+  tl.addLabel('intro', 0);
+  tl.set('#title', { opacity: 1 }, 0);
+  tl.from('#title .t1', { y: 20, opacity: 0, duration: .8 }, .2);
+  tl.from('#title .t2', { y: 12, opacity: 0, duration: .6 }, .7);
+  tl.from('#title .rule', { scaleX: 0, duration: .6 }, 1.0);
+  tl.to('#title', { opacity: 0, duration: .7 }, 3.3);
+
+  // ---------- SCENE 2: setup (4–10) ----------
+  tl.addLabel('setup', 4);
+  tl.to(ball, { alpha: 1, duration: .3 }, 4);
+  [['#p1', 4.2], ['#p2', 5.0], ['#p3', 5.7], ['#p4', 6.4]].forEach(([id, t]) => {
+    tl.fromTo(id + ' .fig', { opacity: 0, scale: 0.4, transformOrigin: '50% 50%' }, { opacity: 1, scale: 1, duration: .5, ease: 'back.out(2)' }, t);
+  });
+  // stations walk into place from the tee
+  tl.from(players.p2, { x: 300, y: 760, duration: 1.6, ease: 'power1.inOut' }, 4.6);
+  tl.from(players.p3, { x: 330, y: 750, duration: 2.6, ease: 'power1.inOut' }, 5.1);
+  tl.from(players.p4, { x: 360, y: 740, duration: 3.0, ease: 'power1.inOut' }, 5.6);
+  caption($('#c1'), 4.2, 10);
+
+  // ---------- SCENE 3: the rule + out of bounds (10–20) ----------
+  tl.addLabel('rule', 10);
+  tl.set(ball, { alpha: 0 }, 10);
+  tl.set(ball, { x: 560, y: 690 }, 10.05);
+  tl.to(ball, { alpha: 1, duration: .3 }, 10.1);
+  tl.to(els.spot, { attr: { cx: 640, cy: 640, r: 230 }, duration: .01 }, 10);
+  tl.to('#dim', { opacity: .6, duration: .6 }, 10);
+  tl.to('.hud', { opacity: 0, duration: .4 }, 10);
+  caption($('#c2'), 10.2, 15.2);
+  tl.to(ball, { x: 640, y: 660, duration: 2.6, ease: 'power3.out' }, 10.6);
+  pillAt(10.6, 660, 630, 2.6, 1.4);
+  tl.to(els.spot, { attr: { r: 260 }, duration: 2.6, ease: 'power3.out' }, 10.6);
+  // OB: spotlight slides to the stakes, a stray ball sails over the line
+  tl.to(els.spot, { attr: { cx: 1330, cy: 640, r: 340 }, duration: .8, ease: 'power2.inOut' }, 15.0);
+  caption($('#c2b'), 15.4, 19.6);
+  tl.set(ball, { x: 900, y: 520, lift: 0 }, 15.6);
+  tl.to(ball, { x: 1420, y: 700, duration: 1.5, ease: 'none' }, 15.8);
+  tl.to(ball, { lift: 140, duration: .75, ease: 'sine.out' }, 15.8);
+  tl.to(ball, { lift: 0, duration: .75, ease: 'sine.in' }, 16.55);
+  tl.to(ball, { x: 1460, y: 715, duration: .6, ease: 'power3.out' }, 17.3);
+  tl.to('#obLabel', { opacity: 1, duration: .3 }, 17.4);
+  tl.to('#obLabel', { opacity: 0, duration: .3 }, 19.3);
+  tl.to('#dim', { opacity: 0, duration: .5 }, 19.3);
+  tl.to(ball, { alpha: 0, duration: .3 }, 19.3);
+
+  // ---------- SCENE 4: run the hole (20–39) ----------
+  const R = 20;
+  tl.addLabel('run', R);
+  tl.set(ball, { x: 230, y: 785, lift: 0 }, R);
+  tl.to(ball, { alpha: 1, duration: .3 }, R + .1);
+  tl.to('#strokes', { opacity: 1, duration: .3 }, R + .1);
+  tl.to('.hud', { opacity: 1, duration: .4 }, R + .1);
+  caption($('#c3'), R + .2, R + 3.2);
+
+  const T_START = R + 1.0;
+  tl.addLabel('clockStart', T_START);
+  stroke(T_START, 1);
+  // tee shot
+  let t = shot(T_START, 560, 690, 615, 665, 1.6, 150, 1.4);          // ends R+4.0
+  run(T_START + .4, 'p2', 605, 640, 1.8);
+  pillAt(T_START + 1.6, 605, 640, 1.4, .5);
+  caption($('#s2'), R + 3.3, R + 4.8);
+  caption($('#s1'), R + 4.9, R + 7.4);
+  // station 2 hits
+  stroke(t + .5, 2);
+  t = shot(t + .5, 1130, 380, 1175, 350, 1.7, 170, 1.5);             // R+4.5 → R+7.7  (short of the green)
+  run(R + 5.4, 'p3', 1170, 322, 1.2);
+  pillAt(R + 6.2, 1170, 322, 1.5, .5);
+  caption($('#s3'), R + 7.6, R + 10.8);
+  // station 3 hits to the green
+  stroke(t + .5, 3);
+  t = shot(t + .5, 1330, 250, 1358, 228, 1.0, 55, 1.6);              // R+8.2 → R+10.8  (a chip, low and running)
+  run(R + 8.6, 'p4', 1322, 258, 1.2);
+  pillAt(R + 9.4, 1322, 258, 1.4, .5);
+  // flag out
+  tl.to(els.flag, { x: 70, y: -20, rotation: 78, svgOrigin: '1392 200', duration: .6, ease: 'power2.inOut' }, R + 10.8);
+  caption($('#s4'), R + 11.4, R + 14.6);
+  // putt
+  stroke(R + 11.9, 4);
+  tl.to(ball, { x: 1392, y: 200, duration: 1.7, ease: 'power2.out' }, R + 11.9);
+  tl.to(ball, { alpha: 0, duration: .2 }, R + 13.5);
+  tl.to(els.ball.firstElementChild, { attr: { r: 3 }, duration: .25 }, R + 13.45);
+  tl.set(els.ball.firstElementChild, { attr: { r: 9 } }, R + 13.9);
+  const T_END = R + 13.6;
+  tl.addLabel('clockStop', T_END);
+  ['#p4', '#p3', '#p2', '#p1'].forEach((id, i) => {
+    tl.to(id + ' .fig', { y: -14, duration: .18, yoyo: true, repeat: 3, ease: 'sine.inOut' }, R + 13.8 + i * .12);
+  });
+  tl.to(els.flag, { x: 0, y: 0, rotation: 0, duration: .8, ease: 'power2.inOut' }, R + 15.5);
+
+  // ---------- SCENE 5: scoreboard (39–45) ----------
+  const S = 39;
+  tl.addLabel('score', S);
+  tl.to('#strokes i', { scaleX: 1, duration: .4 }, S - 2);
+  tl.set('#strokes i', { scaleX: 0 }, S);
+  tl.to('#strokes', { opacity: 0, duration: .3 }, S - .4);
+  tl.to('#board', { opacity: 1, duration: .6 }, S);
+  tl.to('.hud', { opacity: 0, duration: .4 }, S);
+  tl.from('#board .time', { y: 16, opacity: 0, duration: .6 }, S + .2);
+  tl.from('#board .stk', { y: 16, opacity: 0, duration: .6 }, S + .6);
+  tl.from('#board .foot', { y: 10, opacity: 0, duration: .6 }, S + 1.4);
+  tl.to({}, { duration: 5 }, S + 1);   // hold
+  const TOTAL = tl.duration();
+  const FINAL = fmt((T_END - T_START) * CLOCK_SCALE);
+  $('#finalTime').textContent = FINAL;
+
+  // ---------- clock + HUD driven off timeline time ----------
+  const clock = $('#clock'), scrub = $('#scrub'), tcNow = $('#tcNow');
+  $('#tcEnd').textContent = `0:${String(Math.round(TOTAL)).padStart(2, '0')}`;
+  let scrubbing = false;
+
+  function hud() {
+    const now = tl.time();
+    const el = Math.max(0, Math.min(now, T_END) - T_START) * CLOCK_SCALE;
+    clock.textContent = fmt(el);
+    clock.classList.toggle('running', now >= T_START && now < T_END);
+    clock.classList.toggle('done', now >= T_END);
+    if (!scrubbing) scrub.value = Math.round(tl.progress() * 1000);
+    tcNow.textContent = `0:${String(Math.floor(now)).padStart(2, '0')}`;
+  }
+  tl.eventCallback('onUpdate', hud);
+  tl.eventCallback('onComplete', () => setPlaying(false, true));
+
+  // ---------- controls ----------
+  const playBtn = $('#playBtn'), iconPlay = $('#iconPlay'), iconPause = $('#iconPause'), playLabel = $('#playLabel');
+  let ended = false;
+  function setPlaying(on, atEnd) {
+    ended = !!atEnd;
+    iconPlay.hidden = on; iconPause.hidden = !on;
+    playLabel.textContent = on ? 'Pause' : (ended ? 'Replay' : 'Play');
+    playBtn.setAttribute('aria-label', playLabel.textContent);
+  }
+  playBtn.addEventListener('click', () => {
+    if (tl.isActive() && !tl.paused()) { tl.pause(); setPlaying(false); return; }
+    if (ended || tl.progress() >= 1) tl.restart();
+    else tl.play();
+    setPlaying(true);
+  });
+  scrub.addEventListener('input', () => {
+    scrubbing = true;
+    tl.progress(scrub.value / 1000).pause();
+    hud();
+    setPlaying(false);
+  });
+  scrub.addEventListener('change', () => { scrubbing = false; });
+  $('#stage').addEventListener('click', () => playBtn.click());
+  document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' && e.target === document.body) { e.preventDefault(); playBtn.click(); }
+  });
+
+  // first frame: title card visible, then autoplay (unless the viewer prefers reduced motion)
+  tl.progress(0);
+  hud();
+  if (reduce) { setPlaying(false); }
+  else { tl.play(); setPlaying(true); }
+})();
+</script>
+</body>
+</html>
