@@ -155,6 +155,7 @@
   @media (max-width: 640px) { .notice { grid-template-columns: 1fr; gap: 8px; } }
 
   /* ---------- stage ---------- */
+  .stagewrap { position: relative; container-type: inline-size; }
   .stage {
     position: relative; aspect-ratio: 16 / 9; width: 100%;
     background: #2E6534; border-radius: 4px; overflow: hidden;
@@ -226,13 +227,11 @@
      text legible without covering the hole, players, ball, or clock. */
   .captions {
     position: absolute; inset: 0; z-index: 4; pointer-events: none;
-    /* soft dark wash in the top-left only — keeps the green/flag & tee clear */
-    background: radial-gradient(115% 82% at 0% 0%, rgba(8,18,10,.62) 0%, rgba(8,18,10,.18) 34%, rgba(8,18,10,0) 58%);
   }
   .cap {
     position: absolute; left: 4%; right: 34%; top: 10.5%; bottom: auto;
     font-family: "Playfair Display", Georgia, serif; font-size: clamp(13px, 2.5cqw, 22px); line-height: 1.3;
-    color: #faf9f6; opacity: 0; margin: 0; text-shadow: 0 1px 4px rgba(0,0,0,.75);
+    color: #faf9f6; opacity: 0; margin: 0; text-shadow: 0 1px 2px rgba(0,0,0,.92), 0 0 10px rgba(0,0,0,.6);
   }
   .cap.sub { font-family: "Raleway", sans-serif; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; font-size: clamp(11px, 2cqw, 15px); color: #e9e2d2; }
   .cap em { font-style: normal; color: var(--gold-light); font-weight: 700; }
@@ -300,14 +299,23 @@
 
   /* phones: bigger marks in the SVG, clock up top, captions full width */
   @media (max-width: 600px) {
-    .hud { top: 3.2%; bottom: auto; right: auto; left: 50%; transform: translateX(-50%); align-items: center; }
+    /* phones: clock to the top-left, and the narration BELOW the window
+       (the video is too small to overlay text on) */
+    .hud { top: 3.2%; bottom: auto; right: auto; left: 2.6%; transform: none; align-items: flex-start; text-align: left; }
     .hud small { display: none; }
     .clock { font-size: 24px; }
-    /* phones: the clock sits top-center, so keep the caption along the bottom
-       (clear of it) with a bottom wash instead of the desktop top-left one */
-    .captions { background: linear-gradient(to top, rgba(8,18,10,.82) 0%, rgba(8,18,10,.3) 16%, rgba(8,18,10,0) 34%); }
-    .cap { left: 4%; right: 5%; top: auto; bottom: 5%; font-size: clamp(13px, 3.8cqw, 18px); }
-    .cap.sub { font-size: clamp(11px, 3cqw, 14px); }
+    .captions {
+      position: relative; inset: auto; z-index: auto; pointer-events: auto;
+      min-height: 6.8em; margin-top: 14px; padding-left: 16px;
+      border-left: 4px solid var(--gold); background: none;
+    }
+    .cap {
+      left: 16px; right: 4px; top: 0; bottom: auto;
+      color: var(--ink); text-shadow: none;
+      font-size: clamp(15px, 4.2vw, 19px);
+    }
+    .cap.sub { color: var(--muted); font-size: clamp(13px, 3.6vw, 15px); }
+    .cap em { color: var(--gold); }
     #players text { font-size: 34px; letter-spacing: 2px; }
     #players .fig > circle:first-of-type { r: 28; }
     #players .fig > circle:last-of-type { r: 12; }
@@ -359,6 +367,7 @@
     <p>Friday afternoon into the evening, once the matches wrap, we're running the Fastest Hole on <strong>hole 5 from shortened tees</strong>. It's played in <strong>foursomes</strong>, so you and your partner will need another two-man team — find one now, before Friday, and settle who's hitting the tee shot.</p>
   </div>
 
+  <div class="stagewrap">
   <div class="stage" id="stage" aria-label="Animated explainer of the fastest-hole format">
     <svg viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <defs>
@@ -513,20 +522,21 @@
       </div>
     </div>
 
-    <div class="captions" aria-live="polite">
-      <div class="cap" id="c1">Four players, <em>one ball</em>. One of you hits the tee shot — after that, where the other three stand is <em>up to you</em>. Two in the landing zone and one on the green? Your call.</div>
-      <div class="cap" id="c2"><em>Two rules.</em> One: the ball has to <em>stop</em> before anyone hits it. Run to it, yell at it — just let it stop.</div>
-      <div class="cap" id="c2b">Two: hit it <em>out of bounds</em> and you're done. OB is a DQ.</div>
-      <div class="cap" id="c3">Clock starts at the tee shot. Get it in the hole. <em>Fast.</em></div>
-      <div class="cap sub" id="s1">Station 2 sprints to it — and hits</div>
-      <div class="cap sub" id="s2">Ball's still rolling — wait for it…</div>
-      <div class="cap sub" id="s3">Station 3, greenside — chip or putt, whatever it leaves</div>
-      <div class="cap sub" id="s4">Flag out · putt · drop</div>
-    </div>
-
     <button class="bigplay" id="bigPlay" aria-label="Play the animation">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5 L20 12 L9 19 Z"/></svg>
     </button>
+  </div>
+
+  <div class="captions" aria-live="polite">
+    <div class="cap" id="c1">Four players, <em>one ball</em>. One of you hits the tee shot — after that, where the other three stand is <em>up to you</em>. Two in the landing zone and one on the green? Your call.</div>
+    <div class="cap" id="c2"><em>Two rules.</em> One: the ball has to <em>stop</em> before anyone hits it. Run to it, yell at it — just let it stop.</div>
+    <div class="cap" id="c2b">Two: hit it <em>out of bounds</em> and you're done. OB is a DQ.</div>
+    <div class="cap" id="c3">Clock starts at the tee shot. Get it in the hole. <em>Fast.</em></div>
+    <div class="cap sub" id="s1">Station 2 sprints to it — and hits</div>
+    <div class="cap sub" id="s2">Ball's still rolling — wait for it…</div>
+    <div class="cap sub" id="s3">Station 3, greenside — chip or putt, whatever it leaves</div>
+    <div class="cap sub" id="s4">Flag out · putt · drop</div>
+  </div>
   </div>
 
   <div class="controls">
