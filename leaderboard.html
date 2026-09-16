@@ -817,7 +817,12 @@
           var rk = parseInt(row.rank, 10);
           if (rk) atRank[rk] = (atRank[rk] || 0) + 1;
         });
-        var ties = { first: (atRank[1] || 0) > 1, second: (atRank[2] || 0) > 1 };
+        // Tags only once the flight is final: every team has a Round 5 score.
+        var flightFinal = aggs.length > 0 && aggs.every(function(row) {
+          var rd = roundData[row.id_str];
+          return !!(rd && rd.r5 && rd.r5.pts);
+        });
+        var ties = { first: (atRank[1] || 0) > 1, second: (atRank[2] || 0) > 1, show: flightFinal };
 
         var thead = hasRounds
           ? '<th>Pos</th><th>Team</th>' +
@@ -893,7 +898,7 @@
     }
 
     function buildRow(row, roundData, hasRounds, ties) {
-      ties = ties || { first: false, second: false };
+      ties = ties || { first: false, second: false, show: false };
       var rank     = parseInt(row.rank, 10) || 99;
       var cls      = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : '';
       var teamRaw  = row.name || '';
@@ -903,7 +908,9 @@
         : escHtml(teamRaw);
       var clubs = formatClubs(row.affiliation || '');
       var badge = '';
-      if (rank === 1) {
+      if (!ties.show) {
+        // flight not final yet → no Flight Winner / Runner-Up / Playoff tags
+      } else if (rank === 1) {
         badge = ties.first  ? '<span class="advance-badge playoff">Playoff TBD</span>'
                             : '<span class="advance-badge winner">Flight Winner</span>';
       } else if (rank === 2) {
