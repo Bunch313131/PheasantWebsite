@@ -137,6 +137,72 @@ function doPost(e) {
 }
 
 // --------------------------------------------------------
+// Golf Genius response cache
+// Every leaderboard view = 2 GG fetches; every pairings view = 1 + one
+// per team (~73). Apps Script allows ~20,000 UrlFetch calls/day, so a
+// busy tournament day can exhaust it and every call then errors. Cache
+// each GG response for a short "fresh" window (shared by all visitors)
+// and keep a long-lived "stale" copy to serve if GG or the quota fails.
+// CacheService caps values at ~100KB, so large bodies are chunked.
+// --------------------------------------------------------
+var GG_FRESH_TTL = {            // seconds a cached copy is served as-is
+  'gg':          90,
+  'gg-html':     90,
+  'gg-detail':   600,
+  'gg-schedule': 600,
+  'gg-resolve':  900
+};
+var GG_STALE_TTL = 6 * 60 * 60;  // seconds a copy is kept as a fallback (max allowed is 6h)
+var GG_CHUNK = 90000;
+
+function ggCacheGet(key) {
+  try {
+    var cache = CacheService.getScriptCache();
+    var head = cache.get(key);
+    if (head === null) return null;
+    if (head.indexOf('CHUNKED:') !== 0) return head;
+    var n = parseInt(head.slice(8), 10), keys = [];
+    for (var i = 0; i < n; i++) keys.push(key + '#' + i);
+    var parts = cache.getAll(keys), out = '';
+    for (var j = 0; j < n; j++) {
+      if (parts[keys[j]] === undefined || parts[keys[j]] === null) return null;  // a chunk expired
+      out += parts[keys[j]];
+    }
+    return out;
+  } catch (err) { return null; }
+}
+
+function ggCachePut(key, text, ttl) {
+  try {
+    var cache = CacheService.getScriptCache();
+    if (text.length <= GG_CHUNK) { cache.put(key, text, ttl); return; }
+    var chunks = {}, n = 0;
+    for (var i = 0; i < text.length; i += GG_CHUNK) chunks[key + '#' + (n++)] = text.slice(i, i + GG_CHUNK);
+    cache.putAll(chunks, ttl);
+    cache.put(key, 'CHUNKED:' + n, ttl);
+  } catch (err) { /* cache is best-effort */ }
+}
+
+// Run producer() (which must return the response text) through the cache.
+// Serves the fresh copy if present; otherwise calls the producer, stores
+// fresh + stale copies, and on a producer failure serves the stale copy.
+function ggCached(action, id, producer) {
+  var fresh = 'gg:' + action + ':' + id, stale = 'stale:' + fresh;
+  var hit = ggCacheGet(fresh);
+  if (hit !== null) return { text: hit, source: 'cache' };
+  try {
+    var text = producer();
+    ggCachePut(fresh, text, GG_FRESH_TTL[action] || 90);
+    ggCachePut(stale, text, GG_STALE_TTL);
+    return { text: text, source: 'live' };
+  } catch (err) {
+    var old = ggCacheGet(stale);
+    if (old !== null) return { text: old, source: 'stale', error: err.message };
+    throw err;
+  }
+}
+
+// --------------------------------------------------------
 // GET handler — proxy for Golf Genius API (bypasses browser CORS)
 // Usage: ?action=gg&id=TOURNAMENT_ID
 // --------------------------------------------------------
@@ -147,11 +213,16 @@ function doGet(e) {
   // JSON endpoint — aggregate totals
   if (e.parameter.action === 'gg' && e.parameter.id) {
     try {
-      var resp = UrlFetchApp.fetch(base + e.parameter.id + qs, {
-        muteHttpExceptions: true,
-        headers: { 'Accept': 'application/json', 'User-Agent': 'Mozilla/5.0' }
+      var ggRes = ggCached('gg', e.parameter.id, function() {
+        var resp = UrlFetchApp.fetch(base + e.parameter.id + qs, {
+          muteHttpExceptions: true,
+          headers: { 'Accept': 'application/json', 'User-Agent': 'Mozilla/5.0' }
+        });
+        var text = resp.getContentText();
+        JSON.parse(text);   // a non-JSON body (GG error page) must not be cached as fresh
+        return text;
       });
-      return ContentService.createTextOutput(resp.getContentText())
+      return ContentService.createTextOutput(ggRes.text)
         .setMimeType(ContentService.MimeType.JSON);
     } catch (err) {
       return ContentService.createTextOutput(JSON.stringify({ error: err.message }))
@@ -162,11 +233,15 @@ function doGet(e) {
   // HTML endpoint — per-round data (parsed client-side)
   if (e.parameter.action === 'gg-html' && e.parameter.id) {
     try {
-      var resp = UrlFetchApp.fetch(base + e.parameter.id + qs, {
-        muteHttpExceptions: true,
-        headers: { 'Accept': 'text/html', 'User-Agent': 'Mozilla/5.0' }
+      var htmlRes = ggCached('gg-html', e.parameter.id, function() {
+        var resp = UrlFetchApp.fetch(base + e.parameter.id + qs, {
+          muteHttpExceptions: true,
+          headers: { 'Accept': 'text/html', 'User-Agent': 'Mozilla/5.0' }
+        });
+        if (resp.getResponseCode() >= 400) throw new Error('GG returned HTTP ' + resp.getResponseCode());
+        return resp.getContentText();
       });
-      return ContentService.createTextOutput(resp.getContentText())
+      return ContentService.createTextOutput(htmlRes.text)
         .setMimeType(ContentService.MimeType.TEXT);
     } catch (err) {
       return ContentService.createTextOutput('')
@@ -177,11 +252,15 @@ function doGet(e) {
   // Detail endpoint — full match schedule per team (for head-to-head tiebreaker)
   if (e.parameter.action === 'gg-detail' && e.parameter.id) {
     try {
-      var resp = UrlFetchApp.fetch('https://www.golfgenius.com/tournaments2/details/' + e.parameter.id, {
-        muteHttpExceptions: true,
-        headers: { 'Accept': 'text/html', 'User-Agent': 'Mozilla/5.0' }
+      var detRes = ggCached('gg-detail', e.parameter.id, function() {
+        var resp = UrlFetchApp.fetch('https://www.golfgenius.com/tournaments2/details/' + e.parameter.id, {
+          muteHttpExceptions: true,
+          headers: { 'Accept': 'text/html', 'User-Agent': 'Mozilla/5.0' }
+        });
+        if (resp.getResponseCode() >= 400) throw new Error('GG returned HTTP ' + resp.getResponseCode());
+        return resp.getContentText();
       });
-      return ContentService.createTextOutput(resp.getContentText())
+      return ContentService.createTextOutput(detRes.text)
         .setMimeType(ContentService.MimeType.TEXT);
     } catch (err) {
       return ContentService.createTextOutput('')
@@ -194,6 +273,7 @@ function doGet(e) {
   // Usage: ?action=gg-schedule&id=TOURNAMENT_ID
   if (e.parameter.action === 'gg-schedule' && e.parameter.id) {
     try {
+      var schedRes = ggCached('gg-schedule', e.parameter.id, function() {
       // Step 1: Get team list from results JSON
       var jsonQs = '?called_from=widgets%2Fcustomized_tournament_results&hide_totals=false&player_stats_for_portal=true';
       var jsonResp = UrlFetchApp.fetch(base + e.parameter.id + jsonQs, {
@@ -249,8 +329,12 @@ function doGet(e) {
       // Collect to array
       var matchList = [];
       for (var k in matchMap) { matchList.push(matchMap[k]); }
+      if (!matchList.length) throw new Error('no matches parsed');   // never cache an empty schedule as fresh
 
-      return ContentService.createTextOutput(JSON.stringify({ matches: matchList, debug: debugTeams }))
+      return JSON.stringify({ matches: matchList, debug: debugTeams });
+      });
+
+      return ContentService.createTextOutput(schedRes.text)
         .setMimeType(ContentService.MimeType.JSON);
 
     } catch (err) {
@@ -324,6 +408,12 @@ function doGet(e) {
   // Usage: ?action=gg-resolve&league=LEAGUE_ID&page=PAGE_ID&exclude=id1,id2
   if (e.parameter.action === 'gg-resolve' && e.parameter.league) {
     try {
+      var resolveKey = e.parameter.league + ':' + (e.parameter.page || '');
+      var resolveHit = ggCacheGet('gg:gg-resolve:' + resolveKey);
+      if (resolveHit !== null) {
+        return ContentService.createTextOutput(resolveHit)
+          .setMimeType(ContentService.MimeType.JSON);
+      }
       var wUrl = 'https://www.golfgenius.com/leagues/' + e.parameter.league +
                  '/widgets/customized_tournament_results?page_id=' +
                  (e.parameter.page || '') + '&shared=false';
@@ -363,13 +453,25 @@ function doGet(e) {
       });
       if (!tid && candidates.length) tid = candidates[0];
 
-      return ContentService.createTextOutput(JSON.stringify({
+      var resolveOut = JSON.stringify({
         ready: true,
         tournamentId: tid,
         candidates: candidates.slice(0, 12)
-      })).setMimeType(ContentService.MimeType.JSON);
+      });
+      if (tid) {
+        ggCachePut('gg:gg-resolve:' + resolveKey, resolveOut, GG_FRESH_TTL['gg-resolve']);
+        ggCachePut('stale:gg:gg-resolve:' + resolveKey, resolveOut, GG_STALE_TTL);
+      }
+      return ContentService.createTextOutput(resolveOut)
+        .setMimeType(ContentService.MimeType.JSON);
 
     } catch (err) {
+      // GG unreachable or fetch quota exhausted: reuse the last good answer if we have one
+      var resolveStale = ggCacheGet('stale:gg:gg-resolve:' + e.parameter.league + ':' + (e.parameter.page || ''));
+      if (resolveStale !== null) {
+        return ContentService.createTextOutput(resolveStale)
+          .setMimeType(ContentService.MimeType.JSON);
+      }
       return ContentService.createTextOutput(JSON.stringify({ ready: false, error: err.message }))
         .setMimeType(ContentService.MimeType.JSON);
     }
