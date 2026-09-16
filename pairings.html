@@ -479,6 +479,37 @@
     };
 
     // ============================================================
+    // HARDCODED PAIRINGS — a snapshot of what the Golf Genius portal shows.
+    // When STATIC_ROUNDS has entries the page renders them instantly with no
+    // network call (the live auto-pull above is slow). One entry per round,
+    // in tab order; matches listed in portal order. Re-snapshot this block
+    // when GG changes (e.g. once holes are assigned). Add ?live=1 to the URL
+    // to bypass the snapshot and force the live auto-pull.
+    //   { date: 'Thu, September 17', matches: [
+    //       { flight: 'Flight 1', home: 'Player A + Player B', away: 'Player C + Player D' }, ...
+    //   ] }
+    // ============================================================
+    var STATIC_AS_OF = '';        // e.g. 'September 16' — shown in the status bar
+    var STATIC_ROUNDS = [];
+
+    function renderStatic() {
+      allRounds = STATIC_ROUNDS.map(function(r, i) {
+        return {
+          roundNum: i + 1,
+          date: r.date,
+          matches: (r.matches || []).map(function(m) {
+            return { date: r.date, flight: m.flight || '', home: m.home, away: m.away, homeWon: null, result: '' };
+          })
+        };
+      });
+      render(allRounds);
+      hasRendered = true;
+      var badge = document.getElementById('prStatusBadge');
+      if (badge) { badge.className = 'lb-badge final'; badge.textContent = GG.year + ' Season'; }
+      document.getElementById('prUpdated').textContent = STATIC_AS_OF ? 'Pairings as of ' + STATIC_AS_OF : '';
+    }
+
+    // ============================================================
     // Diagnostics / overrides (query string):
     //   ?debug=1  → print what the page resolved and loaded (or why it fell back) under the content
     //   ?tid=ID   → force a specific tournament id (skips resolve + cache)
@@ -1151,7 +1182,9 @@
     }
 
     initFollow();
-    if (GG.live && GG.tournamentId) {
+    if (STATIC_ROUNDS.length && QS.get('live') !== '1') {
+      renderStatic();                                    // hardcoded snapshot — no network
+    } else if (GG.live && GG.tournamentId) {
       loadSchedule();                                    // manual override
     } else if (GG.goLiveDate && todayISO() < GG.goLiveDate) {
       showComingSoon();                                  // before go-live window
