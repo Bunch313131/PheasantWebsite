@@ -380,6 +380,11 @@
       background: var(--gray-light);
       color: var(--gray-dark);
     }
+    .advance-badge.playoff {
+      background: #fff;
+      color: var(--green-dark);
+      border: 1px solid var(--green-dark);
+    }
 
     /* ── Loading / error states ── */
     .lb-loading, .lb-error {
@@ -622,7 +627,7 @@
             ', flights: ' + ((jsonData.event.scopes || []).length));
         render(jsonData, roundData);
         hasRendered = true;
-        checkTiebreakers(jsonData, roundData);
+        // checkTiebreakers(jsonData, roundData);  // disabled: playoffs are run by the pro, shown as "Playoff TBD"
         markUpdated();
         schedulePoll();
       })
@@ -804,6 +809,16 @@
 
         var aggs = scope.aggregates || [];
 
+        // Ties at 1st or 2nd are settled by the pro (playoff, posted on the
+        // paper scoreboard), not by the feed — label every tied team
+        // "Playoff TBD" instead of guessing a winner / runner-up.
+        var atRank = {};
+        aggs.forEach(function(row) {
+          var rk = parseInt(row.rank, 10);
+          if (rk) atRank[rk] = (atRank[rk] || 0) + 1;
+        });
+        var ties = { first: (atRank[1] || 0) > 1, second: (atRank[2] || 0) > 1 };
+
         var thead = hasRounds
           ? '<th>Pos</th><th>Team</th>' +
             '<th class="right col-r1">R1</th><th class="right col-r2">R2</th><th class="right col-r3">R3</th>' +
@@ -818,7 +833,7 @@
           '</div>' +
           '<div class="lb-table-wrap">' +
             '<table class="lb-table"><thead><tr>' + thead + '</tr></thead><tbody>' +
-            aggs.map(function(row) { return buildRow(row, roundData, hasRounds); }).join('') +
+            aggs.map(function(row) { return buildRow(row, roundData, hasRounds, ties); }).join('') +
             '</tbody></table></div>';
 
         panelsEl.appendChild(panel);
@@ -877,7 +892,8 @@
       }, true);
     }
 
-    function buildRow(row, roundData, hasRounds) {
+    function buildRow(row, roundData, hasRounds, ties) {
+      ties = ties || { first: false, second: false };
       var rank     = parseInt(row.rank, 10) || 99;
       var cls      = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : '';
       var teamRaw  = row.name || '';
@@ -886,8 +902,14 @@
         ? escHtml(parts[0].trim()) + ' <span style="color:var(--gold);font-weight:400">&amp;</span> ' + escHtml(parts[1].trim())
         : escHtml(teamRaw);
       var clubs = formatClubs(row.affiliation || '');
-      var badge = rank === 1 ? '<span class="advance-badge winner">Flight Winner</span>'
-                : rank === 2 ? '<span class="advance-badge runner">Runner-Up</span>' : '';
+      var badge = '';
+      if (rank === 1) {
+        badge = ties.first  ? '<span class="advance-badge playoff">Playoff TBD</span>'
+                            : '<span class="advance-badge winner">Flight Winner</span>';
+      } else if (rank === 2) {
+        badge = ties.second ? '<span class="advance-badge playoff">Playoff TBD</span>'
+                            : '<span class="advance-badge runner">Runner-Up</span>';
+      }
 
       var rd = roundData[row.id_str] || {};
 
