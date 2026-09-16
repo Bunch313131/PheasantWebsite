@@ -674,22 +674,33 @@
 
           var entry = { r1: '', r2: '', r3: '', r4: { pts: '', result: '' }, r5: { pts: '', result: '' }, total: '' };
 
-          // Multi-column rounds (R4, R5): last sub-col = pts, first = result
-          ['r4','r5'].forEach(function(r) {
-            if (colMap[r]) {
-              entry[r] = {
-                pts:    txt(colMap[r].last),
-                result: txt(colMap[r].first)
-              };
+          // Any round may arrive as a single points column or as a
+          // Status / Thru / Points group (colspan > 1). For a group the
+          // points are normally the last sub-column; if that cell isn't
+          // numeric, take the last numeric-looking cell in the group.
+          function ptsOf(col) {
+            if (col === undefined) return '';
+            if (typeof col !== 'object') return txt(col);
+            var v = txt(col.last);
+            if (/^-?\d+(\.\d+)?$/.test(v)) return v;
+            for (var i = col.last; i >= col.first; i--) {
+              var c = txt(i);
+              if (/^-?\d+(\.\d+)?$/.test(c)) return c;
             }
-          });
+            return v;
+          }
+          function resultOf(col) {
+            if (col === undefined) return '';
+            return typeof col === 'object' ? txt(col.first) : '';
+          }
 
-          // Single-column rounds (R1, R2, R3) and total
-          ['r1','r2','r3','total'].forEach(function(r) {
-            if (colMap[r] !== undefined) {
-              entry[r] = txt(colMap[r]);
-            }
+          ['r1','r2','r3'].forEach(function(r) {
+            if (colMap[r] !== undefined) entry[r] = ptsOf(colMap[r]);
           });
+          ['r4','r5'].forEach(function(r) {
+            if (colMap[r] !== undefined) entry[r] = { pts: ptsOf(colMap[r]), result: resultOf(colMap[r]) };
+          });
+          if (colMap.total !== undefined) entry.total = ptsOf(colMap.total);
 
           result[id] = entry;
         });
@@ -700,12 +711,20 @@
     // Build a map of round key → column index (or {first, last} for multi-col rounds)
     function buildColMap(doc) {
       var map = {};
-      // GG may not wrap headers in <thead> — search all tr elements for th cells
-      var headerRow = null;
+      // GG may not wrap headers in <thead> — search all tr elements for th cells.
+      // Pick the row that carries the round labels (R1, R2, …): with several
+      // rounds posted, the Status/Thru/Points sub-header row has MORE cells
+      // than the main header, so "most th cells" would choose the wrong row.
+      var headerRow = null, bestRounds = -1, bestThs = -1;
       doc.querySelectorAll('tr').forEach(function(tr) {
         var ths = tr.querySelectorAll('th');
-        if (ths.length > 0 && (!headerRow || ths.length > headerRow.querySelectorAll('th').length)) {
-          headerRow = tr;
+        if (!ths.length) return;
+        var rounds = 0;
+        ths.forEach(function(th) {
+          if (/^r[1-5]$/.test(th.textContent.trim().toLowerCase().replace(/\s+/g, ''))) rounds++;
+        });
+        if (rounds > bestRounds || (rounds === bestRounds && ths.length > bestThs)) {
+          headerRow = tr; bestRounds = rounds; bestThs = ths.length;
         }
       });
       if (!headerRow) { console.warn('[GG colMap] no header row found'); return map; }
@@ -721,6 +740,7 @@
         var key = null;
         if (/^r[1-5]$/.test(label))  key = label;
         if (/total/.test(label))      key = 'total';
+        if (label === 'points' && span === 1) key = 'total';   // overall column in the main header
 
         if (key) {
           if (span > 1) {
@@ -733,8 +753,8 @@
         idx += span;
       });
 
-      console.log('[GG colMap] headers:', allHeaders);
-      console.log('[GG colMap] map:', map);
+      dbg('column headers', allHeaders.map(function(h) { return h.label + (h.span > 1 ? 'x' + h.span : ''); }).join(' | '));
+      dbg('column map', map);
       return map;
     }
 

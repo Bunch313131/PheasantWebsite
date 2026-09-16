@@ -191,9 +191,12 @@ function ggCached(action, id, producer) {
   var hit = ggCacheGet(fresh);
   if (hit !== null) return { text: hit, source: 'cache' };
   try {
-    var text = producer();
-    ggCachePut(fresh, text, GG_FRESH_TTL[action] || 90);
-    ggCachePut(stale, text, GG_STALE_TTL);
+    var out  = producer();
+    var text = (typeof out === 'string') ? out : out.text;
+    if (typeof out === 'string' || out.cache !== false) {   // a producer may return {text, cache:false} for partial data
+      ggCachePut(fresh, text, GG_FRESH_TTL[action] || 90);
+      ggCachePut(stale, text, GG_STALE_TTL);
+    }
     return { text: text, source: 'live' };
   } catch (err) {
     var old = ggCacheGet(stale);
@@ -299,13 +302,34 @@ function doGet(e) {
         };
       });
       var responses = UrlFetchApp.fetchAll(requests);
+      var htmls = responses.map(function(resp) {
+        return (resp.getResponseCode() >= 400) ? '' : resp.getContentText();
+      });
+
+      // Step 2b: GG can reject part of a 70-request burst. Re-fetch any team page
+      // that came back empty/blocked, one at a time with a short pause, up to 2 passes.
+      var retried = 0;
+      for (var pass = 0; pass < 2; pass++) {
+        var missing = [];
+        htmls.forEach(function(h, i) { if (!h || h.length < 500) missing.push(i); });
+        if (!missing.length) break;
+        missing.forEach(function(i) {
+          Utilities.sleep(250);
+          try {
+            var r = UrlFetchApp.fetch(requests[i].url, { muteHttpExceptions: true, headers: requests[i].headers });
+            if (r.getResponseCode() < 400) htmls[i] = r.getContentText();
+            retried++;
+          } catch (e) { /* keep as missing */ }
+        });
+      }
 
       // Step 3: Parse and deduplicate matches
       var matchMap = {};
       var debugTeams = [];
-      responses.forEach(function(resp, i) {
+      var pagesMissing = 0;
+      htmls.forEach(function(html, i) {
         var team = teams[i];
-        var html = resp.getContentText();
+        if (!html || html.length < 500) pagesMissing++;
         var entries = parseDetailHtmlGas(html);
         debugTeams.push({ name: team.name, htmlLen: html.length, matchCount: entries.length,
                           dates: entries.map(function(e) { return e.date; }) });
@@ -331,7 +355,14 @@ function doGet(e) {
       for (var k in matchMap) { matchList.push(matchMap[k]); }
       if (!matchList.length) throw new Error('no matches parsed');   // never cache an empty schedule as fresh
 
-      return JSON.stringify({ matches: matchList, debug: debugTeams });
+      // Serve a partial schedule (some team pages still missing) but don't cache it as fresh,
+      // so the next request tries GG again instead of pinning the gap for 10 minutes.
+      var partial = pagesMissing > 0;
+      return {
+        text: JSON.stringify({ matches: matchList, debug: debugTeams,
+                               pagesMissing: pagesMissing, retried: retried, partial: partial }),
+        cache: !partial
+      };
       });
 
       return ContentService.createTextOutput(schedRes.text)

@@ -515,6 +515,14 @@
     // Per-team per-round points: normKey(teamName) → { R1: pts, R2: pts, ... }
     var pointsLookup = {};
 
+    // "Tom A + Jake A (Tom A + Jake A)" → "Tom A + Jake A" (GG repeats the name in parentheses
+    // when a team's display name equals its player list)
+    function cleanTeamName(name) {
+      var m = (name || '').match(/^(.*?)\s*\((.*)\)\s*$/);
+      if (m && normKey(m[1]) === normKey(m[2])) return m[1].trim();
+      return name || '';
+    }
+
     // Normalize a name for dedup/comparison keys
     function normKey(s) {
       return (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -575,12 +583,25 @@
           catch (e) { throw new Error('schedule response is not JSON'); }
           if (schedData.error) throw new Error('proxy error: ' + schedData.error);
           dbg('schedule', (schedData.matches || []).length + ' matches, results html ' + resultsHtml.length + ' chars');
+          if (schedData.debug && schedData.debug.length) {
+            var dT = schedData.debug, noPage = 0, noMatch = 0, byDate = {};
+            dT.forEach(function(t) {
+              if (!t.htmlLen || t.htmlLen < 500) noPage++;
+              else if (!t.matchCount) noMatch++;
+              (t.dates || []).forEach(function(d) { byDate[d] = (byDate[d] || 0) + 1; });
+            });
+            dbg('team pages', dT.length + ' teams; ' + noPage + ' page(s) missing/blocked, ' + noMatch +
+                ' page(s) with no match rows; team-match entries by date: ' + JSON.stringify(byDate));
+            var bad = dT.filter(function(t) { return !t.htmlLen || t.htmlLen < 500 || !t.matchCount; }).slice(0, 8);
+            if (bad.length) dbg('teams without matches (first ' + bad.length + ')', bad.map(function(t) { return t.name + ' [' + (t.htmlLen || 0) + ' chars]'; }).join('; '));
+          }
 
           // Parse per-round points from GG results HTML table
           pointsLookup = extractPointsFromResultsHtml(resultsHtml);
           console.log('[Points] loaded for', Object.keys(pointsLookup).length, 'teams');
 
           var matches = schedData.matches || [];
+          matches.forEach(function(m) { m.home = cleanTeamName(m.home); m.away = cleanTeamName(m.away); });
 
           // Deduplicate client-side — GAS team names can differ between
           // the aggregate JSON (used as home) and the detail HTML (used as
