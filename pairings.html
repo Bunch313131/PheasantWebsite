@@ -478,6 +478,35 @@
       live:         false          // manual override (with tournamentId) — skips auto-resolve
     };
 
+    // ============================================================
+    // Diagnostics / overrides (query string):
+    //   ?debug=1  → print what the page resolved and loaded (or why it fell back) under the content
+    //   ?tid=ID   → force a specific tournament id (skips resolve + cache)
+    //   ?reset=1  → clear the cached tournament id and re-resolve
+    // ============================================================
+    var CACHE_KEY = 'gg_tid_' + GG.year;
+    var QS = new URLSearchParams(window.location.search);
+    var DEBUG = QS.get('debug') === '1';
+    var dbgLines = [];
+    function dbg(label, val) {
+      var s = (typeof val === 'string') ? val : JSON.stringify(val);
+      if (s && s.length > 700) s = s.slice(0, 700) + '…';
+      dbgLines.push(label + ': ' + s);
+      console.log('[GG]', label, val);
+      if (!DEBUG) return;
+      var el = document.getElementById('ggDebug');
+      if (!el) {
+        el = document.createElement('pre');
+        el.id = 'ggDebug';
+        el.style.cssText = 'white-space:pre-wrap;word-break:break-all;font:12px/1.5 monospace;' +
+          'background:#111;color:#eee;padding:12px 14px;margin:16px auto;max-width:900px;border-radius:8px;';
+        var content = document.getElementById('prContent');
+        (content && content.parentNode ? content.parentNode : document.body).appendChild(el);
+      }
+      el.textContent = dbgLines.join('\n');
+    }
+    function clearCachedId() { try { localStorage.removeItem(CACHE_KEY); } catch (e) {} }
+
     // All matches, kept for search filtering
     var allRounds = [];
     // Per-team per-round points: normKey(teamName) → { R1: pts, R2: pts, ... }
@@ -529,13 +558,19 @@
       var schedUrl = GG.gasUrl + '?action=gg-schedule&id=' + GG.tournamentId;
       var htmlUrl  = GG.gasUrl + '?action=gg-html&id='     + GG.tournamentId;
 
+      dbg('schedule url', schedUrl);
       Promise.all([
-        fetch(schedUrl).then(function(r) { return r.json(); }),
+        fetch(schedUrl).then(function(r) { return r.text(); }),
         fetch(htmlUrl).then(function(r) { return r.text(); }).catch(function() { return ''; })
       ])
         .then(function(results) {
-          var schedData = results[0], resultsHtml = results[1];
-          if (schedData.error) throw new Error(schedData.error);
+          var schedText = results[0], resultsHtml = results[1];
+          dbg('schedule json (head)', schedText.slice(0, 400));
+          var schedData;
+          try { schedData = JSON.parse(schedText); }
+          catch (e) { throw new Error('schedule response is not JSON'); }
+          if (schedData.error) throw new Error('proxy error: ' + schedData.error);
+          dbg('schedule', (schedData.matches || []).length + ' matches, results html ' + resultsHtml.length + ' chars');
 
           // Parse per-round points from GG results HTML table
           pointsLookup = extractPointsFromResultsHtml(resultsHtml);
@@ -564,6 +599,8 @@
         })
         .catch(function(err) {
           console.error('[Schedule] load error:', err);
+          dbg('load error', String(err && err.message || err) + ' → portal fallback');
+          clearCachedId();        // never let a bad cached id stick across reloads
           showPortalFallback();   // live data exists but custom render failed → native embed
         });
     }
@@ -993,27 +1030,35 @@
       return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
     }
     function resolveTournament() {
-      var CACHE_KEY = 'gg_tid_' + GG.year;
+      if (QS.get('reset') === '1') clearCachedId();
+      var forced = QS.get('tid');
+      if (forced) { GG.tournamentId = forced; dbg('tournament id', forced + ' (forced via ?tid)'); loadSchedule(); return; }
       var cached = null;
       try { cached = localStorage.getItem(CACHE_KEY); } catch (e) {}
-      if (cached) { GG.tournamentId = cached; loadSchedule(); return; }
+      if (cached) { GG.tournamentId = cached; dbg('tournament id', cached + ' (cached)'); loadSchedule(); return; }
 
       showComingSoon();
       var url = GG.gasUrl + '?action=gg-resolve&league=' + GG.leagueId +
                 '&page=' + GG.resultsPage +
                 '&exclude=' + [GG.leagueId, GG.resultsPage, '12929960966904364298'].join(',');
+      dbg('resolve url', url);
       fetch(url)
-        .then(function(r) { return r.json(); })
-        .then(function(res) {
+        .then(function(r) { return r.text(); })
+        .then(function(text) {
+          dbg('resolve response', text);
+          var res = null;
+          try { res = JSON.parse(text); } catch (e) {}
           if (res && res.ready && res.tournamentId) {
             GG.tournamentId = res.tournamentId;
+            dbg('tournament id', res.tournamentId + ' (resolved)');
             try { localStorage.setItem(CACHE_KEY, res.tournamentId); } catch (e) {}
             loadSchedule();
           } else if (res && res.ready) {
+            dbg('resolve', 'ready but no tournament id could be extracted → portal fallback');
             showPortalFallback();
           }
         })
-        .catch(function() { /* stay on Coming Soon */ });
+        .catch(function(err) { dbg('resolve error', String(err)); /* stay on Coming Soon */ });
     }
 
     initFollow();
