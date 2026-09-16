@@ -528,6 +528,31 @@
       return (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
     }
 
+    // Surname key for a "First Last + First Last" team: sorted surnames, so
+    // "Ron Peters + Joe Silvestri" and "Ronald Peters + Joe Silvestri" agree.
+    function surnameKey(name) {
+      var parts = (name || '').split(/\s*[+&\/]\s*/).filter(Boolean);
+      if (parts.length < 2) return '';
+      return 'sn:' + parts.map(function(p) {
+        var w = p.trim().split(/\s+/);
+        return normKey(w[w.length - 1]);
+      }).sort().join('|');
+    }
+
+    // All keys a team label could be matched under: the label itself, any
+    // parenthesised alternate form, and the surname keys of both.
+    function teamKeys(name) {
+      var forms = [], m = (name || '').match(/^(.*?)\s*\((.*)\)\s*$/);
+      if (m) { forms.push(m[1]); forms.push(m[2]); } else forms.push(name || '');
+      var keys = [];
+      forms.forEach(function(f) {
+        var k = normKey(f), sk = surnameKey(f);
+        if (k && keys.indexOf(k) === -1) keys.push(k);
+        if (sk && keys.indexOf(sk) === -1) keys.push(sk);
+      });
+      return keys;
+    }
+
     // Split a flat match list into sub-rounds.
     // On a day with N rounds every team plays exactly once per round,
     // so we greedily assign: match goes to sub-round 0 if neither team
@@ -601,12 +626,27 @@
           console.log('[Points] loaded for', Object.keys(pointsLookup).length, 'teams');
 
           var matches = schedData.matches || [];
-          matches.forEach(function(m) { m.home = cleanTeamName(m.home); m.away = cleanTeamName(m.away); });
 
-          // Deduplicate client-side — GAS team names can differ between
-          // the aggregate JSON (used as home) and the detail HTML (used as
-          // opponentName / away), so the server-side sort key may not match.
-          var seenKeys = {};
+          // Every "home" is the team's official name (from the results JSON).
+          // Every "away" is the opponent label from a detail page, which can
+          // differ: "Ron Peters + Joe Silvestri (Ronald Peters + Joe Silvestri)"
+          // vs an official "Ronald Peters + Joe Silvestri". Map each label
+          // back to the official name so pairs merge and points look up.
+          var canonical = {};
+          matches.forEach(function(m) {
+            teamKeys(m.home).forEach(function(k) { if (!canonical[k]) canonical[k] = m.home; });
+          });
+          var unmapped = 0;
+          matches.forEach(function(m) {
+            var hit = null;
+            teamKeys(m.away).some(function(k) { hit = canonical[k]; return !!hit; });
+            if (hit) m.away = hit; else { m.away = cleanTeamName(m.away); unmapped++; }
+            m.home = cleanTeamName(m.home);
+          });
+          if (unmapped) dbg('opponent labels not matched to a team', unmapped);
+
+          // Deduplicate: each match appears once per side (A's page and B's page).
+          var seenKeys = {}, rawCount = matches.length;
           matches = matches.filter(function(m) {
             var pair = [normKey(m.home), normKey(m.away)].sort();
             var key = normKey(m.date) + '|' + pair[0] + '|' + pair[1];
@@ -614,6 +654,7 @@
             seenKeys[key] = true;
             return true;
           });
+          dbg('matches after pairing', matches.length + ' (from ' + rawCount + ' one-sided entries)');
 
           allRounds = buildRounds(matches);
           render(allRounds);

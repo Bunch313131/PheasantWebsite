@@ -242,7 +242,11 @@ function doGet(e) {
           headers: { 'Accept': 'text/html', 'User-Agent': 'Mozilla/5.0' }
         });
         if (resp.getResponseCode() >= 400) throw new Error('GG returned HTTP ' + resp.getResponseCode());
-        return resp.getContentText();
+        var body = resp.getContentText();
+        // A results table always carries data-aggregate-id rows; a short body without them
+        // is a GG placeholder/error page and must not be cached as fresh.
+        if (body.indexOf('data-aggregate-id') === -1) throw new Error('GG results HTML incomplete (' + body.length + ' chars)');
+        return body;
       });
       return ContentService.createTextOutput(htmlRes.text)
         .setMimeType(ContentService.MimeType.TEXT);
