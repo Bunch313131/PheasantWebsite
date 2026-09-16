@@ -588,6 +588,9 @@
       el.textContent = dbgLines.join('\n');
     }
     function clearCachedId() { try { localStorage.removeItem(CACHE_KEY); } catch (e) {} }
+    var MAX_TRIES = 3;                 // transient proxy/GG hiccups: retry before giving up
+    function retryDelay(attempt) { return 2500 * attempt; }
+    var hasRendered = false;           // once standings are on screen, never replace them with the iframe
 
     var activeFlightIndex = 0;
     var pollTimer = null;
@@ -596,7 +599,8 @@
     // ============================================================
     // Fetch both JSON (structure) + HTML (per-round data) in parallel
     // ============================================================
-    function loadStandings() {
+    function loadStandings(attempt) {
+      attempt = attempt || 1;
       var jsonUrl = GG.gasUrl + '?action=gg&id='      + GG.tournamentId;
       var htmlUrl = GG.gasUrl + '?action=gg-html&id=' + GG.tournamentId;
 
@@ -617,14 +621,25 @@
         dbg('results html', results[1].length + ' chars, per-round rows: ' + Object.keys(roundData).length +
             ', flights: ' + ((jsonData.event.scopes || []).length));
         render(jsonData, roundData);
+        hasRendered = true;
         checkTiebreakers(jsonData, roundData);
         markUpdated();
         schedulePoll();
       })
       .catch(function(err) {
-        console.error('[GG] loadStandings failed:', err);
-        dbg('load error', String(err && err.message || err) + ' → portal fallback');
-        clearCachedId();        // never let a bad cached id stick across reloads
+        console.error('[GG] loadStandings failed (attempt ' + attempt + '):', err);
+        var msg = String(err && err.message || err);
+        if (attempt < MAX_TRIES) {
+          dbg('load error', msg + ' → retrying in ' + (retryDelay(attempt) / 1000) + 's');
+          setTimeout(function() { loadStandings(attempt + 1); }, retryDelay(attempt));
+          return;
+        }
+        if (hasRendered) {
+          dbg('load error', msg + ' → keeping last standings, will retry on next poll');
+          schedulePoll();
+          return;
+        }
+        dbg('load error', msg + ' → portal fallback');
         showPortalFallback();   // live data exists but custom render failed → native embed
       });
     }
@@ -1246,7 +1261,8 @@
       var d = new Date(), p = function(n){ return (n < 10 ? '0' : '') + n; };
       return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
     }
-    function resolveTournament() {
+    function resolveTournament(attempt) {
+      attempt = attempt || 1;
       if (QS.get('reset') === '1') clearCachedId();
       var forced = QS.get('tid');
       if (forced) { GG.tournamentId = forced; dbg('tournament id', forced + ' (forced via ?tid)'); loadStandings(); return; }
@@ -1254,7 +1270,7 @@
       try { cached = localStorage.getItem(CACHE_KEY); } catch (e) {}
       if (cached) { GG.tournamentId = cached; dbg('tournament id', cached + ' (cached)'); loadStandings(); return; }
 
-      showComingSoon();  // hold on Coming Soon until we know results exist
+      if (attempt === 1) showComingSoon();  // hold on Coming Soon until we know results exist
       var url = GG.gasUrl + '?action=gg-resolve&league=' + GG.leagueId +
                 '&page=' + GG.resultsPage +
                 '&exclude=' + [GG.leagueId, GG.resultsPage, '12929960966904364298'].join(',');
@@ -1265,18 +1281,29 @@
           dbg('resolve response', text);
           var res = null;
           try { res = JSON.parse(text); } catch (e) {}
-          if (res && res.ready && res.tournamentId) {
+          if (!res) throw new Error('resolve response is not JSON');
+          if (res.error) throw new Error('proxy error: ' + res.error);
+          if (res.ready && res.tournamentId) {
             GG.tournamentId = res.tournamentId;
             dbg('tournament id', res.tournamentId + ' (resolved)');
             try { localStorage.setItem(CACHE_KEY, res.tournamentId); } catch (e) {}
             loadStandings();
-          } else if (res && res.ready) {
+          } else if (res.ready) {
             dbg('resolve', 'ready but no tournament id could be extracted → portal fallback');
             showPortalFallback();   // live, but no id extracted → native embed
+          } else {
+            dbg('resolve', 'not ready (GG has not published results yet) → Coming Soon');
           }
-          // else not ready → stay on Coming Soon
         })
-        .catch(function(err) { dbg('resolve error', String(err)); /* stay on Coming Soon */ });
+        .catch(function(err) {
+          var msg = String(err && err.message || err);
+          if (attempt < MAX_TRIES) {
+            dbg('resolve error', msg + ' → retrying in ' + (retryDelay(attempt) / 1000) + 's');
+            setTimeout(function() { resolveTournament(attempt + 1); }, retryDelay(attempt));
+            return;
+          }
+          dbg('resolve error', msg + ' → staying on Coming Soon');
+        });
     }
 
     // ============================================================
