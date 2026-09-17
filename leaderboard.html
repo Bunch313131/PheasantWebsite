@@ -566,7 +566,11 @@
       year:         '2026',
       goLiveDate:   '2026-09-16',  // ← expected go-live; auto-checks on/after this date
       live:         false,         // manual override (with tournamentId) — skips auto-resolve
-      pollMs:       3 * 60 * 1000
+      pollMs:       3 * 60 * 1000,
+      // iframeOnly: skip the custom leaderboard entirely and embed Golf Genius's
+      // own Results page (resultsPage above). Set false to go back to the parser.
+      iframeOnly:   true,
+      iframeUrl:    'https://emc-26pheasantinvitational.golfgenius.com/pages/12929960991667535072'
     };
 
     // ============================================================
@@ -1374,11 +1378,17 @@
       var sbar = document.querySelector('.lb-status-bar');
       if (sbar) sbar.style.display = '';
       document.getElementById('lbContent').style.display = 'none';
+      var upd = document.getElementById('lbUpdated');
+      if (upd) upd.textContent = '';
+      var src = GG.iframeUrl || GG.portalUrl;
       var host = document.getElementById('lbNotice');
       host.style.display = 'block';
       host.innerHTML =
         '<div style="max-width:900px;margin:0 auto;">' +
-        '<iframe title="Live Results" src="' + GG.portalUrl + '" ' +
+        '<p style="text-align:right;margin:0 0 8px;font-family:Raleway,sans-serif;font-size:12px;">' +
+        '<a href="' + src + '" target="_blank" rel="noopener" style="color:var(--green-dark);font-weight:600;">' +
+        'Open in Golf Genius &#8599;</a></p>' +
+        '<iframe title="Live Results" src="' + src + '" ' +
         'style="width:100%;height:80vh;border:0;background:#fff;border-radius:8px;"></iframe>' +
         '</div>';
     }
@@ -1440,12 +1450,16 @@
     // ============================================================
     initFollow();
     if (QS.get('reset') === '1') { try { localStorage.removeItem(LAST_KEY); } catch (e) {} }
-    showLastGood();                                      // instant standings from the last good pull, if any
-    if (GG.live && GG.tournamentId) {
+    if (GG.iframeOnly && QS.get('parser') !== '1') {
+      showPortalFallback();                              // embed GG's own results page, nothing else
+    } else if (GG.live && GG.tournamentId) {
+      showLastGood();
       loadStandings();                                   // manual override
     } else if (GG.goLiveDate && todayISO() < GG.goLiveDate) {
+      showLastGood();
       showComingSoon();                                  // before go-live window
     } else {
+      showLastGood();                                    // instant standings from the last good pull, if any
       resolveTournament();                               // auto-pull
     }
   </script>
