@@ -306,6 +306,17 @@
     }
     .match-team.winner { font-weight: 800; }
     .match-team.away { text-align: right; }
+    .match-meta {
+      grid-column: 1 / -1;
+      font-family: 'Raleway', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--gray-mid);
+      text-align: center;
+      margin-bottom: 2px;
+    }
     .match-vs {
       font-family: 'Playfair Display', serif;
       font-size: 12px;
@@ -477,6 +488,269 @@
       goLiveDate:   '2026-09-16',  // ← expected go-live; auto-checks on/after this date
       live:         false          // manual override (with tournamentId) — skips auto-resolve
     };
+
+    // ============================================================
+    // HARDCODED PAIRINGS — transcribed from the Golf Genius tee sheets
+    // (shotgun start; every group tees off at the round's start time).
+    // When STATIC_ROUNDS has entries the page renders them instantly with no
+    // network call (the live auto-pull above is slow). One entry per round,
+    // in tab order; groups listed by hole. Each group is two 2-man teams:
+    // first pair = home, second pair = away (as printed on the sheet).
+    // Add ?live=1 to the URL to bypass the snapshot and force the live pull.
+    // ============================================================
+    var STATIC_AS_OF = 'September 17';   // shown in the status bar
+    var STATIC_ROUNDS = [
+      { label: 'Par 3 Shootout', tab: 'Par 3', date: 'Thu, September 17', kind: 'shootout', matches: [
+          { time: '8:30 AM', hole: '1A', home: 'Gary Houston + Brett Towns', away: 'Rick Carrie + Rob Milward' },
+          { time: '8:30 AM', hole: '1B', home: 'Lee Pflugrath + Andrew Koumelis', away: 'Derek Drost + Daniel Drost' },
+          { time: '8:30 AM', hole: '2A', home: 'Gary Nunes + Justin Draper', away: 'Tim Lucas + Mike Mullins' },
+          { time: '8:30 AM', hole: '2B', home: 'Kelvin Mark + Steven Yick', away: 'Richard Harris + Chuck Booz' },
+          { time: '8:30 AM', hole: '3A', home: 'Casey Kohen + Nicholas Podsakoff', away: 'Eric Paulantonio + Corey Dunbar' },
+          { time: '8:30 AM', hole: '3B', home: 'Brian Casey + Todd Bollenbach', away: 'Ronald Peters + Joe Silvestri' },
+          { time: '8:30 AM', hole: '4A', home: 'Thomas Parker + Carlos Berdecia', away: 'Kai Ruess + Ben Mayberry' },
+          { time: '8:30 AM', hole: '4B', home: 'Andy Donald + Patrick Ramos', away: 'Cary Johnson + Brian Hawkins' },
+          { time: '8:30 AM', hole: '5A', home: 'Brian Snethen + Mark Hitchcock', away: 'Jason Heise + Todd Barr' },
+          { time: '8:30 AM', hole: '5B', home: 'Corey Schmidt + Matt Baird', away: 'Chris Della Maggiore + Neil Dhanowa' },
+          { time: '8:30 AM', hole: '6A', home: 'Tim Mar + Andrew Mar', away: 'Ken Bernard + Darin James' },
+          { time: '8:30 AM', hole: '6B', home: 'Marcus Wilson + Zach Friedenbach', away: 'A.J. Meza + Ray Meza' },
+          { time: '8:30 AM', hole: '7A', home: 'Bharat Patel + Bankim Patel', away: 'Dan Olsen + Mike Abrate' },
+          { time: '8:30 AM', hole: '7B', home: 'John Makela + Chris Lundin', away: 'Nate Oleson + Matthew Justis' },
+          { time: '8:30 AM', hole: '8A', home: 'Stephen St. Andre + John Griffiths', away: 'Rick Yaver + Frank Cardoso' },
+          { time: '8:30 AM', hole: '8B', home: 'Paul Bolnik + Randy Ellington', away: 'Bill Owen + Dale Stern' },
+          { time: '8:30 AM', hole: '9A', home: 'Ken Clark Jr. + Pax Bolnik', away: 'Ian Bolnik + Chad Beatty' },
+          { time: '8:30 AM', hole: '9B', home: 'John McDonough + Steve Lynch', away: 'Bob Clark + Leo Rubio' },
+          { time: '8:30 AM', hole: '10A', home: 'Taylor Lien + Stephen Silk', away: 'Dan Corfee + Ben Corfee' },
+          { time: '8:30 AM', hole: '10B', home: 'Brad Strong + Ryan Strong', away: 'Tyler Fullerton + Zack McClure' },
+          { time: '8:30 AM', hole: '11A', home: 'Mat Rocha + Pete Winterling', away: 'Mark Abrams + Nick Amen' },
+          { time: '8:30 AM', hole: '11B', home: 'Rob Vellanoweth + Stephen Grimes', away: 'Dyke Mundy + Rome Ilardi' },
+          { time: '8:30 AM', hole: '12A', home: 'Rene Jacques + Roy Yang', away: 'Marc Palamidessi + Matt Gualco' },
+          { time: '8:30 AM', hole: '12B', home: 'Darin Salk + Spencer Salk', away: 'Nils Sorenson + Rick Marchini' },
+          { time: '8:30 AM', hole: '13A', home: 'Justin Caroddo + Bryan Vevera', away: 'Anthony Pavich + Keaton Marcel' },
+          { time: '8:30 AM', hole: '13B', home: 'Lyn Christopulos + Jeff Earle', away: 'Aaron Schwartz + Kyle Nixon' },
+          { time: '8:30 AM', hole: '14A', home: 'Adam Tibble + Chris Welty', away: '' },
+          { time: '8:30 AM', hole: '14B', home: 'Dave Stevenson + Ryan Stevenson', away: 'Tom Armelino + Jake Armelino' },
+          { time: '8:30 AM', hole: '15A', home: 'Will Holmes + Jim Lynch', away: 'Gary Magana + Todd Nuetzman' },
+          { time: '8:30 AM', hole: '15B', home: 'Steven Greenfield + Anton Garcia', away: 'Brandon Bridges + Hal Mason' },
+          { time: '8:30 AM', hole: '16A', home: 'Chris Shuler + Kevin Grimes', away: 'Brandon Kavrell + Jackson Kavrell' },
+          { time: '8:30 AM', hole: '16B', home: 'Andrew Clark + Nole Steketee', away: 'Mike Glide + Mark Boettcher' },
+          { time: '8:30 AM', hole: '17A', home: 'Tyler Austin + Pat Boal', away: 'Andrew Faria + Danny Clayton' },
+          { time: '8:30 AM', hole: '18A', home: 'Brian Bunch + Greg Eddy', away: 'Eric Johnson + Andy Burger' },
+          { time: '8:30 AM', hole: '18B', home: 'Joshua Strawn + Scott Hackney', away: 'Jeff Koo + Mike Crane' },
+      ] },
+      { label: 'Match 1', tab: 'Match 1', date: 'Thu, September 17', kind: 'match', matches: [
+          { time: '11:45 AM', hole: '1A', home: 'Nils Sorenson + Rick Marchini', away: 'Dan Corfee + Ben Corfee' },
+          { time: '11:45 AM', hole: '1B', home: 'Marc Palamidessi + Matt Gualco', away: 'Tyler Fullerton + Zack McClure' },
+          { time: '11:45 AM', hole: '2A', home: 'Dyke Mundy + Rome Ilardi', away: 'Mark Abrams + Nick Amen' },
+          { time: '11:45 AM', hole: '2B', home: 'Brandon Bridges + Hal Mason', away: 'Anthony Pavich + Keaton Marcel' },
+          { time: '11:45 AM', hole: '3A', home: 'Gary Magana + Todd Nuetzman', away: 'Aaron Schwartz + Kyle Nixon' },
+          { time: '11:45 AM', hole: '3B', home: 'Tom Armelino + Jake Armelino', away: 'Adam Tibble + Chris Welty' },
+          { time: '11:45 AM', hole: '4A', home: 'Jeff Koo + Mike Crane', away: 'Brandon Kavrell + Jackson Kavrell' },
+          { time: '11:45 AM', hole: '4B', home: 'Eric Johnson + Andy Burger', away: 'Mike Glide + Mark Boettcher' },
+          { time: '11:45 AM', hole: '5A', home: 'Dan Dougherty + Neil Dougherty', away: 'Andrew Faria + Danny Clayton' },
+          { time: '11:45 AM', hole: '5B', home: 'Steven Greenfield + Anton Garcia', away: 'Andrew Clark + Nole Steketee' },
+          { time: '11:45 AM', hole: '6A', home: 'Dave Stevenson + Ryan Stevenson', away: 'Lyn Christopulos + Jeff Earle' },
+          { time: '11:45 AM', hole: '6B', home: 'Brian Bunch + Greg Eddy', away: 'Tuan Nguyen + Jonny Newsom' },
+          { time: '11:45 AM', hole: '7A', home: 'Rene Jacques + Roy Yang', away: 'Joshua Strawn + Scott Hackney' },
+          { time: '11:45 AM', hole: '7B', home: 'Brad Strong + Ryan Strong', away: 'Mat Rocha + Pete Winterling' },
+          { time: '11:45 AM', hole: '8A', home: 'Taylor Lien + Stephen Silk', away: 'Rob Vellanoweth + Stephen Grimes' },
+          { time: '11:45 AM', hole: '8B', home: 'Chris Shuler + Kevin Grimes', away: 'Justin Caroddo + Bryan Vevera' },
+          { time: '11:45 AM', hole: '9A', home: 'Tyler Austin + Pat Boal', away: 'Darin Salk + Spencer Salk' },
+          { time: '11:45 AM', hole: '9B', home: 'Ray Sahadeo + Matt Blankenheim', away: 'Will Holmes + Jim Lynch' },
+          { time: '11:45 AM', hole: '10A', home: 'Ronald Peters + Joe Silvestri', away: 'Rick Carrie + Rob Milward' },
+          { time: '11:45 AM', hole: '10B', home: 'Brian Casey + Todd Bollenbach', away: 'Derek Drost + Daniel Drost' },
+          { time: '11:45 AM', hole: '11A', home: 'A.J. Meza + Ray Meza', away: 'Gary Houston + Brett Towns' },
+          { time: '11:45 AM', hole: '11B', home: 'Gary Nunes + Justin Draper', away: 'Tim Lucas + Mike Mullins' },
+          { time: '11:45 AM', hole: '12A', home: 'Chris Della Maggiore + Neil Dhanowa', away: 'Jason Heise + Todd Barr' },
+          { time: '11:45 AM', hole: '12B', home: 'Ken Bernard + Darin James', away: 'Cary Johnson + Brian Hawkins' },
+          { time: '11:45 AM', hole: '13A', home: 'Bob Clark + Leo Rubio', away: 'Dan Olsen + Mike Abrate' },
+          { time: '11:45 AM', hole: '13B', home: 'Ian Bolnik + Chad Beatty', away: 'Andy Donald + Patrick Ramos' },
+          { time: '11:45 AM', hole: '14A', home: 'Brian Snethen + Mark Hitchcock', away: 'Corey Schmidt + Matt Baird' },
+          { time: '11:45 AM', hole: '14B', home: 'Bill Owen + Dale Stern', away: 'Kelvin Mark + Steven Yick' },
+          { time: '11:45 AM', hole: '15A', home: 'Eric Paulantonio + Corey Dunbar', away: 'Nate Oleson + Matthew Justis' },
+          { time: '11:45 AM', hole: '15B', home: 'Paul Bolnik + Randy Ellington', away: 'Kai Ruess + Ben Mayberry' },
+          { time: '11:45 AM', hole: '16A', home: 'John Makela + Chris Lundin', away: 'Stephen St. Andre + John Griffiths' },
+          { time: '11:45 AM', hole: '16B', home: 'Rick Yaver + Frank Cardoso', away: 'Tim Mar + Andrew Mar' },
+          { time: '11:45 AM', hole: '17A', home: 'John McDonough + Steve Lynch', away: 'Bharat Patel + Bankim Patel' },
+          { time: '11:45 AM', hole: '17B', home: 'Ken Clark Jr. + Pax Bolnik', away: 'Thomas Parker + Carlos Berdecia' },
+          { time: '11:45 AM', hole: '18A', home: 'Marcus Wilson + Zach Friedenbach', away: 'Casey Kohen + Nicholas Podsakoff' },
+          { time: '11:45 AM', hole: '18B', home: 'Lee Pflugrath + Andrew Koumelis', away: 'Richard Harris + Chuck Booz' },
+      ] },
+      { label: 'Match 2', tab: 'Match 2', date: 'Fri, September 18', kind: 'match', matches: [
+          { time: '9:00 AM', hole: '1A', home: 'John McDonough + Steve Lynch', away: 'Lee Pflugrath + Andrew Koumelis' },
+          { time: '9:00 AM', hole: '1B', home: 'Bharat Patel + Bankim Patel', away: 'Marcus Wilson + Zach Friedenbach' },
+          { time: '9:00 AM', hole: '2A', home: 'Derek Drost + Daniel Drost', away: 'Tim Lucas + Mike Mullins' },
+          { time: '9:00 AM', hole: '2B', home: 'Casey Kohen + Nicholas Podsakoff', away: 'Richard Harris + Chuck Booz' },
+          { time: '9:00 AM', hole: '3A', home: 'Rick Carrie + Rob Milward', away: 'Brian Casey + Todd Bollenbach' },
+          { time: '9:00 AM', hole: '3B', home: 'Ronald Peters + Joe Silvestri', away: 'Gary Nunes + Justin Draper' },
+          { time: '9:00 AM', hole: '4A', home: 'A.J. Meza + Ray Meza', away: 'Chris Della Maggiore + Neil Dhanowa' },
+          { time: '9:00 AM', hole: '4B', home: 'Gary Houston + Brett Towns', away: 'Ken Bernard + Darin James' },
+          { time: '9:00 AM', hole: '5A', home: 'Andy Donald + Patrick Ramos', away: 'Kelvin Mark + Steven Yick' },
+          { time: '9:00 AM', hole: '5B', home: 'Cary Johnson + Brian Hawkins', away: 'Jason Heise + Todd Barr' },
+          { time: '9:00 AM', hole: '6A', home: 'Bob Clark + Leo Rubio', away: 'Bill Owen + Dale Stern' },
+          { time: '9:00 AM', hole: '6B', home: 'Dan Olsen + Mike Abrate', away: 'Ian Bolnik + Chad Beatty' },
+          { time: '9:00 AM', hole: '7A', home: 'Brian Snethen + Mark Hitchcock', away: 'Paul Bolnik + Randy Ellington' },
+          { time: '9:00 AM', hole: '7B', home: 'Corey Schmidt + Matt Baird', away: 'Eric Paulantonio + Corey Dunbar' },
+          { time: '9:00 AM', hole: '8A', home: 'Tim Mar + Andrew Mar', away: 'Thomas Parker + Carlos Berdecia' },
+          { time: '9:00 AM', hole: '8B', home: 'Nate Oleson + Matthew Justis', away: 'Kai Ruess + Ben Mayberry' },
+          { time: '9:00 AM', hole: '9A', home: 'Stephen St. Andre + John Griffiths', away: 'Rick Yaver + Frank Cardoso' },
+          { time: '9:00 AM', hole: '9B', home: 'John Makela + Chris Lundin', away: 'Ken Clark Jr. + Pax Bolnik' },
+          { time: '9:00 AM', hole: '10A', home: 'Darin Salk + Spencer Salk', away: 'Will Holmes + Jim Lynch' },
+          { time: '9:00 AM', hole: '10B', home: 'Justin Caroddo + Bryan Vevera', away: 'Tyler Austin + Pat Boal' },
+          { time: '9:00 AM', hole: '11A', home: 'Tyler Fullerton + Zack McClure', away: 'Mark Abrams + Nick Amen' },
+          { time: '9:00 AM', hole: '11B', home: 'Chris Shuler + Kevin Grimes', away: 'Ray Sahadeo + Matt Blankenheim' },
+          { time: '9:00 AM', hole: '12A', home: 'Dan Corfee + Ben Corfee', away: 'Marc Palamidessi + Matt Gualco' },
+          { time: '9:00 AM', hole: '12B', home: 'Nils Sorenson + Rick Marchini', away: 'Dyke Mundy + Rome Ilardi' },
+          { time: '9:00 AM', hole: '13A', home: 'Anthony Pavich + Keaton Marcel', away: 'Gary Magana + Todd Nuetzman' },
+          { time: '9:00 AM', hole: '13B', home: 'Brandon Bridges + Hal Mason', away: 'Tom Armelino + Jake Armelino' },
+          { time: '9:00 AM', hole: '14A', home: 'Aaron Schwartz + Kyle Nixon', away: 'Adam Tibble + Chris Welty' },
+          { time: '9:00 AM', hole: '14B', home: 'Mike Glide + Mark Boettcher', away: 'Andrew Faria + Danny Clayton' },
+          { time: '9:00 AM', hole: '15A', home: 'Brandon Kavrell + Jackson Kavrell', away: 'Eric Johnson + Andy Burger' },
+          { time: '9:00 AM', hole: '15B', home: 'Jeff Koo + Mike Crane', away: 'Dan Dougherty + Neil Dougherty' },
+          { time: '9:00 AM', hole: '16A', home: 'Lyn Christopulos + Jeff Earle', away: 'Tuan Nguyen + Jonny Newsom' },
+          { time: '9:00 AM', hole: '16B', home: 'Andrew Clark + Nole Steketee', away: 'Dave Stevenson + Ryan Stevenson' },
+          { time: '9:00 AM', hole: '17A', home: 'Steven Greenfield + Anton Garcia', away: 'Brian Bunch + Greg Eddy' },
+          { time: '9:00 AM', hole: '17B', home: 'Mat Rocha + Pete Winterling', away: 'Rob Vellanoweth + Stephen Grimes' },
+          { time: '9:00 AM', hole: '18A', home: 'Joshua Strawn + Scott Hackney', away: 'Brad Strong + Ryan Strong' },
+          { time: '9:00 AM', hole: '18B', home: 'Rene Jacques + Roy Yang', away: 'Taylor Lien + Stephen Silk' },
+      ] },
+      { label: 'Match 3', tab: 'Match 3', date: 'Fri, September 18', kind: 'match', matches: [
+          { time: '1:00 PM', hole: '1A', home: 'Brad Strong + Ryan Strong', away: 'Rob Vellanoweth + Stephen Grimes' },
+          { time: '1:00 PM', hole: '1B', home: 'Rene Jacques + Roy Yang', away: 'Mat Rocha + Pete Winterling' },
+          { time: '1:00 PM', hole: '2A', home: 'Joshua Strawn + Scott Hackney', away: 'Taylor Lien + Stephen Silk' },
+          { time: '1:00 PM', hole: '2B', home: 'Tyler Austin + Pat Boal', away: 'Will Holmes + Jim Lynch' },
+          { time: '1:00 PM', hole: '3A', home: 'Chris Shuler + Kevin Grimes', away: 'Darin Salk + Spencer Salk' },
+          { time: '1:00 PM', hole: '3B', home: 'Justin Caroddo + Bryan Vevera', away: 'Ray Sahadeo + Matt Blankenheim' },
+          { time: '1:00 PM', hole: '4A', home: 'Marc Palamidessi + Matt Gualco', away: 'Mark Abrams + Nick Amen' },
+          { time: '1:00 PM', hole: '4B', home: 'Nils Sorenson + Rick Marchini', away: 'Tyler Fullerton + Zack McClure' },
+          { time: '1:00 PM', hole: '5A', home: 'Dan Corfee + Ben Corfee', away: 'Dyke Mundy + Rome Ilardi' },
+          { time: '1:00 PM', hole: '5B', home: 'Gary Magana + Todd Nuetzman', away: 'Adam Tibble + Chris Welty' },
+          { time: '1:00 PM', hole: '6A', home: 'Brandon Bridges + Hal Mason', away: 'Aaron Schwartz + Kyle Nixon' },
+          { time: '1:00 PM', hole: '6B', home: 'Anthony Pavich + Keaton Marcel', away: 'Tom Armelino + Jake Armelino' },
+          { time: '1:00 PM', hole: '7A', home: 'Eric Johnson + Andy Burger', away: 'Andrew Faria + Danny Clayton' },
+          { time: '1:00 PM', hole: '7B', home: 'Jeff Koo + Mike Crane', away: 'Mike Glide + Mark Boettcher' },
+          { time: '1:00 PM', hole: '8A', home: 'Brandon Kavrell + Jackson Kavrell', away: 'Dan Dougherty + Neil Dougherty' },
+          { time: '1:00 PM', hole: '8B', home: 'Dave Stevenson + Ryan Stevenson', away: 'Tuan Nguyen + Jonny Newsom' },
+          { time: '1:00 PM', hole: '9A', home: 'Steven Greenfield + Anton Garcia', away: 'Lyn Christopulos + Jeff Earle' },
+          { time: '1:00 PM', hole: '9B', home: 'Andrew Clark + Nole Steketee', away: 'Brian Bunch + Greg Eddy' },
+          { time: '1:00 PM', hole: '10A', home: 'Rick Yaver + Frank Cardoso', away: 'Thomas Parker + Carlos Berdecia' },
+          { time: '1:00 PM', hole: '10B', home: 'John Makela + Chris Lundin', away: 'Tim Mar + Andrew Mar' },
+          { time: '1:00 PM', hole: '11A', home: 'Stephen St. Andre + John Griffiths', away: 'Ken Clark Jr. + Pax Bolnik' },
+          { time: '1:00 PM', hole: '11B', home: 'Marcus Wilson + Zach Friedenbach', away: 'Richard Harris + Chuck Booz' },
+          { time: '1:00 PM', hole: '12A', home: 'John McDonough + Steve Lynch', away: 'Casey Kohen + Nicholas Podsakoff' },
+          { time: '1:00 PM', hole: '12B', home: 'Bharat Patel + Bankim Patel', away: 'Lee Pflugrath + Andrew Koumelis' },
+          { time: '1:00 PM', hole: '13A', home: 'Brian Casey + Todd Bollenbach', away: 'Tim Lucas + Mike Mullins' },
+          { time: '1:00 PM', hole: '13B', home: 'Ronald Peters + Joe Silvestri', away: 'Derek Drost + Daniel Drost' },
+          { time: '1:00 PM', hole: '14A', home: 'Rick Carrie + Rob Milward', away: 'Gary Nunes + Justin Draper' },
+          { time: '1:00 PM', hole: '14B', home: 'Ken Bernard + Darin James', away: 'Jason Heise + Todd Barr' },
+          { time: '1:00 PM', hole: '15A', home: 'A.J. Meza + Ray Meza', away: 'Cary Johnson + Brian Hawkins' },
+          { time: '1:00 PM', hole: '15B', home: 'Gary Houston + Brett Towns', away: 'Chris Della Maggiore + Neil Dhanowa' },
+          { time: '1:00 PM', hole: '16A', home: 'Ian Bolnik + Chad Beatty', away: 'Kelvin Mark + Steven Yick' },
+          { time: '1:00 PM', hole: '16B', home: 'Bob Clark + Leo Rubio', away: 'Andy Donald + Patrick Ramos' },
+          { time: '1:00 PM', hole: '17A', home: 'Dan Olsen + Mike Abrate', away: 'Bill Owen + Dale Stern' },
+          { time: '1:00 PM', hole: '17B', home: 'Eric Paulantonio + Corey Dunbar', away: 'Kai Ruess + Ben Mayberry' },
+          { time: '1:00 PM', hole: '18A', home: 'Brian Snethen + Mark Hitchcock', away: 'Nate Oleson + Matthew Justis' },
+          { time: '1:00 PM', hole: '18B', home: 'Corey Schmidt + Matt Baird', away: 'Paul Bolnik + Randy Ellington' },
+      ] },
+      { label: 'Match 4', tab: 'Match 4', date: 'Sat, September 19', kind: 'match', matches: [
+          { time: '8:30 AM', hole: '1A', home: 'Corey Schmidt + Matt Baird', away: 'Kai Ruess + Ben Mayberry' },
+          { time: '8:30 AM', hole: '1B', home: 'Paul Bolnik + Randy Ellington', away: 'Nate Oleson + Matthew Justis' },
+          { time: '8:30 AM', hole: '2A', home: 'Stephen St. Andre + John Griffiths', away: 'Thomas Parker + Carlos Berdecia' },
+          { time: '8:30 AM', hole: '2B', home: 'Eric Paulantonio + Corey Dunbar', away: 'Brian Snethen + Mark Hitchcock' },
+          { time: '8:30 AM', hole: '3A', home: 'Ken Clark Jr. + Pax Bolnik', away: 'Tim Mar + Andrew Mar' },
+          { time: '8:30 AM', hole: '3B', home: 'Rick Yaver + Frank Cardoso', away: 'John Makela + Chris Lundin' },
+          { time: '8:30 AM', hole: '4A', home: 'Bharat Patel + Bankim Patel', away: 'Richard Harris + Chuck Booz' },
+          { time: '8:30 AM', hole: '4B', home: 'Lee Pflugrath + Andrew Koumelis', away: 'Casey Kohen + Nicholas Podsakoff' },
+          { time: '8:30 AM', hole: '5A', home: 'Brian Casey + Todd Bollenbach', away: 'Ronald Peters + Joe Silvestri' },
+          { time: '8:30 AM', hole: '5B', home: 'Marcus Wilson + Zach Friedenbach', away: 'John McDonough + Steve Lynch' },
+          { time: '8:30 AM', hole: '6A', home: 'Rick Carrie + Rob Milward', away: 'Tim Lucas + Mike Mullins' },
+          { time: '8:30 AM', hole: '6B', home: 'Gary Nunes + Justin Draper', away: 'Derek Drost + Daniel Drost' },
+          { time: '8:30 AM', hole: '7A', home: 'Gary Houston + Brett Towns', away: 'Jason Heise + Todd Barr' },
+          { time: '8:30 AM', hole: '7B', home: 'Chris Della Maggiore + Neil Dhanowa', away: 'Cary Johnson + Brian Hawkins' },
+          { time: '8:30 AM', hole: '8A', home: 'Ken Bernard + Darin James', away: 'A.J. Meza + Ray Meza' },
+          { time: '8:30 AM', hole: '8B', home: 'Dan Olsen + Mike Abrate', away: 'Kelvin Mark + Steven Yick' },
+          { time: '8:30 AM', hole: '9A', home: 'Bill Owen + Dale Stern', away: 'Andy Donald + Patrick Ramos' },
+          { time: '8:30 AM', hole: '9B', home: 'Ian Bolnik + Chad Beatty', away: 'Bob Clark + Leo Rubio' },
+          { time: '8:30 AM', hole: '10A', home: 'Brian Bunch + Greg Eddy', away: 'Lyn Christopulos + Jeff Earle' },
+          { time: '8:30 AM', hole: '10B', home: 'Dave Stevenson + Ryan Stevenson', away: 'Steven Greenfield + Anton Garcia' },
+          { time: '8:30 AM', hole: '11A', home: 'Andrew Clark + Nole Steketee', away: 'Tuan Nguyen + Jonny Newsom' },
+          { time: '8:30 AM', hole: '11B', home: 'Joshua Strawn + Scott Hackney', away: 'Rob Vellanoweth + Stephen Grimes' },
+          { time: '8:30 AM', hole: '12A', home: 'Taylor Lien + Stephen Silk', away: 'Mat Rocha + Pete Winterling' },
+          { time: '8:30 AM', hole: '12B', home: 'Brad Strong + Ryan Strong', away: 'Rene Jacques + Roy Yang' },
+          { time: '8:30 AM', hole: '13A', home: 'Justin Caroddo + Bryan Vevera', away: 'Will Holmes + Jim Lynch' },
+          { time: '8:30 AM', hole: '13B', home: 'Ray Sahadeo + Matt Blankenheim', away: 'Darin Salk + Spencer Salk' },
+          { time: '8:30 AM', hole: '14A', home: 'Dan Corfee + Ben Corfee', away: 'Mark Abrams + Nick Amen' },
+          { time: '8:30 AM', hole: '14B', home: 'Tyler Austin + Pat Boal', away: 'Chris Shuler + Kevin Grimes' },
+          { time: '8:30 AM', hole: '15A', home: 'Dyke Mundy + Rome Ilardi', away: 'Tyler Fullerton + Zack McClure' },
+          { time: '8:30 AM', hole: '15B', home: 'Marc Palamidessi + Matt Gualco', away: 'Nils Sorenson + Rick Marchini' },
+          { time: '8:30 AM', hole: '16A', home: 'Anthony Pavich + Keaton Marcel', away: 'Adam Tibble + Chris Welty' },
+          { time: '8:30 AM', hole: '16B', home: 'Gary Magana + Todd Nuetzman', away: 'Brandon Bridges + Hal Mason' },
+          { time: '8:30 AM', hole: '17A', home: 'Tom Armelino + Jake Armelino', away: 'Aaron Schwartz + Kyle Nixon' },
+          { time: '8:30 AM', hole: '17B', home: 'Brandon Kavrell + Jackson Kavrell', away: 'Andrew Faria + Danny Clayton' },
+          { time: '8:30 AM', hole: '18A', home: 'Dan Dougherty + Neil Dougherty', away: 'Mike Glide + Mark Boettcher' },
+          { time: '8:30 AM', hole: '18B', home: 'Eric Johnson + Andy Burger', away: 'Jeff Koo + Mike Crane' },
+      ] },
+      { label: 'Match 5', tab: 'Match 5', date: 'Sat, September 19', kind: 'match', matches: [
+          { time: '12:30 PM', hole: '1A', home: 'Dan Dougherty + Neil Dougherty', away: 'Eric Johnson + Andy Burger' },
+          { time: '12:30 PM', hole: '1B', home: 'Brandon Kavrell + Jackson Kavrell', away: 'Mike Glide + Mark Boettcher' },
+          { time: '12:30 PM', hole: '2A', home: 'Andrew Faria + Danny Clayton', away: 'Jeff Koo + Mike Crane' },
+          { time: '12:30 PM', hole: '2B', home: 'Brian Bunch + Greg Eddy', away: 'Dave Stevenson + Ryan Stevenson' },
+          { time: '12:30 PM', hole: '3A', home: 'Andrew Clark + Nole Steketee', away: 'Lyn Christopulos + Jeff Earle' },
+          { time: '12:30 PM', hole: '3B', home: 'Tuan Nguyen + Jonny Newsom', away: 'Steven Greenfield + Anton Garcia' },
+          { time: '12:30 PM', hole: '4A', home: 'Taylor Lien + Stephen Silk', away: 'Brad Strong + Ryan Strong' },
+          { time: '12:30 PM', hole: '4B', home: 'Joshua Strawn + Scott Hackney', away: 'Mat Rocha + Pete Winterling' },
+          { time: '12:30 PM', hole: '5A', home: 'Rob Vellanoweth + Stephen Grimes', away: 'Rene Jacques + Roy Yang' },
+          { time: '12:30 PM', hole: '5B', home: 'Ray Sahadeo + Matt Blankenheim', away: 'Tyler Austin + Pat Boal' },
+          { time: '12:30 PM', hole: '6A', home: 'Justin Caroddo + Bryan Vevera', away: 'Darin Salk + Spencer Salk' },
+          { time: '12:30 PM', hole: '6B', home: 'Will Holmes + Jim Lynch', away: 'Chris Shuler + Kevin Grimes' },
+          { time: '12:30 PM', hole: '7A', home: 'Dyke Mundy + Rome Ilardi', away: 'Marc Palamidessi + Matt Gualco' },
+          { time: '12:30 PM', hole: '7B', home: 'Dan Corfee + Ben Corfee', away: 'Tyler Fullerton + Zack McClure' },
+          { time: '12:30 PM', hole: '8A', home: 'Mark Abrams + Nick Amen', away: 'Nils Sorenson + Rick Marchini' },
+          { time: '12:30 PM', hole: '8B', home: 'Tom Armelino + Jake Armelino', away: 'Gary Magana + Todd Nuetzman' },
+          { time: '12:30 PM', hole: '9A', home: 'Anthony Pavich + Keaton Marcel', away: 'Aaron Schwartz + Kyle Nixon' },
+          { time: '12:30 PM', hole: '9B', home: 'Adam Tibble + Chris Welty', away: 'Brandon Bridges + Hal Mason' },
+          { time: '12:30 PM', hole: '10A', home: 'Bill Owen + Dale Stern', away: 'Ian Bolnik + Chad Beatty' },
+          { time: '12:30 PM', hole: '10B', home: 'Dan Olsen + Mike Abrate', away: 'Andy Donald + Patrick Ramos' },
+          { time: '12:30 PM', hole: '11A', home: 'Kelvin Mark + Steven Yick', away: 'Bob Clark + Leo Rubio' },
+          { time: '12:30 PM', hole: '11B', home: 'Paul Bolnik + Randy Ellington', away: 'Eric Paulantonio + Corey Dunbar' },
+          { time: '12:30 PM', hole: '12A', home: 'Corey Schmidt + Matt Baird', away: 'Nate Oleson + Matthew Justis' },
+          { time: '12:30 PM', hole: '12B', home: 'Kai Ruess + Ben Mayberry', away: 'Brian Snethen + Mark Hitchcock' },
+          { time: '12:30 PM', hole: '13A', home: 'Ken Clark Jr. + Pax Bolnik', away: 'Rick Yaver + Frank Cardoso' },
+          { time: '12:30 PM', hole: '13B', home: 'Stephen St. Andre + John Griffiths', away: 'Tim Mar + Andrew Mar' },
+          { time: '12:30 PM', hole: '14A', home: 'Lee Pflugrath + Andrew Koumelis', away: 'Marcus Wilson + Zach Friedenbach' },
+          { time: '12:30 PM', hole: '14B', home: 'Thomas Parker + Carlos Berdecia', away: 'John Makela + Chris Lundin' },
+          { time: '12:30 PM', hole: '15A', home: 'Bharat Patel + Bankim Patel', away: 'Casey Kohen + Nicholas Podsakoff' },
+          { time: '12:30 PM', hole: '15B', home: 'Richard Harris + Chuck Booz', away: 'John McDonough + Steve Lynch' },
+          { time: '12:30 PM', hole: '16A', home: 'Rick Carrie + Rob Milward', away: 'Derek Drost + Daniel Drost' },
+          { time: '12:30 PM', hole: '16B', home: 'Tim Lucas + Mike Mullins', away: 'Ronald Peters + Joe Silvestri' },
+          { time: '12:30 PM', hole: '17A', home: 'Chris Della Maggiore + Neil Dhanowa', away: 'Ken Bernard + Darin James' },
+          { time: '12:30 PM', hole: '17B', home: 'Gary Nunes + Justin Draper', away: 'Brian Casey + Todd Bollenbach' },
+          { time: '12:30 PM', hole: '18A', home: 'Gary Houston + Brett Towns', away: 'Cary Johnson + Brian Hawkins' },
+          { time: '12:30 PM', hole: '18B', home: 'Jason Heise + Todd Barr', away: 'A.J. Meza + Ray Meza' },
+      ] },
+    ];
+
+    function renderStatic() {
+      allRounds = STATIC_ROUNDS.map(function(r, i) {
+        var ms = r.matches || [];
+        return {
+          roundNum: i + 1,
+          label: r.label || ('Match ' + (i + 1)),
+          tab: r.tab || r.label || ('Match ' + (i + 1)),
+          kind: r.kind || 'match',
+          date: r.date,
+          time: ms.length && ms[0].time ? ms[0].time : '',
+          matches: ms.map(function(m) {
+            return { date: r.date, flight: m.flight || '', time: m.time || '', hole: m.hole || '',
+                     kind: r.kind || 'match', home: m.home, away: m.away || '', homeWon: null, result: '' };
+          })
+        };
+      });
+      render(allRounds);
+      hasRendered = true;
+      var badge = document.getElementById('prStatusBadge');
+      if (badge) { badge.className = 'lb-badge final'; badge.textContent = GG.year + ' Season'; }
+      document.getElementById('prUpdated').textContent = STATIC_AS_OF ? 'Pairings as of ' + STATIC_AS_OF : '';
+    }
 
     // ============================================================
     // Diagnostics / overrides (query string):
@@ -787,14 +1061,30 @@
       return { month: monthOrder[(m[1] || '').toLowerCase()] || 0, day: parseInt(m[2], 10) };
     }
 
+    // "11:45 AM" → minutes since midnight (NaN if unparseable)
+    function parseClock(t) {
+      var m = (t || '').match(/(\d{1,2}):(\d{2})\s*([AP]M)/i);
+      if (!m) return NaN;
+      var h = parseInt(m[1], 10) % 12 + (m[3].toUpperCase() === 'PM' ? 12 : 0);
+      return h * 60 + parseInt(m[2], 10);
+    }
+
     function findTodayRoundIndex(rounds) {
       var now = new Date();
       var tm = now.getMonth() + 1;
       var td = now.getDate();
+      var nowMin = now.getHours() * 60 + now.getMinutes();
+      // Several rounds on one day (Par 3 + Match 1, AM + PM): show the latest
+      // one that has started, else the day's first.
+      var todayFirst = -1, todayStarted = -1;
       for (var i = 0; i < rounds.length; i++) {
         var p = parseDateMonthDay(rounds[i].date);
-        if (p && p.month === tm && p.day === td) return i;
+        if (!(p && p.month === tm && p.day === td)) continue;
+        if (todayFirst < 0) todayFirst = i;
+        var start = parseClock(rounds[i].time);
+        if (!isNaN(start) && start <= nowMin) todayStarted = i;
       }
+      if (todayFirst >= 0) return todayStarted >= 0 ? todayStarted : todayFirst;
       // No today match — find last round whose date has passed
       var best = -1;
       for (var j = 0; j < rounds.length; j++) {
@@ -874,7 +1164,7 @@
         var isToday = p && p.month === tm && p.day === td;
         var tab = document.createElement('button');
         tab.className = 'round-tab' + (i === activeRoundIndex ? ' active' : '') + (isToday ? ' today-tab' : '');
-        tab.innerHTML = '<span class="tab-match">Match ' + round.roundNum + '</span>' +
+        tab.innerHTML = '<span class="tab-match">' + escHtml(round.tab || ('Match ' + round.roundNum)) + '</span>' +
                         '<span class="tab-date">' + escHtml(fmtTabLabel(round.date)) + '</span>';
         tab.setAttribute('data-index', i);
         tab.addEventListener('click', function() {
@@ -909,8 +1199,9 @@
         panel.setAttribute('data-index', i);
 
         var hdr = '<div class="sched-match-header">' +
-          '<div class="sched-match-title">Match ' + round.roundNum + '</div>' +
-          '<div class="sched-match-subtitle">' + escHtml(fmtDateDisplay(round.date)) + '</div>' +
+          '<div class="sched-match-title">' + escHtml(round.label || ('Match ' + round.roundNum)) + '</div>' +
+          '<div class="sched-match-subtitle">' + escHtml(fmtDateDisplay(round.date)) +
+            (round.time ? ' &middot; ' + escHtml(round.time) + ' shotgun' : '') + '</div>' +
           '</div>';
 
         if (round.matches.length === 0) {
@@ -1026,12 +1317,21 @@
       var homePtsHtml = hasPoints ? '<div class="match-pts-home">' + fmtPts(homePts) + '</div>' : '<div></div>';
       var awayPtsHtml = hasPoints ? '<div class="match-pts-away">' + fmtPts(awayPts) + '</div>' : '<div></div>';
 
+      var metaHtml = (m.hole || m.time)
+        ? '<div class="match-meta">' + (m.hole ? 'Hole ' + escHtml(m.hole) : '') +
+          (m.hole && m.time ? ' &middot; ' : '') + (m.time ? escHtml(m.time) : '') + '</div>'
+        : '';
+      var awayHtml = m.away
+        ? '<div class="' + awayClass + '" data-key="' + awayKey + '">' + fmtTeamName(m.away) + starHtml(awayKey) + '</div>'
+        : '<div></div>';
+
       return '<div class="match-card' + (cardHighlight ? ' highlight' : '') + (cardFollowed ? ' followed' : '') + '">' +
+        metaHtml +
         '<div class="' + homeClass + '" data-key="' + homeKey + '">' + starHtml(homeKey) + fmtTeamName(m.home) + '</div>' +
         homePtsHtml +
-        '<div class="match-vs">vs.</div>' +
+        '<div class="match-vs">' + (m.away ? 'vs.' : '') + '</div>' +
         awayPtsHtml +
-        '<div class="' + awayClass + '" data-key="' + awayKey + '">' + fmtTeamName(m.away) + starHtml(awayKey) + '</div>' +
+        awayHtml +
         '</div>';
     }
 
@@ -1151,7 +1451,9 @@
     }
 
     initFollow();
-    if (GG.live && GG.tournamentId) {
+    if (STATIC_ROUNDS.length && QS.get('live') !== '1') {
+      renderStatic();                                    // hardcoded snapshot — no network
+    } else if (GG.live && GG.tournamentId) {
       loadSchedule();                                    // manual override
     } else if (GG.goLiveDate && todayISO() < GG.goLiveDate) {
       showComingSoon();                                  // before go-live window
