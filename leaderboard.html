@@ -137,6 +137,25 @@
       flex: 1 0 auto;   /* grow to fill so cream reaches the bottom */
     }
 
+    /* ── Embedded Golf Genius results (iframe-only mode) ── */
+    .lb-embed { max-width: 900px; margin: 0 auto; }
+    .lb-embed-link {
+      text-align: right; margin: 0 0 8px;
+      font-family: 'Raleway', sans-serif; font-size: 12px;
+    }
+    .lb-embed-link a { color: var(--green-dark); font-weight: 600; }
+    .lb-embed iframe {
+      display: block; width: 100%; height: 80vh;
+      border: 0; background: #fff; border-radius: 8px;
+    }
+    @media (max-width: 600px) {
+      /* Phone: run the frame edge to edge and give it nearly the whole screen */
+      .lb-page.lb-embed-mode { padding: 8px 0 72px; }
+      .lb-embed { margin: 0 -24px; }             /* cancel .container side padding */
+      .lb-embed-link { padding: 0 16px; margin-bottom: 6px; }
+      .lb-embed iframe { border-radius: 0; height: calc(100vh - 150px); min-height: 520px; }
+    }
+
     /* ── Flight tabs ── */
     .flight-tabs-outer {
       position: sticky;
@@ -1383,13 +1402,13 @@
       var src = GG.iframeUrl || GG.portalUrl;
       var host = document.getElementById('lbNotice');
       host.style.display = 'block';
+      var page = document.querySelector('.lb-page');
+      if (page) page.classList.add('lb-embed-mode');
       host.innerHTML =
-        '<div style="max-width:900px;margin:0 auto;">' +
-        '<p style="text-align:right;margin:0 0 8px;font-family:Raleway,sans-serif;font-size:12px;">' +
-        '<a href="' + src + '" target="_blank" rel="noopener" style="color:var(--green-dark);font-weight:600;">' +
+        '<div class="lb-embed">' +
+        '<p class="lb-embed-link"><a href="' + src + '" target="_blank" rel="noopener">' +
         'Open in Golf Genius &#8599;</a></p>' +
-        '<iframe title="Live Results" src="' + src + '" ' +
-        'style="width:100%;height:80vh;border:0;background:#fff;border-radius:8px;"></iframe>' +
+        '<iframe title="Live Results" src="' + src + '"></iframe>' +
         '</div>';
     }
 
