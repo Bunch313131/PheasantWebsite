@@ -454,6 +454,10 @@
         <p>Unable to load schedule. Please refresh the page.</p>
       </div>
 
+      <!-- Coming Soon / portal-embed notices live here so they never wipe out the
+           containers inside #prContent (render() needs them later). -->
+      <div id="prNotice" style="display:none;"></div>
+
       <div id="prContent" style="display:none;">
         <div class="round-tabs-wrap">
           <div class="round-tabs" id="roundTabs"></div>
@@ -1130,6 +1134,10 @@
       renderPanels(rounds, panelsEl, filter);
 
       document.getElementById('prLoading').style.display = 'none';
+      document.getElementById('prError').style.display = 'none';
+      document.getElementById('prNotice').style.display = 'none';
+      var sbarShow = document.querySelector('.pr-status-bar');
+      if (sbarShow) sbarShow.style.display = '';
       document.getElementById('prContent').style.display = 'block';
     }
 
@@ -1373,7 +1381,8 @@
       document.getElementById('prError').style.display = 'none';
       var sbar = document.querySelector('.pr-status-bar');
       if (sbar) sbar.style.display = 'none';   // nothing to show here until live
-      var host = document.getElementById('prContent');
+      document.getElementById('prContent').style.display = 'none';
+      var host = document.getElementById('prNotice');
       host.style.display = 'block';
       host.innerHTML =
         '<div style="text-align:center;padding:64px 20px;max-width:560px;margin:0 auto;">' +
@@ -1391,7 +1400,10 @@
       if (sub) sub.textContent = 'Live schedule';
       var badge = document.getElementById('prStatusBadge');
       if (badge) { badge.className = 'lb-badge live'; badge.textContent = GG.year + ' • Live'; }
-      var host = document.getElementById('prContent');
+      var sbar2 = document.querySelector('.pr-status-bar');
+      if (sbar2) sbar2.style.display = '';
+      document.getElementById('prContent').style.display = 'none';
+      var host = document.getElementById('prNotice');
       host.style.display = 'block';
       host.innerHTML =
         '<div style="max-width:900px;margin:0 auto;">' +

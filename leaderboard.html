@@ -519,12 +519,16 @@
 
       <div id="lbLoading" class="lb-loading">
         <div class="spinner"></div>
-        <p>Loading standings&hellip;</p>
+        <p id="lbLoadingMsg">Loading standings&hellip;</p>
       </div>
 
       <div id="lbError" class="lb-error" style="display:none;">
         <p>Unable to load standings. Please refresh the page.</p>
       </div>
+
+      <!-- Coming Soon / portal-embed notices live here so they never wipe out the
+           table containers inside #lbContent (render() needs them later). -->
+      <div id="lbNotice" style="display:none;"></div>
 
       <div id="lbContent" style="display:none;">
         <div class="flight-tabs-outer">
@@ -597,6 +601,66 @@
     function retryDelay(attempt) { return 2500 * attempt; }
     var hasRendered = false;           // once standings are on screen, never replace them with the iframe
 
+    // Every proxy call is bounded: a hung request must fail fast and move on
+    // to the retry / fallback instead of leaving the spinner up forever.
+    var FETCH_TIMEOUT_MS = 15000;
+    function fetchText(url, ms) {
+      ms = ms || FETCH_TIMEOUT_MS;
+      var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      var timer;
+      var req = fetch(url, ctrl ? { signal: ctrl.signal, cache: 'no-store' } : { cache: 'no-store' })
+        .then(function(r) { return r.text(); });
+      var out = new Promise(function(_, reject) {
+        timer = setTimeout(function() {
+          if (ctrl) { try { ctrl.abort(); } catch (e) {} }
+          reject(new Error('no response after ' + Math.round(ms / 1000) + 's'));
+        }, ms);
+      });
+      return Promise.race([req, out]).then(
+        function(v) { clearTimeout(timer); return v; },
+        function(e) { clearTimeout(timer); throw e; });
+    }
+
+    function setLoadingMsg(msg) {
+      var el = document.getElementById('lbLoadingMsg');
+      if (el) el.textContent = msg;
+    }
+
+    // Last successfully rendered standings, kept in localStorage so a return
+    // visit shows real numbers immediately (marked with their time) while the
+    // fresh pull runs in the background. Golf Genius being slow or down then
+    // never blanks the page.
+    var LAST_KEY = 'gg_last_' + GG.year;
+    function saveLastGood(jsonText, html) {
+      var rec = { t: Date.now(), tid: GG.tournamentId, json: jsonText, html: html || '' };
+      try { localStorage.setItem(LAST_KEY, JSON.stringify(rec)); }
+      catch (e) {
+        rec.html = '';                                   // too big for the quota → keep the JSON at least
+        try { localStorage.setItem(LAST_KEY, JSON.stringify(rec)); } catch (e2) {}
+      }
+    }
+    function showLastGood() {
+      var rec = null;
+      try { rec = JSON.parse(localStorage.getItem(LAST_KEY) || 'null'); } catch (e) {}
+      if (!rec || !rec.json || !rec.t) return false;
+      if (Date.now() - rec.t > 4 * 24 * 60 * 60 * 1000) return false;   // stale beyond the tournament
+      try {
+        var data = JSON.parse(rec.json);
+        if (!data.event) return false;
+        render(data, parseRoundHtml(rec.html || ''));
+        hasRendered = true;
+        var el = document.getElementById('lbUpdated');
+        var when = new Date(rec.t);
+        if (el) el.textContent = 'Updated ' + when.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) +
+                                 ' \u00b7 refreshing\u2026';
+        dbg('last-good snapshot', 'rendered standings saved ' + when.toLocaleString());
+        return true;
+      } catch (e) {
+        dbg('last-good snapshot', 'unusable: ' + (e && e.message || e));
+        return false;
+      }
+    }
+
     var activeFlightIndex = 0;
     var pollTimer = null;
     var isLive = false;
@@ -610,9 +674,13 @@
       var htmlUrl = GG.gasUrl + '?action=gg-html&id=' + GG.tournamentId;
 
       dbg('results url', jsonUrl);
+      if (!hasRendered) {
+        setLoadingMsg(attempt === 1 ? 'Loading standings\u2026'
+                                    : 'Golf Genius is slow to respond \u2014 retrying (' + attempt + ' of ' + MAX_TRIES + ')\u2026');
+      }
       Promise.all([
-        fetch(jsonUrl).then(function(r) { return r.text(); }),
-        fetch(htmlUrl).then(function(r) { return r.text(); })
+        fetchText(jsonUrl),
+        fetchText(htmlUrl).catch(function(e) { dbg('results html', 'unavailable: ' + (e && e.message || e)); return ''; })
       ])
       .then(function(results) {
         var jsonText = results[0];
@@ -627,6 +695,7 @@
             ', flights: ' + ((jsonData.event.scopes || []).length));
         render(jsonData, roundData);
         hasRendered = true;
+        saveLastGood(jsonText, results[1]);
         // checkTiebreakers(jsonData, roundData);  // disabled: playoffs are run by the pro, shown as "Playoff TBD"
         markUpdated();
         schedulePoll();
@@ -641,6 +710,9 @@
         }
         if (hasRendered) {
           dbg('load error', msg + ' → keeping last standings, will retry on next poll');
+          var upd = document.getElementById('lbUpdated');
+          if (upd) upd.textContent = upd.textContent.replace(/\s*\u00b7.*$/, '') + ' \u00b7 Golf Genius not responding, showing last saved';
+          if (!isLive) isLive = true;   // keep polling so it recovers on its own
           schedulePoll();
           return;
         }
@@ -845,6 +917,10 @@
       });
 
       document.getElementById('lbLoading').style.display = 'none';
+      document.getElementById('lbError').style.display = 'none';
+      document.getElementById('lbNotice').style.display = 'none';
+      var sbarShow = document.querySelector('.lb-status-bar');
+      if (sbarShow) sbarShow.style.display = '';
       document.getElementById('lbContent').style.display = 'block';
       initMobileExpand();
       initFlightArrows();
@@ -1273,7 +1349,8 @@
       document.getElementById('lbError').style.display = 'none';
       var sbar = document.querySelector('.lb-status-bar');
       if (sbar) sbar.style.display = 'none';   // nothing to show here until live
-      var host = document.getElementById('lbContent');
+      document.getElementById('lbContent').style.display = 'none';
+      var host = document.getElementById('lbNotice');
       host.style.display = 'block';
       host.innerHTML =
         '<div style="text-align:center;padding:64px 20px;max-width:560px;margin:0 auto;">' +
@@ -1294,7 +1371,10 @@
       if (sub) sub.textContent = 'Live results';
       var badge = document.getElementById('lbStatusBadge');
       if (badge) { badge.className = 'lb-badge live'; badge.textContent = GG.year + ' • Live'; }
-      var host = document.getElementById('lbContent');
+      var sbar = document.querySelector('.lb-status-bar');
+      if (sbar) sbar.style.display = '';
+      document.getElementById('lbContent').style.display = 'none';
+      var host = document.getElementById('lbNotice');
       host.style.display = 'block';
       host.innerHTML =
         '<div style="max-width:900px;margin:0 auto;">' +
@@ -1319,13 +1399,12 @@
       try { cached = localStorage.getItem(CACHE_KEY); } catch (e) {}
       if (cached) { GG.tournamentId = cached; dbg('tournament id', cached + ' (cached)'); loadStandings(); return; }
 
-      if (attempt === 1) showComingSoon();  // hold on Coming Soon until we know results exist
+      if (attempt === 1 && !hasRendered) showComingSoon();  // hold on Coming Soon until we know results exist
       var url = GG.gasUrl + '?action=gg-resolve&league=' + GG.leagueId +
                 '&page=' + GG.resultsPage +
                 '&exclude=' + [GG.leagueId, GG.resultsPage, '12929960966904364298'].join(',');
       dbg('resolve url', url);
-      fetch(url)
-        .then(function(r) { return r.text(); })
+      fetchText(url)
         .then(function(text) {
           dbg('resolve response', text);
           var res = null;
@@ -1339,7 +1418,7 @@
             loadStandings();
           } else if (res.ready) {
             dbg('resolve', 'ready but no tournament id could be extracted → portal fallback');
-            showPortalFallback();   // live, but no id extracted → native embed
+            if (!hasRendered) showPortalFallback();   // live, but no id extracted → native embed
           } else {
             dbg('resolve', 'not ready (GG has not published results yet) → Coming Soon');
           }
@@ -1351,6 +1430,7 @@
             setTimeout(function() { resolveTournament(attempt + 1); }, retryDelay(attempt));
             return;
           }
+          if (hasRendered) { dbg('resolve error', msg + ' → keeping last saved standings'); return; }
           dbg('resolve error', msg + ' → staying on Coming Soon');
         });
     }
@@ -1359,6 +1439,8 @@
     // Boot
     // ============================================================
     initFollow();
+    if (QS.get('reset') === '1') { try { localStorage.removeItem(LAST_KEY); } catch (e) {} }
+    showLastGood();                                      // instant standings from the last good pull, if any
     if (GG.live && GG.tournamentId) {
       loadStandings();                                   // manual override
     } else if (GG.goLiveDate && todayISO() < GG.goLiveDate) {
